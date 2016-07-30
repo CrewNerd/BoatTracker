@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/src/BoatTrackerBot/bin
+/src/BoatTrackerBot/obj/Debug
+/src/BoatTrackerBot/packages
+*.suo
