@@ -8,7 +8,7 @@ using System.Web.Http.Description;
 using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 
-namespace BoatTrackerBot
+namespace BoatTracker.Bot
 {
     [BotAuthentication]
     public class MessagesController : ApiController
