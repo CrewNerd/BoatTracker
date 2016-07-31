@@ -6,8 +6,11 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 
-using Microsoft.Bot.Connector;
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.Luis;
+using Microsoft.Bot.Connector;
+
+using BoatTracker.Bot.Configuration;
 
 namespace BoatTracker.Bot
 {
@@ -26,7 +29,7 @@ namespace BoatTracker.Bot
                 switch (activity.GetActivityType())
                 {
                     case ActivityTypes.Message:
-                        await Conversation.SendAsync(activity, () => new BoatTrackerDialog());
+                        await Conversation.SendAsync(activity, () => new BoatTrackerDialog(this.LuisService));
                         break;
 
                     case ActivityTypes.Ping:
@@ -43,6 +46,16 @@ namespace BoatTracker.Bot
             }
 
             return new HttpResponseMessage(HttpStatusCode.Accepted);
+        }
+
+        private ILuisService LuisService
+        {
+            get
+            {
+                EnvironmentDefinition env = EnvironmentDefinition.CreateFromEnvironment();
+
+                return new LuisService(new LuisModelAttribute(env.LuisModelId, env.LuisSubscriptionKey));
+            }
         }
     }
 }

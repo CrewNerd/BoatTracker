@@ -14,12 +14,20 @@ namespace BoatTracker.Bot.Configuration
     /// </remarks>
     public abstract class EnvironmentDefinition
     {
-        /// <summary>
-        /// Gets the expiration time for pending trigger items
-        /// </summary>
-        public abstract TimeSpan TriggerExpirationTime
+        public virtual string LuisModelId
         {
-            get;
+            get
+            {
+                return CloudConfigurationManager.GetSetting("LuisModelId");
+            }
+        }
+
+        public virtual string LuisSubscriptionKey
+        {
+            get
+            {
+                return CloudConfigurationManager.GetSetting("LuisSubscriptionKey");
+            }
         }
 
         /// <summary>
@@ -30,16 +38,18 @@ namespace BoatTracker.Bot.Configuration
         {
             const string HostnameEnvVar = "WEBSITE_HOSTNAME";
 
-            var hostName = Environment.GetEnvironmentVariable(HostnameEnvVar).Split('.').FirstOrDefault();
+            var hostName = Environment.GetEnvironmentVariable(HostnameEnvVar);
 
-            if (string.IsNullOrEmpty(hostName))
+            if (hostName == null)
             {
-                throw new ArgumentException("Current Environment could not be determined");
+                return new LocalEnvironmentDefinition();
             }
 
 #if true
             return new ProductionEnvironmentDefinition();
 #else
+            hostName = hostName.Split('.').FirstOrDefault();
+
             switch (hostName.ToUpperInvariant())
             {
                 case "MSBANDIFTTTCHANNEL-DEV":

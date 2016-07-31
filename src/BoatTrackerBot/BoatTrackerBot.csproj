@@ -152,6 +152,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Configuration\DevelopmentEnvironmentDefinition.cs" />
     <Compile Include="Configuration\EnvironmentDefinition.cs" />
+    <Compile Include="Configuration\LocalEnvironmentDefinition.cs" />
     <Compile Include="Configuration\ProductionEnvironmentDefinition.cs" />
     <Compile Include="Controllers\BoatTrackerDialog.cs" />
     <Compile Include="Controllers\MessagesController.cs" />

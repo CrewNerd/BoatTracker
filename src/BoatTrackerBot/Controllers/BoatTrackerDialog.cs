@@ -10,7 +10,6 @@ using Microsoft.Bot.Builder.Luis.Models;
 
 namespace BoatTracker.Bot
 {
-    [LuisModel("b85dc175-ebf1-450c-96a8-0f7ffe0fd1b7", "bccaeb74ae1648c7a7eb38debaa7de21")]
     [Serializable]
     public class BoatTrackerDialog : LuisDialog<object>
     {
@@ -19,6 +18,11 @@ namespace BoatTracker.Bot
         public const string EntityDuration = "DateTime::duration";
         public const string EntityBuiltinDateTime = "builtin.datetime.date";
         public const string EntityBuiltinDuration = "builtin.datetime.duration";
+
+        public BoatTrackerDialog(ILuisService service)
+            : base(service)
+        {
+        }
 
         [LuisIntent("")]
         public async Task None(IDialogContext context, LuisResult result)
