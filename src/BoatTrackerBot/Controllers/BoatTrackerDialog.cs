@@ -93,7 +93,6 @@ namespace BoatTracker.Bot
         [LuisIntent("CheckBoatAvailability")]
         public async Task CheckBoatAvailability(IDialogContext context, LuisResult result)
         {
-            await context.PostAsync("It sounds like you want to check on the availability of a boat");
             string boatName = this.FindBoatName(result);
 
             if (string.IsNullOrEmpty(boatName))
