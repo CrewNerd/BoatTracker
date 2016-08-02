@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Azure;
@@ -14,6 +15,16 @@ namespace BoatTracker.Bot.Configuration
     /// </remarks>
     public abstract class EnvironmentDefinition
     {
+        private const string LuisModelIdKey = "LuisModelId";
+        private const string LuisSubscriptionKeyKey = "LuisSubscriptionKey";
+        private const string ClubIdListKey = "ClubIdList";
+
+        // For the club details, we build the property key from a base followed by the club's ID.
+        private const string ClubNameBaseKey = "ClubName_";
+        private const string ClubUrlBaseKey = "ClubUrl_";
+        private const string ClubUserNameBaseKey = "ClubUserName_";
+        private const string ClubPasswordBaseKey = "ClubPassword_";
+
         public virtual string LuisModelId
         {
             get
@@ -27,6 +38,80 @@ namespace BoatTracker.Bot.Configuration
             get
             {
                 return CloudConfigurationManager.GetSetting("LuisSubscriptionKey");
+            }
+        }
+
+        private IEnumerable<string> clubIds;
+
+        /// <summary>
+        /// Gets a list of club id's that we're configured to talk to.
+        /// </summary>
+        public virtual IEnumerable<string> ClubIds
+        {
+            get
+            {
+                if (clubIds == null)
+                {
+                    var ids = CloudConfigurationManager.GetSetting(ClubIdListKey);
+
+                    if (string.IsNullOrEmpty(ids))
+                    {
+                        throw new ApplicationException("Missing club id list");
+                    }
+
+                    this.clubIds = ids.Split(',');
+                }
+
+                return this.clubIds;
+            }
+        }
+
+        private Dictionary<string, ClubInfo> mapClubIdToClubInfo;
+
+        /// <summary>
+        /// Gets a mapping from club id to its ClubInfo object.
+        /// </summary>
+        public virtual IDictionary<string, ClubInfo> MapClubIdToClubInfo
+        {
+            get
+            {
+                if (this.mapClubIdToClubInfo == null)
+                {
+                    this.mapClubIdToClubInfo = new Dictionary<string, ClubInfo>(this.ClubIds.Count());
+
+                    foreach (var id in this.ClubIds)
+                    {
+                        var name = CloudConfigurationManager.GetSetting(ClubNameBaseKey + id);
+                        if (string.IsNullOrEmpty(name))
+                        {
+                            throw new ApplicationException($"Missing name for club id '{id}'");
+                        }
+
+                        var url = CloudConfigurationManager.GetSetting(ClubUrlBaseKey + id);
+                        if (string.IsNullOrEmpty(url))
+                        {
+                            throw new ApplicationException($"Missing URL for club id '{id}'");
+                        }
+
+                        var username = CloudConfigurationManager.GetSetting(ClubUserNameBaseKey + id);
+                        if (string.IsNullOrEmpty(username))
+                        {
+                            throw new ApplicationException($"Missing user name for club id '{id}'");
+                        }
+
+                        var password = CloudConfigurationManager.GetSetting(ClubPasswordBaseKey + id);
+                        if (string.IsNullOrEmpty(password))
+                        {
+                            throw new ApplicationException($"Missing password for club id '{id}'");
+                        }
+
+                        this.mapClubIdToClubInfo.Add(
+                            id,
+                            new ClubInfo { Name = name, Url = url, UserName = username, Password = password });
+                    }
+                }
+
+                return this.mapClubIdToClubInfo;
             }
         }
 

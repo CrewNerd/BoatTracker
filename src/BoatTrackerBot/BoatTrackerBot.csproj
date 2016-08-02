@@ -150,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Configuration\ClubInfo.cs" />
     <Compile Include="Configuration\DevelopmentEnvironmentDefinition.cs" />
     <Compile Include="Configuration\EnvironmentDefinition.cs" />
     <Compile Include="Configuration\LocalEnvironmentDefinition.cs" />

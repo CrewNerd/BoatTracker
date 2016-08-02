@@ -1,9 +1,11 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using System.Diagnostics;
 using System.Web.Http;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
+using BoatTracker.Bot.Configuration;
 
 namespace BoatTracker.Bot
 {
@@ -32,6 +34,21 @@ namespace BoatTracker.Bot
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
+
+#if DEBUG
+            EnvironmentDefinition env = EnvironmentDefinition.CreateFromEnvironment();
+
+            foreach (var id in env.ClubIds)
+            {
+                var clubInfo = env.MapClubIdToClubInfo[id];
+
+                Trace.TraceInformation($"Club id: {id}");
+                Trace.TraceInformation($"    Name: {clubInfo.Name}");
+                Trace.TraceInformation($"    Url: {clubInfo.Url}");
+                Trace.TraceInformation($"    UserName: {clubInfo.UserName}");
+                Trace.TraceInformation($"    Password: {clubInfo.Password}");
+            }
+#endif
         }
     }
 }
