@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -12,7 +11,6 @@ using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Connector;
 
 using BoatTracker.Bot.Configuration;
-using System.Security.Claims;
 
 namespace BoatTracker.Bot
 {
@@ -29,18 +27,6 @@ namespace BoatTracker.Bot
             if (activity != null)
             {
                 Trace.TraceInformation("Message from: {0} / {1}", activity.From.Id, activity.From.Name);
-
-                var claimsPrincipal = this.RequestContext.Principal as ClaimsPrincipal;
-
-                if (claimsPrincipal != null)
-                {
-                    var identityClaim = claimsPrincipal.Claims.Where(c => c.Type == "aud").FirstOrDefault();
-
-                    if (identityClaim != null)
-                    {
-                        Trace.TraceInformation("Requester Id: {0}", identityClaim.Value);
-                    }
-                }
 
                 switch (activity.GetActivityType())
                 {

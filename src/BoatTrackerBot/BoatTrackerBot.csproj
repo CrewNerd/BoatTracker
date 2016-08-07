@@ -155,6 +155,7 @@
     <Compile Include="Configuration\EnvironmentDefinition.cs" />
     <Compile Include="Configuration\LocalEnvironmentDefinition.cs" />
     <Compile Include="Configuration\ProductionEnvironmentDefinition.cs" />
+    <Compile Include="Configuration\UserState.cs" />
     <Compile Include="Controllers\BoatTrackerDialog.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Global.asax.cs">
