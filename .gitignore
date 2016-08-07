@@ -6,3 +6,5 @@
 /src/BoatTrackerBot/obj/Debug
 /src/BoatTrackerBot/packages
 *.suo
+/src/Common/BookedScheduler/bin/Debug
+/src/Common/BookedScheduler/obj/Debug
