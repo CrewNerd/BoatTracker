@@ -7,5 +7,12 @@ namespace BoatTracker.Bot.Configuration
     /// </summary>
     public class ProductionEnvironmentDefinition : EnvironmentDefinition
     {
+        public override bool IsProduction
+        {
+            get
+            {
+                return true;
+            }
+        }
     }
 }

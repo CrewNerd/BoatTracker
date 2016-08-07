@@ -7,5 +7,12 @@ namespace BoatTracker.Bot.Configuration
     /// </summary>
     public class DevelopmentEnvironmentDefinition : EnvironmentDefinition
     {
+        public override bool IsDevelopment
+        {
+            get
+            {
+                return true;
+            }
+        }
     }
 }

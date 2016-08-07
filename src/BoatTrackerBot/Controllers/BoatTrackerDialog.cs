@@ -270,12 +270,15 @@ namespace BoatTracker.Bot
             // We haven't obtained the user's info before. See if we can find it now.
             EnvironmentDefinition env = EnvironmentDefinition.CreateFromEnvironment();
 
-            userState = await env.TryBuildStateForUser(userState.BotAccountKey);
+            var builtUserState = await env.TryBuildStateForUser(userState.BotAccountKey);
 
-            if (userState != null)
+            if (builtUserState != null)
             {
                 // The user just registered. Save their club info now so we don't have to
                 // do this lookup every time.
+                userState.ClubId = builtUserState.ClubId;
+                userState.UserId = builtUserState.UserId;
+
                 context.UserData.SetValue(UserState.PropertyName, userState);
                 return true;
             }

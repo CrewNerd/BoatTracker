@@ -26,6 +26,14 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        public override bool IsLocal
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         public override IEnumerable<string> ClubIds
         {
             get
