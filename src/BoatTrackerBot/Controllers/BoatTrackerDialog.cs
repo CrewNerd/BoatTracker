@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Web;
+using System.Web.Http.Controllers;
 
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
+
+using BoatTracker.Bot.Configuration;
 
 namespace BoatTracker.Bot
 {
@@ -20,14 +21,20 @@ namespace BoatTracker.Bot
         public const string EntityBuiltinTime = "builtin.datetime.time";
         public const string EntityBuiltinDuration = "builtin.datetime.duration";
 
+        private UserState currentUserState;
+
         public BoatTrackerDialog(ILuisService service)
             : base(service)
         {
         }
 
+        #region Intents
+
         [LuisIntent("")]
         public async Task None(IDialogContext context, LuisResult result)
         {
+            if (!await this.CheckUserIsRegistered(context)) { return; }
+
             string message = "Sorry I did not understand: " + string.Join(", ", result.Intents.Select(i => i.Intent));
             await context.PostAsync(message);
             context.Wait(MessageReceived);
@@ -36,6 +43,8 @@ namespace BoatTracker.Bot
         [LuisIntent("CreateReservation")]
         public async Task CreateReservation(IDialogContext context, LuisResult result)
         {
+            if (!await this.CheckUserIsRegistered(context)) { return; }
+
             var boatName = this.FindBoatName(result);
             var startDate = this.FindStartDate(result);
             var startTime = this.FindStartTime(result);
@@ -93,6 +102,8 @@ namespace BoatTracker.Bot
         [LuisIntent("CheckBoatAvailability")]
         public async Task CheckBoatAvailability(IDialogContext context, LuisResult result)
         {
+            if (!await this.CheckUserIsRegistered(context)) { return; }
+
             string boatName = this.FindBoatName(result);
 
             if (string.IsNullOrEmpty(boatName))
@@ -110,6 +121,8 @@ namespace BoatTracker.Bot
         [LuisIntent("Checkout")]
         public async Task Checkout(IDialogContext context, LuisResult result)
         {
+            if (!await this.CheckUserIsRegistered(context)) { return; }
+
             string boatName = this.FindBoatName(result);
 
             if (string.IsNullOrEmpty(boatName))
@@ -127,6 +140,8 @@ namespace BoatTracker.Bot
         [LuisIntent("Checkin")]
         public async Task Checkin(IDialogContext context, LuisResult result)
         {
+            if (!await this.CheckUserIsRegistered(context)) { return; }
+
             string boatName = this.FindBoatName(result);
 
             if (string.IsNullOrEmpty(boatName))
@@ -144,6 +159,8 @@ namespace BoatTracker.Bot
         [LuisIntent("CheckReservations")]
         public async Task CheckReservations(IDialogContext context, LuisResult result)
         {
+            if (!await this.CheckUserIsRegistered(context)) { return; }
+
             await context.PostAsync("It sounds like you want to check on your reservations but I don't know how to do that yet.");
             context.Wait(MessageReceived);
         }
@@ -151,9 +168,15 @@ namespace BoatTracker.Bot
         [LuisIntent("CancelReservation")]
         public async Task CancelReservation(IDialogContext context, LuisResult result)
         {
+            if (!await this.CheckUserIsRegistered(context)) { return; }
+
             await context.PostAsync("It sounds like you want to cancel a reservation but I don't know how to do that yet.");
             context.Wait(MessageReceived);
         }
+
+        #endregion
+
+        #region Entity Helpers
 
         private string FindBoatName(LuisResult result)
         {
@@ -219,5 +242,51 @@ namespace BoatTracker.Bot
 
             return TimeSpan.Zero;
         }
+
+        #endregion
+
+        #region Misc Helpers
+
+        private async Task<bool> CheckUserIsRegistered(IDialogContext context)
+        {
+            UserState userState = null;
+
+            //
+            // If we haven't seen the user before, establish their BotAccountKey and store it.
+            //
+            if (!context.UserData.TryGetValue(UserState.PropertyName, out userState))
+            {
+                userState = new UserState { BotAccountKey = Guid.NewGuid().ToString().Trim('{', '}') };
+                context.UserData.SetValue(UserState.PropertyName, userState);
+            }
+
+            if (userState.UserId != 0 && !string.IsNullOrEmpty(userState.ClubId))
+            {
+                // The user is fully registered
+                this.currentUserState = userState;
+                return true;
+            }
+
+            // We haven't obtained the user's info before. See if we can find it now.
+            EnvironmentDefinition env = EnvironmentDefinition.CreateFromEnvironment();
+
+            userState = await env.TryBuildStateForUser(userState.BotAccountKey);
+
+            if (userState != null)
+            {
+                // The user just registered. Save their club info now so we don't have to
+                // do this lookup every time.
+                context.UserData.SetValue(UserState.PropertyName, userState);
+                return true;
+            }
+            else
+            {
+                await context.PostAsync($"It looks like you haven't registered your Bot account with BookedScheduler yet. To connect your Skype account to BookedScheduler, please go to your BookedScheduler profile and set your '{UserState.BotAccountKeyDisplayName}' to {userState.BotAccountKey}.");
+                context.Wait(MessageReceived);
+                return false;
+            }
+        }
+
+        #endregion
     }
 }

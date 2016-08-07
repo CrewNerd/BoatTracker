@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Microsoft.Azure;
+using System.Threading.Tasks;
+using BoatTracker.BookedScheduler;
 
 namespace BoatTracker.Bot.Configuration
 {
@@ -113,6 +115,43 @@ namespace BoatTracker.Bot.Configuration
 
                 return this.mapClubIdToClubInfo;
             }
+        }
+
+        public async Task<UserState> TryBuildStateForUser(string userBotId)
+        {
+            foreach (var clubId in this.ClubIds)
+            {
+                var clubInfo = this.MapClubIdToClubInfo[clubId];
+
+                BookedSchedulerClient client = new BookedSchedulerClient(clubInfo.Url);
+
+                await client.SignIn(clubInfo.UserName, clubInfo.Password);
+
+                if (client.IsSignedIn)
+                {
+                    var users = await client.GetUsers();
+
+                    try
+                    {
+                        var user = users.Where(u => u["customAttributes"].Where(attr => attr.Value<string>("label") == UserState.BotAccountKeyDisplayName).First().Value<string>("value") == userBotId).FirstOrDefault();
+
+                        if (user != null)
+                        {
+                            return new UserState
+                            {
+                                ClubId = clubId,
+                                UserId = user.Value<long>("id")
+                            };
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        throw ex;
+                    }
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
