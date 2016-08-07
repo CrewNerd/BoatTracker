@@ -43,6 +43,12 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        public virtual bool IsLocal { get { return false; } }
+
+        public virtual bool IsDevelopment { get { return false; } }
+
+        public virtual bool IsProduction { get { return false; } }
+
         private IEnumerable<string> clubIds;
 
         /// <summary>
@@ -169,23 +175,14 @@ namespace BoatTracker.Bot.Configuration
                 return new LocalEnvironmentDefinition();
             }
 
-#if true
-            return new ProductionEnvironmentDefinition();
-#else
             hostName = hostName.Split('.').FirstOrDefault();
 
             switch (hostName.ToUpperInvariant())
             {
-                case "MSBANDIFTTTCHANNEL-DEV":
-                case "MSBANDIFTTTMOBILE-DEV":
+                case "BOATTRACKERBOT":
                     return new DevelopmentEnvironmentDefinition();
 
-                case "MSBANDIFTTTCHANNEL-STG":
-                case "MSBANDIFTTTMOBILE-STG":
-                    return new StagingEnvironmentDefinition();
-
-                case "MSBANDIFTTTCHANNEL":
-                case "MSBANDIFTTTMOBILE":
+                case "BOATTRACKERBOT-PROD":
                     return new ProductionEnvironmentDefinition();
 
                 default:
@@ -195,7 +192,6 @@ namespace BoatTracker.Bot.Configuration
                             "Environment {0} does not have a corresponding Environment definition defined",
                             hostName));
             }
-#endif
         }
     }
 }
