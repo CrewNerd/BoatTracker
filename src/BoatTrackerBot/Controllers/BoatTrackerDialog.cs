@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
-
-using Newtonsoft.Json.Linq;
-using NodaTime.TimeZones;
 
 using BoatTracker.Bot.Configuration;
 using BoatTracker.BookedScheduler;
@@ -185,7 +181,7 @@ namespace BoatTracker.Bot
             }
             else
             {
-                string reservationDescription = await this.DescribeReservations(reservations);
+                string reservationDescription = await Helpers.DescribeReservationsAsync(this.currentUserState, reservations);
                 await context.PostAsync($"I found the following reservations:\r\n---{reservationDescription}");
             }
 
@@ -349,40 +345,6 @@ namespace BoatTracker.Bot
             return this.cachedClient;
         }
 
-        private async Task<string> DescribeReservations(JArray reservations)
-        {
-            StringBuilder sb = new StringBuilder();
-
-            foreach (var reservation in reservations)
-            {
-                DateTime startDate = DateTime.Parse(reservation.Value<string>("startDate"));
-                startDate = this.ConvertToLocalTime(this.currentUserState, startDate);
-                var duration = reservation.Value<string>("duration");
-
-                var boatName = await BookedSchedulerCache
-                    .Instance[this.currentUserState.ClubId]
-                    .GetResourceNameFromIdAsync(reservation.Value<long>("resourceId"));
-
-                sb.AppendFormat("\r\n\r\n**{0} {1}** {2} *({3})*", startDate.ToLocalTime().ToString("d"), startDate.ToLocalTime().ToString("t"), boatName, duration);
-            }
-
-            return sb.ToString();
-        }
-
-        private DateTime ConvertToLocalTime(UserState userState, DateTime dateTime)
-        {
-            var mappings = TzdbDateTimeZoneSource.Default.WindowsMapping.MapZones;
-            var mappedTz = mappings.FirstOrDefault(x => x.TzdbIds.Any(z => z.Equals(userState.Timezone, StringComparison.OrdinalIgnoreCase)));
-
-            if (mappedTz == null)
-            {
-                return dateTime;
-            }
-
-            var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(mappedTz.WindowsId);
-            return dateTime + tzInfo.GetUtcOffset(dateTime);
-        }
-
-        #endregion
+#endregion
     }
 }
