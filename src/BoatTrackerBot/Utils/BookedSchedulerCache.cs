@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json.Linq;
@@ -114,16 +115,26 @@ namespace BoatTracker.Bot.Utils
 
             private async Task EnsureCacheIsCurrentAsync()
             {
-                if (this.timestamp + CacheTimeout > DateTime.Now)
+                if (this.timestamp + CacheTimeout < DateTime.Now)
+                {
+                    await this.RefreshCacheAsync();
+                }
+            }
+
+            private long RefreshInProgress = 0;
+
+            private async Task RefreshCacheAsync()
+            {
+                //
+                // If there's a refresh in progress on another thread, we return and let
+                // the caller proceed with date that's soon to be replaced. The priority
+                // is to ensure that two threads aren't updating the cache at once.
+                //
+                if (Interlocked.CompareExchange(ref this.RefreshInProgress, 1, 0) != 0)
                 {
                     return;
                 }
 
-                await this.RefreshCacheAsync();
-            }
-
-            private async Task RefreshCacheAsync()
-            {
                 var clubInfo = env.MapClubIdToClubInfo[this.clubId];
 
                 BookedSchedulerClient client = new BookedSchedulerClient(clubInfo.Url);
@@ -136,6 +147,7 @@ namespace BoatTracker.Bot.Utils
                 this.schedules = await client.GetSchedules();
 
                 this.timestamp = DateTime.Now;
+                this.RefreshInProgress = 0;
             }
 
             #endregion
