@@ -43,6 +43,14 @@ namespace BoatTracker.BookedScheduler
 
         public bool IsSignedIn { get { return this.isSignedIn; } }
 
+        public bool IsSessionExpired
+        {
+            get
+            {
+                return DateTime.Now + TimeSpan.FromMinutes(2) > this.sessionExpires;
+            }
+        }
+
         #region Authentication
 
         public async Task SignIn(string userName, string password)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace BoatTracker.Bot.Configuration
 {
+    [Serializable]
     public class UserState
     {
         public const string PropertyName = "userState";
@@ -17,5 +18,9 @@ namespace BoatTracker.Bot.Configuration
         public long UserId { get; set; }
 
         public string BotAccountKey { get; set; }
+
+        public string Timezone { get; set; }
+
+        public DateTime Timestamp { get; set; }
     }
 }
