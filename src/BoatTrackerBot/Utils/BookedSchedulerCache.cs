@@ -1,0 +1,144 @@
+﻿using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using System.Threading.Tasks;
+
+using Newtonsoft.Json.Linq;
+
+using BoatTracker.BookedScheduler;
+using BoatTracker.Bot.Configuration;
+
+namespace BoatTracker.Bot.Utils
+{
+    public class BookedSchedulerCache
+    {
+        private static BookedSchedulerCache instance;
+
+        private static EnvironmentDefinition env;
+
+        static BookedSchedulerCache()
+        {
+            instance = new BookedSchedulerCache();
+            env = EnvironmentDefinition.CreateFromEnvironment();
+        }
+
+        public static BookedSchedulerCache Instance
+        {
+            get { return instance; }
+        }
+
+        private BookedSchedulerCache()
+        {
+            this.entries = new ConcurrentDictionary<string, BookedSchedulerCacheEntry>();
+        }
+
+        private ConcurrentDictionary<string, BookedSchedulerCacheEntry> entries;
+
+        public BookedSchedulerCacheEntry this[string clubId]
+        {
+            get
+            {
+                if (!entries.ContainsKey(clubId))
+                {
+                    var newEntry = new BookedSchedulerCacheEntry(clubId);
+                    this.entries.TryAdd(clubId, newEntry);
+                }
+
+                return this.entries[clubId];
+            }
+        }
+
+        public class BookedSchedulerCacheEntry
+        {
+            private readonly TimeSpan CacheTimeout = TimeSpan.FromHours(8);
+
+            private string clubId;
+
+            private JArray resources;
+
+            private JArray users;
+
+            private JArray groups;
+
+            private JArray schedules;
+
+            private DateTime timestamp;
+
+            public BookedSchedulerCacheEntry(string clubId)
+            {
+                this.clubId = clubId;
+            }
+
+            #region Cache accessor methods
+
+            public async Task<JArray> GetResourcesAsync()
+            {
+                await this.EnsureCacheIsCurrentAsync();
+                return this.resources;
+            }
+
+            public async Task<JArray> GetUsersAsync()
+            {
+                await this.EnsureCacheIsCurrentAsync();
+                return this.users;
+            }
+
+            public async Task<JArray> GetGroupsAsync()
+            {
+                await this.EnsureCacheIsCurrentAsync();
+                return this.groups;
+            }
+
+            public async Task<JArray> GetSchedulesAsync()
+            {
+                await this.EnsureCacheIsCurrentAsync();
+                return this.schedules;
+            }
+
+            #endregion
+
+            #region Public utility methods
+
+            public async Task<string> GetResourceNameFromIdAsync(long id)
+            {
+                var resources = await this.GetResourcesAsync();
+
+                var resource = resources.FirstOrDefault(r => r.Value<long>("resourceId") == id);
+
+                return resource != null ? resource.Value<string>("name") : "**Unknown!**";
+            }
+
+            #endregion
+
+            #region Cache management
+
+            private async Task EnsureCacheIsCurrentAsync()
+            {
+                if (this.timestamp + CacheTimeout > DateTime.Now)
+                {
+                    return;
+                }
+
+                await this.RefreshCacheAsync();
+            }
+
+            private async Task RefreshCacheAsync()
+            {
+                var clubInfo = env.MapClubIdToClubInfo[this.clubId];
+
+                BookedSchedulerClient client = new BookedSchedulerClient(clubInfo.Url);
+
+                await client.SignIn(clubInfo.UserName, clubInfo.Password);
+
+                this.resources = await client.GetResources();
+                this.users = await client.GetUsers();
+                this.groups = await client.GetGroups();
+                this.schedules = await client.GetSchedules();
+
+                this.timestamp = DateTime.Now;
+            }
+
+            #endregion
+        }
+    }
+}

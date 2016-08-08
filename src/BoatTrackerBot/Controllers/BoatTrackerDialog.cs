@@ -12,6 +12,7 @@ using NodaTime.TimeZones;
 
 using BoatTracker.Bot.Configuration;
 using BoatTracker.BookedScheduler;
+using BoatTracker.Bot.Utils;
 
 namespace BoatTracker.Bot
 {
@@ -184,7 +185,8 @@ namespace BoatTracker.Bot
             }
             else
             {
-                await context.PostAsync($"I found the following reservations:\r\n---{this.DescribeReservations(reservations)}");
+                string reservationDescription = await this.DescribeReservations(reservations);
+                await context.PostAsync($"I found the following reservations:\r\n---{reservationDescription}");
             }
 
             context.Wait(MessageReceived);
@@ -347,7 +349,7 @@ namespace BoatTracker.Bot
             return this.cachedClient;
         }
 
-        private string DescribeReservations(JArray reservations)
+        private async Task<string> DescribeReservations(JArray reservations)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -357,7 +359,11 @@ namespace BoatTracker.Bot
                 startDate = this.ConvertToLocalTime(this.currentUserState, startDate);
                 var duration = reservation.Value<string>("duration");
 
-                sb.AppendFormat("\r\n\r\n**{0} {1}** {2} *({3})*", startDate.ToLocalTime().ToString("d"), startDate.ToLocalTime().ToString("t"), "boat name", duration);
+                var boatName = await BookedSchedulerCache
+                    .Instance[this.currentUserState.ClubId]
+                    .GetResourceNameFromIdAsync(reservation.Value<long>("resourceId"));
+
+                sb.AppendFormat("\r\n\r\n**{0} {1}** {2} *({3})*", startDate.ToLocalTime().ToString("d"), startDate.ToLocalTime().ToString("t"), boatName, duration);
             }
 
             return sb.ToString();
