@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Microsoft.Azure;
 using System.Threading.Tasks;
+
+using Microsoft.Azure;
+
 using BoatTracker.BookedScheduler;
 
 namespace BoatTracker.Bot.Configuration
@@ -146,7 +148,8 @@ namespace BoatTracker.Bot.Configuration
                             return new UserState
                             {
                                 ClubId = clubId,
-                                UserId = user.Value<long>("id")
+                                UserId = user.Value<long>("id"),
+                                Timezone = user.Value<string>("timezone")
                             };
                         }
                     }

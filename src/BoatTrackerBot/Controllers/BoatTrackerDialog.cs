@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using System.Web.Http.Controllers;
 
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
 
+using Newtonsoft.Json.Linq;
+using NodaTime.TimeZones;
+
 using BoatTracker.Bot.Configuration;
+using BoatTracker.BookedScheduler;
 
 namespace BoatTracker.Bot
 {
@@ -21,7 +25,14 @@ namespace BoatTracker.Bot
         public const string EntityBuiltinTime = "builtin.datetime.time";
         public const string EntityBuiltinDuration = "builtin.datetime.duration";
 
+        [NonSerialized]
         private UserState currentUserState;
+
+        [NonSerialized]
+        private BookedSchedulerClient cachedClient;
+
+        [NonSerialized]
+        private EnvironmentDefinition env;
 
         public BoatTrackerDialog(ILuisService service)
             : base(service)
@@ -161,7 +172,21 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            await context.PostAsync("It sounds like you want to check on your reservations but I don't know how to do that yet.");
+            var client = await this.GetClient();
+
+            var reservations = await client.GetReservationsForUser(this.currentUserState.UserId);
+
+            // TODO: check for entities that suggest filtering by date or resource name
+
+            if (reservations.Count == 0)
+            {
+                await context.PostAsync($"I don't see any reservations for you, currently.");
+            }
+            else
+            {
+                await context.PostAsync($"I found the following reservations:\r\n---{this.DescribeReservations(reservations)}");
+            }
+
             context.Wait(MessageReceived);
         }
 
@@ -247,6 +272,19 @@ namespace BoatTracker.Bot
 
         #region Misc Helpers
 
+        private EnvironmentDefinition Env
+        {
+            get
+            {
+                if (this.env == null)
+                {
+                    this.env = EnvironmentDefinition.CreateFromEnvironment();
+                }
+
+                return this.env;
+            }
+        }
+
         private async Task<bool> CheckUserIsRegistered(IDialogContext context)
         {
             UserState userState = null;
@@ -260,17 +298,16 @@ namespace BoatTracker.Bot
                 context.UserData.SetValue(UserState.PropertyName, userState);
             }
 
-            if (userState.UserId != 0 && !string.IsNullOrEmpty(userState.ClubId))
+            // Check that the user state is complete and has been refreshed in the last 2 days
+            if (userState.UserId != 0 && !string.IsNullOrEmpty(userState.ClubId)
+                && userState.Timestamp != null && userState.Timestamp + TimeSpan.FromDays(2) > DateTime.Now)
             {
-                // The user is fully registered
+                // The user is fully registered and their data is reasonably current
                 this.currentUserState = userState;
                 return true;
             }
 
-            // We haven't obtained the user's info before. See if we can find it now.
-            EnvironmentDefinition env = EnvironmentDefinition.CreateFromEnvironment();
-
-            var builtUserState = await env.TryBuildStateForUser(userState.BotAccountKey);
+            var builtUserState = await this.Env.TryBuildStateForUser(userState.BotAccountKey);
 
             if (builtUserState != null)
             {
@@ -278,8 +315,11 @@ namespace BoatTracker.Bot
                 // do this lookup every time.
                 userState.ClubId = builtUserState.ClubId;
                 userState.UserId = builtUserState.UserId;
+                userState.Timezone = builtUserState.Timezone;
+                userState.Timestamp = DateTime.Now;
 
                 context.UserData.SetValue(UserState.PropertyName, userState);
+                this.currentUserState = userState;
                 return true;
             }
             else
@@ -288,6 +328,53 @@ namespace BoatTracker.Bot
                 context.Wait(MessageReceived);
                 return false;
             }
+        }
+
+        private async Task<BookedSchedulerClient> GetClient()
+        {
+            var clubInfo = this.Env.MapClubIdToClubInfo[this.currentUserState.ClubId];
+
+            if (this.cachedClient == null)
+            {
+                this.cachedClient = new BookedSchedulerClient(clubInfo.Url);
+            }
+
+            if (!this.cachedClient.IsSignedIn || this.cachedClient.IsSessionExpired)
+            {
+                await this.cachedClient.SignIn(clubInfo.UserName, clubInfo.Password);
+            }
+
+            return this.cachedClient;
+        }
+
+        private string DescribeReservations(JArray reservations)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var reservation in reservations)
+            {
+                DateTime startDate = DateTime.Parse(reservation.Value<string>("startDate"));
+                startDate = this.ConvertToLocalTime(this.currentUserState, startDate);
+                var duration = reservation.Value<string>("duration");
+
+                sb.AppendFormat("\r\n\r\n**{0} {1}** {2} *({3})*", startDate.ToLocalTime().ToString("d"), startDate.ToLocalTime().ToString("t"), "boat name", duration);
+            }
+
+            return sb.ToString();
+        }
+
+        private DateTime ConvertToLocalTime(UserState userState, DateTime dateTime)
+        {
+            var mappings = TzdbDateTimeZoneSource.Default.WindowsMapping.MapZones;
+            var mappedTz = mappings.FirstOrDefault(x => x.TzdbIds.Any(z => z.Equals(userState.Timezone, StringComparison.OrdinalIgnoreCase)));
+
+            if (mappedTz == null)
+            {
+                return dateTime;
+            }
+
+            var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(mappedTz.WindowsId);
+            return dateTime + tzInfo.GetUtcOffset(dateTime);
         }
 
         #endregion
