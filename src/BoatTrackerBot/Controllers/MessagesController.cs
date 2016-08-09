@@ -54,9 +54,10 @@ namespace BoatTracker.Bot
         {
             get
             {
-                EnvironmentDefinition env = EnvironmentDefinition.CreateFromEnvironment();
-
-                return new LuisService(new LuisModelAttribute(env.LuisModelId, env.LuisSubscriptionKey));
+                return new LuisService(
+                    new LuisModelAttribute(
+                        EnvironmentDefinition.Instance.LuisModelId,
+                        EnvironmentDefinition.Instance.LuisSubscriptionKey));
             }
         }
     }

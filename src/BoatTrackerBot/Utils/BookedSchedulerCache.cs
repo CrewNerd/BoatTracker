@@ -13,20 +13,12 @@ namespace BoatTracker.Bot.Utils
 {
     public class BookedSchedulerCache
     {
-        private static BookedSchedulerCache instance;
-
-        private static EnvironmentDefinition env;
-
         static BookedSchedulerCache()
         {
-            instance = new BookedSchedulerCache();
-            env = EnvironmentDefinition.CreateFromEnvironment();
+            Instance = new BookedSchedulerCache();
         }
 
-        public static BookedSchedulerCache Instance
-        {
-            get { return instance; }
-        }
+        public static BookedSchedulerCache Instance { get; private set; }
 
         private BookedSchedulerCache()
         {
@@ -135,7 +127,7 @@ namespace BoatTracker.Bot.Utils
                     return;
                 }
 
-                var clubInfo = env.MapClubIdToClubInfo[this.clubId];
+                var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.clubId];
 
                 BookedSchedulerClient client = new BookedSchedulerClient(clubInfo.Url);
 

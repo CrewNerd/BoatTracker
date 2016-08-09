@@ -28,9 +28,6 @@ namespace BoatTracker.Bot
         [NonSerialized]
         private BookedSchedulerClient cachedClient;
 
-        [NonSerialized]
-        private EnvironmentDefinition env;
-
         public BoatTrackerDialog(ILuisService service)
             : base(service)
         {
@@ -270,19 +267,6 @@ namespace BoatTracker.Bot
 
         #region Misc Helpers
 
-        private EnvironmentDefinition Env
-        {
-            get
-            {
-                if (this.env == null)
-                {
-                    this.env = EnvironmentDefinition.CreateFromEnvironment();
-                }
-
-                return this.env;
-            }
-        }
-
         private async Task<bool> CheckUserIsRegistered(IDialogContext context)
         {
             UserState userState = null;
@@ -305,7 +289,7 @@ namespace BoatTracker.Bot
                 return true;
             }
 
-            var builtUserState = await this.Env.TryBuildStateForUser(userState.BotAccountKey);
+            var builtUserState = await EnvironmentDefinition.Instance.TryBuildStateForUser(userState.BotAccountKey);
 
             if (builtUserState != null)
             {
@@ -330,7 +314,7 @@ namespace BoatTracker.Bot
 
         private async Task<BookedSchedulerClient> GetClient()
         {
-            var clubInfo = this.Env.MapClubIdToClubInfo[this.currentUserState.ClubId];
+            var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.currentUserState.ClubId];
 
             if (this.cachedClient == null)
             {
@@ -345,6 +329,6 @@ namespace BoatTracker.Bot
             return this.cachedClient;
         }
 
-#endregion
+        #endregion
     }
 }
