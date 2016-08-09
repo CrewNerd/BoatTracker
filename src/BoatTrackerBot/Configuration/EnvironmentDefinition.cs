@@ -13,10 +13,6 @@ namespace BoatTracker.Bot.Configuration
     /// <summary>
     /// Represents the configuration necessary to operate in an environment.
     /// </summary>
-    /// <remarks>
-    /// This class should only contain members that differ from environment to environment or might differ in the
-    /// future.
-    /// </remarks>
     public abstract class EnvironmentDefinition
     {
         private const string LuisModelIdKey = "LuisModelId";
@@ -28,6 +24,13 @@ namespace BoatTracker.Bot.Configuration
         private const string ClubUrlBaseKey = "ClubUrl_";
         private const string ClubUserNameBaseKey = "ClubUserName_";
         private const string ClubPasswordBaseKey = "ClubPassword_";
+
+        static EnvironmentDefinition()
+        {
+            Instance = EnvironmentDefinition.CreateFromEnvironment();
+        }
+
+        public static EnvironmentDefinition Instance { get; private set; }
 
         public virtual string LuisModelId
         {
@@ -167,7 +170,7 @@ namespace BoatTracker.Bot.Configuration
         /// Create an environment definition from the environment environment variable.
         /// </summary>
         /// <returns>The created environment definition.</returns>
-        public static EnvironmentDefinition CreateFromEnvironment()
+        private static EnvironmentDefinition CreateFromEnvironment()
         {
             const string HostnameEnvVar = "WEBSITE_HOSTNAME";
 

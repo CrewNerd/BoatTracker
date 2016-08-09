@@ -45,7 +45,7 @@ namespace BoatTracker.Bot
 
         private static async Task RunTests()
         {
-            EnvironmentDefinition env = EnvironmentDefinition.CreateFromEnvironment();
+            var env = EnvironmentDefinition.Instance;
 
             foreach (var id in env.ClubIds)
             {
