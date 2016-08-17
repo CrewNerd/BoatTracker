@@ -109,7 +109,7 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            string boatName = this.FindBoatName(result);
+            string boatName = await this.FindBoatName(result);
 
             if (string.IsNullOrEmpty(boatName))
             {
@@ -128,7 +128,7 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            string boatName = this.FindBoatName(result);
+            string boatName = await this.FindBoatName(result);
 
             if (string.IsNullOrEmpty(boatName))
             {
@@ -147,7 +147,7 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            string boatName = this.FindBoatName(result);
+            string boatName = await this.FindBoatName(result);
 
             if (string.IsNullOrEmpty(boatName))
             {
@@ -178,7 +178,7 @@ namespace BoatTracker.Bot
             }
             else
             {
-                string reservationDescription = await Helpers.DescribeReservationsAsync(this.currentUserState, reservations);
+                string reservationDescription = await this.currentUserState.DescribeReservationsAsync(reservations);
                 await context.PostAsync($"I found the following reservations:\r\n---{reservationDescription}");
             }
 
@@ -198,13 +198,13 @@ namespace BoatTracker.Bot
 
         #region Entity Helpers
 
-        private string FindBoatName(LuisResult result)
+        private async Task<string> FindBoatName(LuisResult result)
         {
-            EntityRecommendation boatName;
+            var bestResource = await this.currentUserState.FindBestResourceMatchAsync(result.Entities);
 
-            if (result.TryFindEntity(EntityBoatName, out boatName))
+            if (bestResource != null)
             {
-                return boatName.Entity;
+                return bestResource.Value<string>("name");
             }
 
             return null;
