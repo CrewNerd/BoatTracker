@@ -15,7 +15,7 @@ namespace BoatTracker.Bot.Utils
 {
     public static class UserStateExtensions
     {
-        public static async Task<string> DescribeReservationsAsync(this UserState userState, JArray reservations)
+        public static async Task<string> DescribeReservationsAsync(this UserState userState, IList<JToken> reservations)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -46,6 +46,12 @@ namespace BoatTracker.Bot.Utils
         public static async Task<JToken> FindBestResourceMatchAsync(this UserState userState, IList<EntityRecommendation> entities)
         {
             var entityWords = entities.Where(e => e.Type == "boatName").SelectMany(e => e.Entity.ToLower().Split(' ')).ToList();
+
+            if (entityWords.Count == 0)
+            {
+                return null;
+            }
+
             var resources = await BookedSchedulerCache.Instance[userState.ClubId].GetResourcesAsync();
 
             var boat = resources.FirstOrDefault((b) => PerfectMatchBoat(entityWords, b));
