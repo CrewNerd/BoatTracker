@@ -6,6 +6,8 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
 
+using Newtonsoft.Json.Linq;
+
 using BoatTracker.Bot.Configuration;
 using BoatTracker.BookedScheduler;
 using BoatTracker.Bot.Utils;
@@ -168,18 +170,47 @@ namespace BoatTracker.Bot
 
             var client = await this.GetClient();
 
-            var reservations = await client.GetReservationsForUser(this.currentUserState.UserId);
+            var reservations = (await client.GetReservationsForUser(this.currentUserState.UserId)).ToList();
 
-            // TODO: check for entities that suggest filtering by date or resource name
+            string filterDescription = string.Empty;
+
+            //
+            // Check for (and apply) a boat name filter
+            //
+            var boat = await this.FindBoat(result);
+
+            if (boat != null)
+            {
+                reservations = reservations
+                    .Where(r => r.Value<string>("resourceId") == boat.Value<string>("resourceId"))
+                    .ToList();
+
+                filterDescription = $" for the {boat.Value<string>("name")}";
+            }
+            else
+            {
+                filterDescription = " for you";
+            }
+
+            var startDate = this.FindStartDate(result);
+
+            if (startDate != DateTime.MinValue)
+            {
+                reservations = reservations
+                    .Where(r => DateTime.Parse(r.Value<string>("startDate")).DayOfYear == startDate.DayOfYear)
+                    .ToList();
+
+                filterDescription += $" on {startDate.ToShortDateString()}";
+            }
 
             if (reservations.Count == 0)
             {
-                await context.PostAsync($"I don't see any reservations for you, currently.");
+                await context.PostAsync($"I don't see any reservations {filterDescription}, currently.");
             }
             else
             {
                 string reservationDescription = await this.currentUserState.DescribeReservationsAsync(reservations);
-                await context.PostAsync($"I found the following reservations:\r\n---{reservationDescription}");
+                await context.PostAsync($"I found the following reservation{this.Pluralize(reservations.Count)}{filterDescription}:\r\n---{reservationDescription}");
             }
 
             context.Wait(MessageReceived);
@@ -210,6 +241,11 @@ namespace BoatTracker.Bot
             return null;
         }
 
+        private async Task<JToken> FindBoat(LuisResult result)
+        {
+            return await this.currentUserState.FindBestResourceMatchAsync(result.Entities);
+        }
+
         private DateTime FindStartDate(LuisResult result)
         {
             EntityRecommendation builtinDate = null;
@@ -219,6 +255,21 @@ namespace BoatTracker.Bot
             {
                 var parser = new Chronic.Parser();
                 var span = parser.Parse(builtinDate.Entity);
+
+                if (span != null)
+                {
+                    var when = span.Start ?? span.End;
+                    return when.Value;
+                }
+            }
+
+            EntityRecommendation startDate = null;
+            result.TryFindEntity(EntityStart, out startDate);
+
+            if (startDate != null)
+            {
+                var parser = new Chronic.Parser();
+                var span = parser.Parse(startDate.Entity);
 
                 if (span != null)
                 {
@@ -329,6 +380,11 @@ namespace BoatTracker.Bot
             return this.cachedClient;
         }
 
-        #endregion
+        private string Pluralize(int count)
+        {
+            return count > 1 ? "s" : string.Empty;
+        }
+
+#endregion
     }
 }
