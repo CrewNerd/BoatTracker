@@ -192,7 +192,16 @@ namespace BoatTracker.Bot
                 filterDescription = " for you";
             }
 
-            // TODO: add filtering by date and maybe time
+            var startDate = this.FindStartDate(result);
+
+            if (startDate != DateTime.MinValue)
+            {
+                reservations = reservations
+                    .Where(r => DateTime.Parse(r.Value<string>("startDate")).DayOfYear == startDate.DayOfYear)
+                    .ToList();
+
+                filterDescription += $" on {startDate.ToShortDateString()}";
+            }
 
             if (reservations.Count == 0)
             {
@@ -246,6 +255,21 @@ namespace BoatTracker.Bot
             {
                 var parser = new Chronic.Parser();
                 var span = parser.Parse(builtinDate.Entity);
+
+                if (span != null)
+                {
+                    var when = span.Start ?? span.End;
+                    return when.Value;
+                }
+            }
+
+            EntityRecommendation startDate = null;
+            result.TryFindEntity(EntityStart, out startDate);
+
+            if (startDate != null)
+            {
+                var parser = new Chronic.Parser();
+                var span = parser.Parse(startDate.Entity);
 
                 if (span != null)
                 {
