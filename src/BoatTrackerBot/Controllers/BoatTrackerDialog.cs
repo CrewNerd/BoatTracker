@@ -6,11 +6,11 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
 
+using Newtonsoft.Json.Linq;
+
 using BoatTracker.Bot.Configuration;
 using BoatTracker.BookedScheduler;
 using BoatTracker.Bot.Utils;
-using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
 
 namespace BoatTracker.Bot
 {
