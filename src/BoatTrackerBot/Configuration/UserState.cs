@@ -22,5 +22,7 @@ namespace BoatTracker.Bot.Configuration
         public string Timezone { get; set; }
 
         public DateTime Timestamp { get; set; }
+
+        public bool HelpMessageShown { get; set; }
     }
 }
