@@ -42,8 +42,18 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            string message = "Sorry I did not understand: " + string.Join(", ", result.Intents.Select(i => i.Intent));
-            await context.PostAsync(message);
+            bool forceHelp = result.Query.ToLower().Contains("help");
+
+            if (forceHelp || !this.currentUserState.HelpMessageShown)
+            {
+                await this.ShowHelpMessage(context);
+            }
+            else
+            {
+                string message = "I'm sorry, I don't understand. Enter 'help' to see what you can say.";
+                await context.PostAsync(message);
+            }
+
             context.Wait(MessageReceived);
         }
 
@@ -378,6 +388,31 @@ namespace BoatTracker.Bot
             }
 
             return this.cachedClient;
+        }
+
+        private async Task ShowHelpMessage(IDialogContext context)
+        {
+            await context.PostAsync(
+                "I can help you with:\n\n" +
+                "## Checking the availability of a boat\n\n" +
+                "* Is the Little Thunder available on Thursday?\n\n" +
+                "## Creating a reservation\n\n" +
+                "* Reserve the Little Thunder on Thursday at 5am for 2 hours\n\n" +
+                "## Canceling a reservation\n\n" +
+                "* Cancel my reservation for the Little Thunder\n\n" +
+                "## Reviewing reservations\n\n" +
+                "* Show my reservations\n" +
+                "* Did I reserve the Little Thunder?\n" +
+                "* Show my reservation for the Little Thunder on Friday\n\n" +
+                "## Checking out a boat\n\n" +
+                "* Check out the Little Thunder for two hours\n\n" +
+                "## Checking in a boat\n\n" +
+                "* Check in\n" +
+                "* Check in the Little Thunder"
+            );
+
+            this.currentUserState.HelpMessageShown = true;
+            context.UserData.SetValue(UserState.PropertyName, this.currentUserState);
         }
 
         private string Pluralize(int count)
