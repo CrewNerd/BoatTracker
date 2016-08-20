@@ -63,28 +63,28 @@ namespace BoatTracker.Bot
 
             await client.SignIn(testClub.UserName, testClub.Password);
 
-            var users = await client.GetUsers();
+            var users = await client.GetUsersAsync();
             var firstUser = users.First();
-            var user = await client.GetUser((string)firstUser["id"]);
+            var user = await client.GetUserAsync((string)firstUser["id"]);
 
-            var resources = await client.GetResources();
+            var resources = await client.GetResourcesAsync();
             var firstBoat = resources.First();
-            var boat = await client.GetResource((string)firstBoat["resourceId"]);
+            var boat = await client.GetResourceAsync((string)firstBoat["resourceId"]);
 
-            var groups = await client.GetGroups();
+            var groups = await client.GetGroupsAsync();
             var firstGroup = groups.First();
-            var group = await client.GetGroup((string)firstGroup["id"]);
+            var group = await client.GetGroupAsync((string)firstGroup["id"]);
 
-            var schedules = await client.GetSchedules();
+            var schedules = await client.GetSchedulesAsync();
             var firstSchedule = schedules.First();
-            var schedule = await client.GetSchedule((string)firstSchedule["id"]);
-            var scheduleSlots = await client.GetScheduleSlots((string)firstSchedule["id"]);
+            var schedule = await client.GetScheduleAsync((string)firstSchedule["id"]);
+            var scheduleSlots = await client.GetScheduleSlotsAsync((string)firstSchedule["id"]);
 
-            var reservations = await client.GetReservations();
+            var reservations = await client.GetReservationsAsync();
             var firstReservation = reservations.First();
-            var reservation = await client.GetReservation((string)firstReservation["referenceNumber"]);
+            var reservation = await client.GetReservationAsync((string)firstReservation["referenceNumber"]);
 
-            var myReservations = await client.GetReservationsForUser(2);
+            var myReservations = await client.GetReservationsForUserAsync(2);
 
             client.SignOut().Wait();
 

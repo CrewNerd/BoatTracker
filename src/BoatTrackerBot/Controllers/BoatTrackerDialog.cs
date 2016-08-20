@@ -31,6 +31,8 @@ namespace BoatTracker.Bot
         [NonSerialized]
         private BookedSchedulerClient cachedClient;
 
+        private string pendingReservationToCancel;
+
         public BoatTrackerDialog(ILuisService service)
             : base(service)
         {
@@ -63,7 +65,7 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            var boatName = this.FindBoatName(result);
+            var boatName = this.FindBoatNameAsync(result);
             var startDate = this.FindStartDate(result);
             var startTime = this.FindStartTime(result);
             var duration = this.FindDuration(result);
@@ -125,7 +127,7 @@ namespace BoatTracker.Bot
             //
             // Check for (and apply) a boat name filter
             //
-            var boat = await this.FindBoat(result);
+            var boat = await this.FindBoatAsync(result);
 
             if (boat == null)
             {
@@ -138,7 +140,7 @@ namespace BoatTracker.Bot
             IList<JToken> reservations = null;
 
             long resourceId = boat.Value<long>("resourceId");
-            reservations = (await client.GetReservations(resourceId: resourceId)).ToList();
+            reservations = (await client.GetReservationsAsync(resourceId: resourceId)).ToList();
 
             string filterDescription = $" for the {boat.Value<string>("name")}";
 
@@ -179,7 +181,7 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            string boatName = await this.FindBoatName(result);
+            string boatName = await this.FindBoatNameAsync(result);
 
             if (string.IsNullOrEmpty(boatName))
             {
@@ -198,7 +200,7 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            string boatName = await this.FindBoatName(result);
+            string boatName = await this.FindBoatNameAsync(result);
 
             if (string.IsNullOrEmpty(boatName))
             {
@@ -219,14 +221,14 @@ namespace BoatTracker.Bot
 
             var client = await this.GetClient();
 
-            var reservations = (await client.GetReservationsForUser(this.currentUserState.UserId)).ToList();
+            var reservations = (await client.GetReservationsForUserAsync(this.currentUserState.UserId)).ToList();
 
             string filterDescription = string.Empty;
 
             //
             // Check for (and apply) a boat name filter
             //
-            var boat = await this.FindBoat(result);
+            var boat = await this.FindBoatAsync(result);
 
             if (boat != null)
             {
@@ -278,7 +280,98 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            await context.PostAsync("It sounds like you want to cancel a reservation but I don't know how to do that yet.");
+            var client = await this.GetClient();
+
+            var reservations = (await client.GetReservationsForUserAsync(this.currentUserState.UserId)).ToList();
+
+            string filterDescription = string.Empty;
+
+            //
+            // Check for (and apply) a boat name filter
+            //
+            var boat = await this.FindBoatAsync(result);
+
+            if (boat != null)
+            {
+                reservations = reservations
+                    .Where(r => r.Value<string>("resourceId") == boat.Value<string>("resourceId"))
+                    .ToList();
+
+                filterDescription = $" for the {boat.Value<string>("name")}";
+            }
+            else
+            {
+                filterDescription = " for you";
+            }
+
+            var startDate = this.FindStartDate(result);
+
+            bool showDate = true;
+
+            if (startDate != DateTime.MinValue)
+            {
+                reservations = reservations
+                    .Where(r =>
+                    {
+                        var rStartDate = this.currentUserState.ConvertToLocalTime(
+                            DateTime.Parse(r.Value<string>("startDate")));
+                        return rStartDate.DayOfYear == startDate.DayOfYear;
+                    })
+                    .ToList();
+
+                showDate = false;
+                filterDescription += $" on {startDate.ToShortDateString()}";
+            }
+
+            switch (reservations.Count)
+            {
+                case 0:
+                    await context.PostAsync($"I don't see any reservations{filterDescription}.");
+                    context.Wait(MessageReceived);
+                    break;
+
+                case 1:
+                    {
+                        string reservationDescription = await this.currentUserState.DescribeReservationsAsync(reservations, showDate: showDate);
+                        this.pendingReservationToCancel = reservations[0].Value<string>("referenceNumber");
+                        string confirmMsg = $"Is this the reservation you want to cancel?\n\n---{reservationDescription}";
+                        PromptDialog.Confirm(context, AfterConfirming_DeleteReservation, confirmMsg, promptStyle: PromptStyle.None);
+                    }
+                    break;
+
+                default:
+                    {
+                        string reservationDescription = await this.currentUserState.DescribeReservationsAsync(reservations, showDate: showDate);
+                        await context.PostAsync($"I found the following reservations{filterDescription}:\n\n---{reservationDescription}\n\nWhich one do you want to cancel? (not yet implemented)\n\n---");
+                        // TODO: Use buttons to select the reservation to cancel (or none)
+                        context.Wait(MessageReceived);
+                    }
+                    break;
+            }
+        }
+
+        public async Task AfterConfirming_DeleteReservation(IDialogContext context, IAwaitable<bool> confirmation)
+        {
+            if (!await this.CheckUserIsRegistered(context)) { return; }
+
+            if (await confirmation)
+            {
+                var client = await this.GetClient();
+                try
+                {
+                    await client.DeleteReservationAsync(this.pendingReservationToCancel);
+                    await context.PostAsync("Okay, your reservation is cancelled!");
+                }
+                catch (Exception)
+                {
+                    await context.PostAsync("I'm sorry, but I couldn't cancel your reservation. Please try again later.");
+                }
+            }
+            else
+            {
+                await context.PostAsync("Okay, your reservation is unchanged.");
+            }
+
             context.Wait(MessageReceived);
         }
 
@@ -286,7 +379,7 @@ namespace BoatTracker.Bot
 
         #region Entity Helpers
 
-        private async Task<string> FindBoatName(LuisResult result)
+        private async Task<string> FindBoatNameAsync(LuisResult result)
         {
             var bestResource = await this.currentUserState.FindBestResourceMatchAsync(result.Entities);
 
@@ -298,7 +391,7 @@ namespace BoatTracker.Bot
             return null;
         }
 
-        private async Task<JToken> FindBoat(LuisResult result)
+        private async Task<JToken> FindBoatAsync(LuisResult result)
         {
             return await this.currentUserState.FindBestResourceMatchAsync(result.Entities);
         }

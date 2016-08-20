@@ -32,7 +32,7 @@ namespace BoatTracker.BookedScheduler
             this.baseUri = new Uri(baseUri);
         }
 
-        public long UserId {  get { return this.userId; } }
+        public long UserId { get { return this.userId; } }
 
         public bool IsSignedIn { get { return this.isSignedIn; } }
 
@@ -106,7 +106,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Users
 
-        public async Task<JArray> GetUsers()
+        public async Task<JArray> GetUsersAsync()
         {
             // TODO: support queries
 
@@ -125,7 +125,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetUser(string userId)
+        public async Task<JToken> GetUserAsync(string userId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -144,7 +144,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Resources
 
-        public async Task<JArray> GetResources()
+        public async Task<JArray> GetResourcesAsync()
         {
             // TODO: support queries
 
@@ -163,7 +163,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetResource(string resourceId)
+        public async Task<JToken> GetResourceAsync(string resourceId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -182,7 +182,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Groups
 
-        public async Task<JArray> GetGroups()
+        public async Task<JArray> GetGroupsAsync()
         {
             // TODO: support queries
 
@@ -201,7 +201,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetGroup(string groupId)
+        public async Task<JToken> GetGroupAsync(string groupId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -220,7 +220,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Schedules
 
-        public async Task<JArray> GetSchedules()
+        public async Task<JArray> GetSchedulesAsync()
         {
             using (var client = this.GetHttpClient())
             {
@@ -237,7 +237,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetSchedule(string scheduleId)
+        public async Task<JToken> GetScheduleAsync(string scheduleId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -252,7 +252,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetScheduleSlots(string scheduleId)
+        public async Task<JToken> GetScheduleSlotsAsync(string scheduleId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -271,7 +271,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Reservations
 
-        public async Task<JArray> GetReservations(long? userId = null, long? resourceId = null, DateTime? start = null, DateTime? end = null)
+        public async Task<JArray> GetReservationsAsync(long? userId = null, long? resourceId = null, DateTime? start = null, DateTime? end = null)
         {
             using (var client = this.GetHttpClient())
             {
@@ -348,7 +348,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetReservation(string referenceNumber)
+        public async Task<JToken> GetReservationAsync(string referenceNumber)
         {
             using (var client = this.GetHttpClient())
             {
@@ -363,9 +363,22 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JArray> GetReservationsForUser(long userId)
+        public async Task<JArray> GetReservationsForUserAsync(long userId)
         {
-            return await this.GetReservations(userId: userId);
+            return await this.GetReservationsAsync(userId: userId);
+        }
+
+        public async Task DeleteReservationAsync(string referenceNumber)
+        {
+            using (var client = this.GetHttpClient())
+            {
+                var httpResponse = await client.DeleteAsync($"Reservations/{referenceNumber}");
+
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    throw new HttpRequestException($"GetReservation failed: {httpResponse.ReasonPhrase}");
+                }
+            }
         }
 
         #endregion
