@@ -15,7 +15,11 @@ namespace BoatTracker.Bot.Utils
 {
     public static class UserStateExtensions
     {
-        public static async Task<string> DescribeReservationsAsync(this UserState userState, IList<JToken> reservations)
+        public static async Task<string> DescribeReservationsAsync(
+            this UserState userState,
+            IList<JToken> reservations,
+            bool showOwner = false,
+            bool showDate = true)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -29,7 +33,20 @@ namespace BoatTracker.Bot.Utils
                     .Instance[userState.ClubId]
                     .GetResourceNameFromIdAsync(reservation.Value<long>("resourceId"));
 
-                sb.AppendFormat("\r\n\r\n**{0} {1}** {2} *({3})*", startDate.ToLocalTime().ToString("d"), startDate.ToLocalTime().ToString("t"), boatName, duration);
+                string owner = string.Empty;
+
+                if (showOwner)
+                {
+                    owner = $" {reservation.Value<string>("firstName")} {reservation.Value<string>("lastName")}";
+                }
+
+                sb.AppendFormat(
+                    "\r\n\r\n**{0} {1}** {2} *({3})*{4}",
+                    showDate ? startDate.ToLocalTime().ToString("d") : string.Empty,
+                    startDate.ToLocalTime().ToString("t"),
+                    boatName,
+                    duration,
+                    owner);
             }
 
             return sb.ToString();

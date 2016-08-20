@@ -271,7 +271,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Reservations
 
-        public async Task<JArray> GetReservations(long? userId = null, DateTime? start = null, DateTime? end = null)
+        public async Task<JArray> GetReservations(long? userId = null, long? resourceId = null, DateTime? start = null, DateTime? end = null)
         {
             using (var client = this.GetHttpClient())
             {
@@ -289,6 +289,20 @@ namespace BoatTracker.BookedScheduler
                     }
 
                     query += $"userId={userId.Value}";
+                }
+
+                if (resourceId != null && resourceId.HasValue)
+                {
+                    if (string.IsNullOrEmpty(query))
+                    {
+                        query = "?";
+                    }
+                    else
+                    {
+                        query += "&";
+                    }
+
+                    query += $"resourceId={resourceId.Value}";
                 }
 
                 if (start != null)
