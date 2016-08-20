@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -121,15 +122,53 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            string boatName = await this.FindBoatName(result);
+            //
+            // Check for (and apply) a boat name filter
+            //
+            var boat = await this.FindBoat(result);
 
-            if (string.IsNullOrEmpty(boatName))
+            if (boat == null)
             {
-                await context.PostAsync("It sounds like you want to check on the availability of a boat but I don't know how to do that yet.");
+                await context.PostAsync("It looks like you want to check the availability of a boat, but I don't know which boat you're interested in.");
+                context.Wait(MessageReceived);
+            }
+
+            var client = await this.GetClient();
+
+            IList<JToken> reservations = null;
+
+            long resourceId = boat.Value<long>("resourceId");
+            reservations = (await client.GetReservations(resourceId: resourceId)).ToList();
+
+            string filterDescription = $" for the {boat.Value<string>("name")}";
+
+            var startDate = this.FindStartDate(result);
+
+            bool showDate = true;
+
+            if (startDate != DateTime.MinValue)
+            {
+                reservations = reservations
+                    .Where(r =>
+                    {
+                        var rStartDate = this.currentUserState.ConvertToLocalTime(
+                            DateTime.Parse(r.Value<string>("startDate")));
+                        return rStartDate.DayOfYear == startDate.DayOfYear;
+                    })
+                    .ToList();
+
+                filterDescription += $" on {startDate.ToShortDateString()}";
+                showDate = false;
+            }
+
+            if (reservations.Count == 0)
+            {
+                await context.PostAsync($"I don't see any reservations {filterDescription}, currently.");
             }
             else
             {
-                await context.PostAsync($"It sounds like you want to check on the availability of the '{boatName}' but I don't know how to do that yet.");
+                string reservationDescription = await this.currentUserState.DescribeReservationsAsync(reservations, showOwner:true, showDate:showDate);
+                await context.PostAsync($"I found the following reservation{this.Pluralize(reservations.Count)}{filterDescription}:\r\n---{reservationDescription}");
             }
 
             context.Wait(MessageReceived);
@@ -204,12 +243,20 @@ namespace BoatTracker.Bot
 
             var startDate = this.FindStartDate(result);
 
+            bool showDate = true;
+
             if (startDate != DateTime.MinValue)
             {
                 reservations = reservations
-                    .Where(r => DateTime.Parse(r.Value<string>("startDate")).DayOfYear == startDate.DayOfYear)
+                    .Where(r =>
+                    {
+                        var rStartDate = this.currentUserState.ConvertToLocalTime(
+                            DateTime.Parse(r.Value<string>("startDate")));
+                        return rStartDate.DayOfYear == startDate.DayOfYear;
+                    })
                     .ToList();
 
+                showDate = false;
                 filterDescription += $" on {startDate.ToShortDateString()}";
             }
 
@@ -219,7 +266,7 @@ namespace BoatTracker.Bot
             }
             else
             {
-                string reservationDescription = await this.currentUserState.DescribeReservationsAsync(reservations);
+                string reservationDescription = await this.currentUserState.DescribeReservationsAsync(reservations, showDate: showDate);
                 await context.PostAsync($"I found the following reservation{this.Pluralize(reservations.Count)}{filterDescription}:\r\n---{reservationDescription}");
             }
 
