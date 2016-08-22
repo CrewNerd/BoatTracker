@@ -446,9 +446,9 @@ namespace BoatTracker.Bot
             context.Wait(MessageReceived);
         }
 
-#endregion
+        #endregion
 
-#region Entity Helpers
+        #region Entity Helpers
 
         private async Task<string> FindBoatNameAsync(LuisResult result)
         {
@@ -535,9 +535,9 @@ namespace BoatTracker.Bot
             return TimeSpan.Zero;
         }
 
-#endregion
+        #endregion
 
-#region Misc Helpers
+        #region Misc Helpers
 
         private async Task<bool> CheckUserIsRegistered(IDialogContext context)
         {
@@ -631,6 +631,6 @@ namespace BoatTracker.Bot
             return count > 1 ? "s" : string.Empty;
         }
 
-#endregion
+        #endregion
     }
 }
