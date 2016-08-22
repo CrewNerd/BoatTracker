@@ -19,10 +19,12 @@ namespace BoatTracker.Bot.Utils
             this UserState userState,
             IList<JToken> reservations,
             bool showOwner = false,
-            bool showDate = true)
+            bool showDate = true,
+            bool showIndex = false)
         {
             StringBuilder sb = new StringBuilder();
 
+            int i = 1;
             foreach (var reservation in reservations)
             {
                 DateTime startDate = DateTime.Parse(reservation.Value<string>("startDate"));
@@ -40,8 +42,16 @@ namespace BoatTracker.Bot.Utils
                     owner = $" {reservation.Value<string>("firstName")} {reservation.Value<string>("lastName")}";
                 }
 
+                string index = string.Empty;
+
+                if (showIndex)
+                {
+                    index = $"**{i++}**:  ";
+                }
+
                 sb.AppendFormat(
-                    "\r\n\r\n**{0} {1}** {2} *({3})*{4}",
+                    "\r\n\r\n{0}**{1} {2}** {3} *({4})*{5}",
+                    index,
                     showDate ? startDate.ToLocalTime().ToString("d") : string.Empty,
                     startDate.ToLocalTime().ToString("t"),
                     boatName,
