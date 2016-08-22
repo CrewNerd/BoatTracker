@@ -133,10 +133,10 @@ namespace BoatTracker.Bot.Utils
 
                 await client.SignIn(clubInfo.UserName, clubInfo.Password);
 
-                this.resources = await client.GetResources();
-                this.users = await client.GetUsers();
-                this.groups = await client.GetGroups();
-                this.schedules = await client.GetSchedules();
+                this.resources = await client.GetResourcesAsync();
+                this.users = await client.GetUsersAsync();
+                this.groups = await client.GetGroupsAsync();
+                this.schedules = await client.GetSchedulesAsync();
 
                 this.timestamp = DateTime.Now;
                 this.RefreshInProgress = 0;

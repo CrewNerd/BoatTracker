@@ -140,7 +140,7 @@ namespace BoatTracker.Bot.Configuration
 
                 if (client.IsSignedIn)
                 {
-                    var users = await client.GetUsers();
+                    var users = await client.GetUsersAsync();
 
                     try
                     {
