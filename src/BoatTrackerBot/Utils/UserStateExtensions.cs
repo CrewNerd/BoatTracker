@@ -50,13 +50,18 @@ namespace BoatTracker.Bot.Utils
                 }
 
                 sb.AppendFormat(
-                    "\r\n\r\n{0}**{1} {2}** {3} *({4})*{5}",
+                    "\n\n{0}**{1} {2}** {3} *({4})*{5}",
                     index,
                     showDate ? startDate.ToLocalTime().ToString("d") : string.Empty,
                     startDate.ToLocalTime().ToString("t"),
                     boatName,
                     duration,
                     owner);
+            }
+
+            if (showIndex)
+            {
+                sb.AppendFormat("\n\n**{0}**:  **None of the above**", i);
             }
 
             return sb.ToString();
