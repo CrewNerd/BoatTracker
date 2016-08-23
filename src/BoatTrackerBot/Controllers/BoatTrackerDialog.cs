@@ -349,7 +349,8 @@ namespace BoatTracker.Bot
                         context,
                         AfterConfirming_DeleteReservation,
                         $"Is this the reservation you want to cancel?\n\n---{reservationDescription}",
-                        attempts: 0,
+                        attempts: 3,
+                        retry: "Sorry, I don't understand your response. Do you want to cancel the reservation shown above?",
                         promptStyle: PromptStyle.None);
 
                     break;
@@ -364,16 +365,16 @@ namespace BoatTracker.Bot
                         showDate: showDate,
                         showIndex: true);
 
-                    await context.PostAsync($"I found multiple reservations{filterDescription}:\n\n{reservationDescription})\n\n");
+                    await context.PostAsync($"I found multiple reservations{filterDescription}:\n\n{reservationDescription}\n\n");
 
                     this.pendingReservationsToCancel = reservations.Select(r => r.Value<string>("referenceNumber")).ToList();
 
                     PromptDialog.Number(
                         context,
                         AfterSelectingReservation_DeleteReservation,
-                        "Please enter the number of the reservation you want to cancel, or say 'none'.",
-                        null,
-                        0);
+                        $"Please enter the number of the reservation you want to cancel, or {reservations.Count + 1} for 'none'.",
+                        "I'm sorry, but that isn't a valid response. Please select one of the options listed above.",
+                        3);
 
                     break;
             }
@@ -432,6 +433,10 @@ namespace BoatTracker.Bot
                         await context.PostAsync("I'm sorry, but I couldn't cancel your reservation. Please try again later.");
                     }
                 }
+                else if (index == this.pendingReservationsToCancel.Count)
+                {
+                    await context.PostAsync("Okay, I'm leaving all of your reservations unchanged.");
+                }
                 else
                 {
                     await context.PostAsync("The index you entered is invalid, so no reservation was cancelled.");
@@ -439,7 +444,7 @@ namespace BoatTracker.Bot
             }
             catch (TooManyAttemptsException)
             {
-                await context.PostAsync("Okay, I'm leaving all of your reservations unchanged.");
+                await context.PostAsync("Since you didn't select one of the listed options, I'm leaving all of your reservations unchanged.");
             }
 
             this.pendingReservationsToCancel = null;
