@@ -161,8 +161,9 @@
     <Compile Include="Configuration\LocalEnvironmentDefinition.cs" />
     <Compile Include="Configuration\ProductionEnvironmentDefinition.cs" />
     <Compile Include="Configuration\UserState.cs" />
-    <Compile Include="Controllers\BoatTrackerDialog.cs" />
+    <Compile Include="Dialogs\BoatTrackerDialog.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
+    <Compile Include="Dialogs\ReservationRequest.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
