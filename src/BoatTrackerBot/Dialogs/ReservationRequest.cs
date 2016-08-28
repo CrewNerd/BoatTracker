@@ -20,16 +20,16 @@ namespace BoatTracker.Bot
 
         public UserState UserState { get; set; }
 
-        [Prompt("What boat would you like to reserve?")]
+        [Prompt("What boat do you want to reserve?")]
         public string BoatName { get; set; }
 
-        [Prompt("What day do you want to row?")]
+        [Prompt("What day do you want to reserve it?")]
         public DateTime? StartDate { get; set; }
 
-        [Prompt("What time do you want to row?")]
+        [Prompt("What time do you want to start?")]
         public DateTime? StartTime { get; set; }
 
-        [Prompt("How long will you be out?")]
+        [Prompt("How long do you want to use the boat?")]
         public string Duration
         {
             get
