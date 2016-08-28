@@ -204,16 +204,24 @@ namespace BoatTracker.Bot.Utils
 
         public static DateTime ConvertToLocalTime(this UserState userState, DateTime dateTime)
         {
+            return dateTime + userState.LocalOffsetForDate(dateTime);
+        }
+
+        public static TimeSpan LocalOffsetForDate(this UserState userState, DateTime date)
+        {
             var mappings = TzdbDateTimeZoneSource.Default.WindowsMapping.MapZones;
             var mappedTz = mappings.FirstOrDefault(x => x.TzdbIds.Any(z => z.Equals(userState.Timezone, StringComparison.OrdinalIgnoreCase)));
 
             if (mappedTz == null)
             {
-                return dateTime;
+                return TimeSpan.Zero;
             }
 
             var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(mappedTz.WindowsId);
-            return dateTime + tzInfo.GetUtcOffset(dateTime);
+
+            TimeSpan offset = tzInfo.GetUtcOffset(date.Date);
+
+            return offset;
         }
     }
 }

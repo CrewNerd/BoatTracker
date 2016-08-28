@@ -6,6 +6,8 @@ using Microsoft.Bot.Builder.FormFlow;
 using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.Utils;
 
+using Newtonsoft.Json.Linq;
+
 namespace BoatTracker.Bot
 {
     [Serializable]
@@ -13,6 +15,8 @@ namespace BoatTracker.Bot
     {
         private TimeSpan rawDuration;
         private string duration;
+
+        public JToken Boat { get; set; }
 
         public UserState UserState { get; set; }
 
@@ -72,7 +76,7 @@ namespace BoatTracker.Bot
             {
                 if (this.StartDate.HasValue && this.StartTime.HasValue)
                 {
-                    return this.StartDate.Value.Date + this.StartTime.Value.TimeOfDay;
+                    return new DateTime((this.StartDate.Value.Date + this.StartTime.Value.TimeOfDay).Ticks, DateTimeKind.Unspecified);
                 }
                 else
                 {
@@ -95,14 +99,14 @@ namespace BoatTracker.Bot
         private static async Task<ValidateResult> ValidateBoatName(ReservationRequest state, object value)
         {
             var boatName = (string)value;
-            var boat = await state.UserState.FindBestResourceMatchAsync(boatName);
+            state.Boat = await state.UserState.FindBestResourceMatchAsync(boatName);
 
-            if (boat != null)
+            if (state.Boat != null)
             {
                 return new ValidateResult
                 {
                     IsValid = true,
-                    Value = boat.Value<string>("name")
+                    Value = state.Boat.Value<string>("name")
                 };
             }
             else

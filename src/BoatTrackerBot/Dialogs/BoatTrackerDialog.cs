@@ -10,8 +10,8 @@ using Microsoft.Bot.Builder.Luis.Models;
 
 using Newtonsoft.Json.Linq;
 
-using BoatTracker.Bot.Configuration;
 using BoatTracker.BookedScheduler;
+using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.Utils;
 
 namespace BoatTracker.Bot
@@ -92,6 +92,8 @@ namespace BoatTracker.Bot
 
         private async Task ReservationComplete(IDialogContext context, IAwaitable<ReservationRequest> result)
         {
+            if (!await this.CheckUserIsRegistered(context)) { return; }
+
             ReservationRequest request = null;
 
             try
@@ -107,8 +109,27 @@ namespace BoatTracker.Bot
 
             if (request != null)
             {
-                // TODO: create the reservation and report any failures
-                await context.PostAsync("Processing the reservation request... please wait!");
+                DateTimeOffset start = new DateTimeOffset(request.StartDateTime.Value, this.currentUserState.LocalOffsetForDate(request.StartDateTime.Value));
+
+                var client = await this.GetClient();
+
+                try
+                {
+                    JToken boat = request.Boat;
+
+                    if (boat == null)
+                    {
+                        boat = await this.currentUserState.FindBestResourceMatchAsync(request.BoatName);
+                    }
+
+                    await client.CreateReservationAsysnc(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot");
+
+                    await context.PostAsync("Your reservation was created successfully.");
+                }
+                catch (Exception ex)
+                {
+                    await context.PostAsync($"I'm sorry, but the reservation system rejected your request. {ex.Message}");
+                }
             }
             else
             {
@@ -486,10 +507,7 @@ namespace BoatTracker.Bot
                 }
             }
 
-            EntityRecommendation startDate = null;
-            result.TryFindEntity(EntityStart, out startDate);
-
-            if (startDate != null)
+            foreach (var startDate in result.Entities.Where(e => e.Type == EntityStart))
             {
                 var parser = new Chronic.Parser();
                 var span = parser.Parse(startDate.Entity);
@@ -529,13 +547,10 @@ namespace BoatTracker.Bot
                 }
             }
 
-            EntityRecommendation startDate = null;
-            result.TryFindEntity(EntityStart, out startDate);
-
-            if (startDate != null)
+            foreach (var startDate in result.Entities.Where(e => e.Type == EntityStart))
             {
                 var parser = new Chronic.Parser();
-                var span = parser.Parse(startDate.Entity);
+                var span = parser.Parse(startDate.Entity.Replace("at ", ""));
 
                 if (span != null)
                 {
