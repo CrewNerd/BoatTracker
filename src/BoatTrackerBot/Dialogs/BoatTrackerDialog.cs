@@ -75,6 +75,7 @@ namespace BoatTracker.Bot
 
             ReservationRequest reservationRequest = new ReservationRequest
             {
+                UserState = this.currentUserState,
                 BoatName = boatName,
                 StartDate = startDate,
                 StartTime = startTime

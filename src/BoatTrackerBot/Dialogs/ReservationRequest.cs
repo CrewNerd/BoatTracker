@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Microsoft.Bot.Builder.FormFlow;
 
+using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.Utils;
 
 namespace BoatTracker.Bot
@@ -12,6 +13,8 @@ namespace BoatTracker.Bot
     {
         private TimeSpan rawDuration;
         private string duration;
+
+        public UserState UserState { get; set; }
 
         [Prompt("What boat would you like to reserve?")]
         public string BoatName { get; set; }
@@ -81,12 +84,148 @@ namespace BoatTracker.Bot
         public static IForm<ReservationRequest> BuildForm()
         {
             return new FormBuilder<ReservationRequest>()
-                .Field(nameof(BoatName))
-                .Field(nameof(StartDate))
-                .Field(nameof(StartTime))
-                .Field(nameof(Duration))
+                .Field(nameof(BoatName), validate: ValidateBoatName)
+                .Field(nameof(StartDate), validate: ValidateStartDate)
+                .Field(nameof(StartTime), validate: ValidateStartTime)
+                .Field(nameof(Duration), validate: ValidateDuration)
                 .Confirm(GenerateConfirmationMessage)
                 .Build();
+        }
+
+        private static async Task<ValidateResult> ValidateBoatName(ReservationRequest state, object value)
+        {
+            var boatName = (string)value;
+            var boat = await state.UserState.FindBestResourceMatchAsync(boatName);
+
+            if (boat != null)
+            {
+                return new ValidateResult
+                {
+                    IsValid = true,
+                    Value = boat.Value<string>("name")
+                };
+            }
+            else
+            {
+                return new ValidateResult
+                {
+                    IsValid = false,
+                    Value = null,
+                    Feedback = "Sorry, but I don't recognize that boat name"
+                };
+            }
+        }
+
+        private static Task<ValidateResult> ValidateStartDate(ReservationRequest state, object value)
+        {
+            DateTime startDate = (DateTime)value;
+
+            if (startDate.Date < DateTime.Now.Date)
+            {
+                return Task.FromResult(new ValidateResult
+                {
+                    IsValid = false,
+                    Value = null,
+                    Feedback = "You can't make reservations in the past"
+                });
+            }
+
+            // TODO: This should be a club-specific policy setting
+            if (startDate.Date > (DateTime.Now.Date + TimeSpan.FromDays(14)))
+            {
+                return Task.FromResult(new ValidateResult
+                {
+                    IsValid = false,
+                    Value = null,
+                    Feedback = "You can only make reservations for the next two weeks"
+                });
+            }
+
+            return Task.FromResult(new ValidateResult
+            {
+                IsValid = true,
+                Value = startDate.Date
+            });
+        }
+
+        private static Task<ValidateResult> ValidateStartTime(ReservationRequest state, object value)
+        {
+            DateTime startTime = (DateTime)value;
+            TimeSpan time = startTime.TimeOfDay;
+
+            // TODO: should be based on the club's calendar
+
+            TimeSpan StartLowerBound = TimeSpan.FromHours(5);
+            TimeSpan StartUpperBound = TimeSpan.FromHours(19);
+
+            if (time < StartLowerBound)
+            {
+                return Task.FromResult(new ValidateResult
+                {
+                    IsValid = false,
+                    Value = null,
+                    Feedback = $"Reservations can't be made earlier than {(DateTime.MinValue + StartLowerBound).ToShortTimeString()}"
+                });
+            }
+
+            if (time >= StartUpperBound)
+            {
+                return Task.FromResult(new ValidateResult
+                {
+                    IsValid = false,
+                    Value = null,
+                    Feedback = $"Reservations can't be made later than {(DateTime.MinValue + StartUpperBound).ToShortTimeString()}"
+                });
+            }
+
+            return Task.FromResult(new ValidateResult
+            {
+                IsValid = true,
+                Value = startTime
+            });
+        }
+
+        private static Task<ValidateResult> ValidateDuration(ReservationRequest state, object value)
+        {
+            var duration = TimeSpanExtensions.FromDisplayString((string)value);
+
+            if (!duration.HasValue)
+            {
+                return Task.FromResult(new ValidateResult
+                {
+                    IsValid = false,
+                    Value = null,
+                    Feedback = "That doesn't look like a valid duration. Please try again."
+                });
+            }
+
+            // TODO: This should be per-club policy.
+
+            if (duration.Value < TimeSpan.FromMinutes(30))
+            {
+                return Task.FromResult(new ValidateResult
+                {
+                    IsValid = false,
+                    Value = null,
+                    Feedback = "Reservatons must be for at least 30 minutes"
+                });
+            }
+
+            if (duration.Value > TimeSpan.FromHours(24))
+            {
+                return Task.FromResult(new ValidateResult
+                {
+                    IsValid = false,
+                    Value = null,
+                    Feedback = "Multi-day reservations are not permitted."
+                });
+            }
+
+            return Task.FromResult(new ValidateResult
+            {
+                IsValid = true,
+                Value = duration.Value.ToDisplayString()
+            });
         }
 
         private static Task<PromptAttribute> GenerateConfirmationMessage(ReservationRequest state)
