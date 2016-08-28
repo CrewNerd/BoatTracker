@@ -20,7 +20,7 @@ namespace BoatTracker.Bot
     public class BoatTrackerDialog : LuisDialog<object>
     {
         public const string EntityBoatName = "boatName";
-        public const string EntityStart = "DateTime::start";
+        public const string EntityStart = "DateTime::startDate";
         public const string EntityDuration = "DateTime::duration";
         public const string EntityBuiltinDate = "builtin.datetime.date";
         public const string EntityBuiltinTime = "builtin.datetime.time";
@@ -79,6 +79,11 @@ namespace BoatTracker.Bot
                 StartDate = startDate,
                 StartTime = startTime
             };
+
+            if (duration.HasValue)
+            {
+                reservationRequest.RawDuration = duration.Value;
+            }
 
             var reservationForm = new FormDialog<ReservationRequest>(reservationRequest, ReservationRequest.BuildForm, FormOptions.PromptInStart, result.Entities);
             context.Call(reservationForm, ReservationComplete);
@@ -491,7 +496,11 @@ namespace BoatTracker.Bot
                 if (span != null)
                 {
                     var when = span.Start ?? span.End;
-                    return when.Value;
+
+                    if (when.Value.HasDate())
+                    {
+                        return when.Value.Date;
+                    }
                 }
             }
 
@@ -511,7 +520,30 @@ namespace BoatTracker.Bot
                 if (span != null)
                 {
                     var when = span.Start ?? span.End;
-                    return when.Value;
+
+                    if (when.Value.HasTime())
+                    {
+                        return when.Value;
+                    }
+                }
+            }
+
+            EntityRecommendation startDate = null;
+            result.TryFindEntity(EntityStart, out startDate);
+
+            if (startDate != null)
+            {
+                var parser = new Chronic.Parser();
+                var span = parser.Parse(startDate.Entity);
+
+                if (span != null)
+                {
+                    var when = span.Start ?? span.End;
+
+                    if (when.Value.HasTime())
+                    {
+                        return DateTime.MinValue + when.Value.TimeOfDay;
+                    }
                 }
             }
 

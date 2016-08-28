@@ -3,11 +3,16 @@ using System.Threading.Tasks;
 
 using Microsoft.Bot.Builder.FormFlow;
 
+using BoatTracker.Bot.Utils;
+
 namespace BoatTracker.Bot
 {
     [Serializable]
     public class ReservationRequest
     {
+        private TimeSpan rawDuration;
+        private string duration;
+
         [Prompt("What boat would you like to reserve?")]
         public string BoatName { get; set; }
 
@@ -18,7 +23,45 @@ namespace BoatTracker.Bot
         public DateTime? StartTime { get; set; }
 
         [Prompt("How long will you be out?")]
-        public string Duration { get; set; }
+        public string Duration
+        {
+            get
+            {
+                return this.duration;
+            }
+
+            set
+            {
+                TimeSpan? ts = TimeSpanExtensions.FromDisplayString(value);
+
+                if (ts.HasValue)
+                {
+                    this.rawDuration = ts.Value;
+                    this.duration = ts.Value.ToDisplayString();
+                }
+                else
+                {
+                    // TODO: throw an exception here instead?
+
+                    this.rawDuration = TimeSpan.Zero;
+                    this.duration = null;
+                }
+            }
+        }
+
+        public TimeSpan RawDuration
+        {
+            get
+            {
+                return this.rawDuration;
+            }
+
+            set
+            {
+                this.rawDuration = value;
+                this.duration = this.rawDuration.ToDisplayString();
+            }
+        }
 
         public DateTime? StartDateTime
         {
@@ -26,13 +69,7 @@ namespace BoatTracker.Bot
             {
                 if (this.StartDate.HasValue && this.StartTime.HasValue)
                 {
-                    return new DateTime(
-                        this.StartDate.Value.Year,
-                        this.StartDate.Value.Month,
-                        this.StartDate.Value.Day,
-                        this.StartTime.Value.Hour,
-                        this.StartTime.Value.Minute,
-                        this.StartTime.Value.Second);
+                    return this.StartDate.Value.Date + this.StartTime.Value.TimeOfDay;
                 }
                 else
                 {
@@ -56,7 +93,7 @@ namespace BoatTracker.Bot
         {
             return Task.FromResult(
                 new PromptAttribute(
-                    $"You asked to reserve the {state.BoatName} on {state.StartDate.Value.ToShortDateString()} at {state.StartTime.Value.ToShortTimeString()} for {state.Duration}. Is that right?"));
+                    $"You want to reserve the {state.BoatName} on {state.StartDate.Value.ToLongDateString()} at {state.StartTime.Value.ToShortTimeString()} for {state.Duration}. Is that right?"));
         }
     }
 }
