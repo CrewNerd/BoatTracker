@@ -26,6 +26,14 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        public override string BotAccountKeyDisplayName
+        {
+            get
+            {
+                return "Bot account key (dev)";
+            }
+        }
+
         public override bool IsLocal
         {
             get

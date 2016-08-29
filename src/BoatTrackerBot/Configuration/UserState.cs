@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace BoatTracker.Bot.Configuration
 {
@@ -7,11 +6,6 @@ namespace BoatTracker.Bot.Configuration
     public class UserState
     {
         public const string PropertyName = "userState";
-
-        /// <summary>
-        /// The attribute display name on BookedScheduler must match this string exactly.
-        /// </summary>
-        public const string BotAccountKeyDisplayName = "Bot account key";
 
         public string ClubId { get; set; }
 

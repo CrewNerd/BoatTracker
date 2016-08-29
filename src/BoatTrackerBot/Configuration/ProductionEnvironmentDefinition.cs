@@ -7,6 +7,14 @@ namespace BoatTracker.Bot.Configuration
     /// </summary>
     public class ProductionEnvironmentDefinition : EnvironmentDefinition
     {
+        public override string BotAccountKeyDisplayName
+        {
+            get
+            {
+                return "Bot account key";
+            }
+        }
+
         public override bool IsProduction
         {
             get
