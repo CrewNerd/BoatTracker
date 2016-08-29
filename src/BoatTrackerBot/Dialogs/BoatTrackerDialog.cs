@@ -102,7 +102,7 @@ namespace BoatTracker.Bot
             }
             catch (FormCanceledException)
             {
-                await context.PostAsync("Okay, I'm aborting your request for a reservation.");
+                await context.PostAsync("Okay, I'm aborting your reservation request.");
                 context.Wait(MessageReceived);
                 return;
             }
@@ -124,7 +124,7 @@ namespace BoatTracker.Bot
 
                     await client.CreateReservationAsysnc(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot");
 
-                    await context.PostAsync("Your reservation was created successfully.");
+                    await context.PostAsync("Okay, you're all set!");
                 }
                 catch (Exception ex)
                 {
@@ -133,7 +133,7 @@ namespace BoatTracker.Bot
             }
             else
             {
-                await context.PostAsync("Form returned an empty response!!");
+                await context.PostAsync("ERROR: Form returned an empty response!!");
             }
 
             context.Wait(MessageReceived);
