@@ -92,11 +92,18 @@ namespace BoatTracker.Bot.Utils
 
             #region Public utility methods
 
-            public async Task<string> GetResourceNameFromIdAsync(long id)
+            public async Task<JToken> GetResourceFromIdAsync(long id)
             {
                 var resources = await this.GetResourcesAsync();
 
                 var resource = resources.FirstOrDefault(r => r.Value<long>("resourceId") == id);
+
+                return resource;
+            }
+
+            public async Task<string> GetResourceNameFromIdAsync(long id)
+            {
+                var resource = await this.GetResourceFromIdAsync(id);
 
                 return resource != null ? resource.Value<string>("name") : "**Unknown!**";
             }

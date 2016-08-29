@@ -16,7 +16,7 @@ namespace BoatTracker.Bot
         private TimeSpan rawDuration;
         private string duration;
 
-        public JToken Boat { get; set; }
+        public long BoatId { get; set; }
 
         public UserState UserState { get; set; }
 
@@ -99,14 +99,15 @@ namespace BoatTracker.Bot
         private static async Task<ValidateResult> ValidateBoatName(ReservationRequest state, object value)
         {
             var boatName = (string)value;
-            state.Boat = await state.UserState.FindBestResourceMatchAsync(boatName);
+            var boat = await state.UserState.FindBestResourceMatchAsync(boatName);
 
-            if (state.Boat != null)
+            if (boat != null)
             {
+                state.BoatId = boat.Value<long>("resourceId");
                 return new ValidateResult
                 {
                     IsValid = true,
-                    Value = state.Boat.Value<string>("name")
+                    Value = boat.Value<string>("name")
                 };
             }
             else

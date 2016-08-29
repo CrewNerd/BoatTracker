@@ -20,13 +20,6 @@ namespace BoatTracker.Bot
     [Serializable]
     public class BoatTrackerDialog : LuisDialog<object>
     {
-        public const string EntityBoatName = "boatName";
-        public const string EntityStart = "DateTime::startDate";
-        public const string EntityDuration = "DateTime::duration";
-        public const string EntityBuiltinDate = "builtin.datetime.date";
-        public const string EntityBuiltinTime = "builtin.datetime.time";
-        public const string EntityBuiltinDuration = "builtin.datetime.duration";
-
         [NonSerialized]
         private UserState currentUserState;
 
@@ -91,9 +84,9 @@ namespace BoatTracker.Bot
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
             var boatName = await this.FindBoatNameAsync(result);
-            var startDate = this.FindStartDate(result);
-            var startTime = this.FindStartTime(result);
-            var duration = this.FindDuration(result);
+            var startDate = result.FindStartDate();
+            var startTime = result.FindStartTime();
+            var duration = result.FindDuration();
 
             ReservationRequest reservationRequest = new ReservationRequest
             {
@@ -106,6 +99,11 @@ namespace BoatTracker.Bot
             if (duration.HasValue)
             {
                 reservationRequest.RawDuration = duration.Value;
+            }
+
+            if (result.ContainsBoatNameEntity() && boatName == null)
+            {
+                await context.PostAsync($"I'm sorry, but I don't recognize the boat name '{result.BoatName()}'.");
             }
 
             var reservationForm = new FormDialog<ReservationRequest>(reservationRequest, ReservationRequest.BuildForm, FormOptions.PromptInStart, result.Entities);
@@ -137,7 +135,7 @@ namespace BoatTracker.Bot
 
                 try
                 {
-                    JToken boat = request.Boat;
+                    JToken boat = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourceFromIdAsync(request.BoatId);
 
                     if (boat == null)
                     {
@@ -171,22 +169,29 @@ namespace BoatTracker.Bot
             //
             var boat = await this.FindBoatAsync(result);
 
-            if (boat == null)
+            if (result.ContainsBoatNameEntity() && boat == null)
             {
-                await context.PostAsync("It looks like you want to check the availability of a boat, but I don't know which boat you're interested in.");
-                context.Wait(MessageReceived);
+                await context.PostAsync($"I'm sorry, but I don't recognize the boat name '{result.BoatName()}'.");
             }
 
             var client = await this.GetClient();
 
             IList<JToken> reservations = null;
+            string filterDescription = string.Empty;
 
-            long resourceId = boat.Value<long>("resourceId");
-            reservations = (await client.GetReservationsAsync(resourceId: resourceId)).ToList();
+            if (boat != null)
+            {
+                long resourceId = boat.Value<long>("resourceId");
+                reservations = (await client.GetReservationsAsync(resourceId: resourceId)).ToList();
 
-            string filterDescription = $" for the {boat.Value<string>("name")}";
+                filterDescription += $" for the {boat.Value<string>("name")}";
+            }
+            else
+            {
+                reservations = (await client.GetReservationsAsync()).ToList();
+            }
 
-            var startDate = this.FindStartDate(result);
+            var startDate = result.FindStartDate();
 
             bool showDate = true;
 
@@ -285,7 +290,7 @@ namespace BoatTracker.Bot
                 filterDescription = " for you";
             }
 
-            var startDate = this.FindStartDate(result);
+            var startDate = result.FindStartDate();
 
             bool showDate = true;
 
@@ -346,7 +351,7 @@ namespace BoatTracker.Bot
                 filterDescription = " for you";
             }
 
-            var startDate = this.FindStartDate(result);
+            var startDate = result.FindStartDate();
 
             bool showDate = true;
 
@@ -510,95 +515,6 @@ namespace BoatTracker.Bot
         private async Task<JToken> FindBoatAsync(LuisResult result)
         {
             return await this.currentUserState.FindBestResourceMatchAsync(result.Entities);
-        }
-
-        private DateTime? FindStartDate(LuisResult result)
-        {
-            EntityRecommendation builtinDate = null;
-            result.TryFindEntity(EntityBuiltinDate, out builtinDate);
-
-            if (builtinDate != null && builtinDate.Resolution.ContainsKey("date"))
-            {
-                var parser = new Chronic.Parser();
-                var span = parser.Parse(builtinDate.Entity);
-
-                if (span != null)
-                {
-                    var when = span.Start ?? span.End;
-                    return when.Value;
-                }
-            }
-
-            foreach (var startDate in result.Entities.Where(e => e.Type == EntityStart))
-            {
-                var parser = new Chronic.Parser();
-                var span = parser.Parse(startDate.Entity);
-
-                if (span != null)
-                {
-                    var when = span.Start ?? span.End;
-
-                    if (when.Value.HasDate())
-                    {
-                        return when.Value.Date;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private DateTime? FindStartTime(LuisResult result)
-        {
-            EntityRecommendation builtinTime = null;
-            result.TryFindEntity(EntityBuiltinTime, out builtinTime);
-
-            if (builtinTime != null && builtinTime.Resolution.ContainsKey("time"))
-            {
-                var parser = new Chronic.Parser();
-                var span = parser.Parse(builtinTime.Entity);
-
-                if (span != null)
-                {
-                    var when = span.Start ?? span.End;
-
-                    if (when.Value.HasTime())
-                    {
-                        return when.Value;
-                    }
-                }
-            }
-
-            foreach (var startDate in result.Entities.Where(e => e.Type == EntityStart))
-            {
-                var parser = new Chronic.Parser();
-                var span = parser.Parse(startDate.Entity.Replace("at ", ""));
-
-                if (span != null)
-                {
-                    var when = span.Start ?? span.End;
-
-                    if (when.Value.HasTime())
-                    {
-                        return DateTime.MinValue + when.Value.TimeOfDay;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        private TimeSpan? FindDuration(LuisResult result)
-        {
-            EntityRecommendation builtinDuration = null;
-            result.TryFindEntity(EntityBuiltinDuration, out builtinDuration);
-
-            if (builtinDuration != null && builtinDuration.Resolution.ContainsKey("duration"))
-            {
-                return System.Xml.XmlConvert.ToTimeSpan(builtinDuration.Resolution["duration"]);
-            }
-
-            return null;
         }
 
         #endregion
