@@ -4,13 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.FormFlow;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
 
 using Newtonsoft.Json.Linq;
 
-using BoatTracker.Bot.Configuration;
 using BoatTracker.BookedScheduler;
+using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.Utils;
 
 namespace BoatTracker.Bot
@@ -19,7 +20,7 @@ namespace BoatTracker.Bot
     public class BoatTrackerDialog : LuisDialog<object>
     {
         public const string EntityBoatName = "boatName";
-        public const string EntityStart = "DateTime::start";
+        public const string EntityStart = "DateTime::startDate";
         public const string EntityDuration = "DateTime::duration";
         public const string EntityBuiltinDate = "builtin.datetime.date";
         public const string EntityBuiltinTime = "builtin.datetime.time";
@@ -67,55 +68,72 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            var boatName = this.FindBoatNameAsync(result);
+            var boatName = await this.FindBoatNameAsync(result);
             var startDate = this.FindStartDate(result);
             var startTime = this.FindStartTime(result);
             var duration = this.FindDuration(result);
 
-            string replyMessage = string.Empty;
+            ReservationRequest reservationRequest = new ReservationRequest
+            {
+                UserState = this.currentUserState,
+                BoatName = boatName,
+                StartDate = startDate,
+                StartTime = startTime
+            };
 
-            if (boatName == null)
+            if (duration.HasValue)
             {
-                replyMessage = "I think you want to reserve a boat but I can't find a boat name in your request.";
+                reservationRequest.RawDuration = duration.Value;
             }
-            else if (startDate == DateTime.MinValue)
-            {
-                replyMessage = "I think you want to reserve a boat but I don't know what day you want to reserve it for.";
-            }
-            else if (startTime == DateTime.MinValue)
-            {
-                replyMessage = "I think you want to reserve a boat but I don't know what time you want to reserve it for.";
-            }
-            else if (duration == TimeSpan.Zero)
-            {
-                replyMessage = "I think you want to reserve a boat but I don't know how long you want to use it.";
-            }
-            else
-            {
-                string confirmMsg = string.Format(
-                    "Do you want to reserve boat '{0}' on {1} at {2} for {3} minutes?",
-                    boatName,
-                    startDate.ToLongDateString(),
-                    startTime.ToShortTimeString(),
-                    duration.TotalMinutes);
 
-                PromptDialog.Confirm(context, AfterConfirming_CreateReservation, confirmMsg, promptStyle: PromptStyle.None);
+            var reservationForm = new FormDialog<ReservationRequest>(reservationRequest, ReservationRequest.BuildForm, FormOptions.PromptInStart, result.Entities);
+            context.Call(reservationForm, ReservationComplete);
+        }
+
+        private async Task ReservationComplete(IDialogContext context, IAwaitable<ReservationRequest> result)
+        {
+            if (!await this.CheckUserIsRegistered(context)) { return; }
+
+            ReservationRequest request = null;
+
+            try
+            {
+                request = await result;
+            }
+            catch (FormCanceledException)
+            {
+                await context.PostAsync("Okay, I'm aborting your reservation request.");
+                context.Wait(MessageReceived);
                 return;
             }
 
-            await context.PostAsync(replyMessage);
-            context.Wait(MessageReceived);
-        }
-
-        public async Task AfterConfirming_CreateReservation(IDialogContext context, IAwaitable<bool> confirmation)
-        {
-            if (await confirmation)
+            if (request != null)
             {
-                await context.PostAsync("Okay, your reservation is confirmed!");
+                DateTimeOffset start = new DateTimeOffset(request.StartDateTime.Value, this.currentUserState.LocalOffsetForDate(request.StartDateTime.Value));
+
+                var client = await this.GetClient();
+
+                try
+                {
+                    JToken boat = request.Boat;
+
+                    if (boat == null)
+                    {
+                        boat = await this.currentUserState.FindBestResourceMatchAsync(request.BoatName);
+                    }
+
+                    await client.CreateReservationAsysnc(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot");
+
+                    await context.PostAsync("Okay, you're all set!");
+                }
+                catch (Exception ex)
+                {
+                    await context.PostAsync($"I'm sorry, but the reservation system rejected your request. {ex.Message}");
+                }
             }
             else
             {
-                await context.PostAsync("Okay, I'm aborting that reservation.");
+                await context.PostAsync("ERROR: Form returned an empty response!!");
             }
 
             context.Wait(MessageReceived);
@@ -150,18 +168,18 @@ namespace BoatTracker.Bot
 
             bool showDate = true;
 
-            if (startDate != DateTime.MinValue)
+            if (startDate.HasValue)
             {
                 reservations = reservations
                     .Where(r =>
                     {
                         var rStartDate = this.currentUserState.ConvertToLocalTime(
                             DateTime.Parse(r.Value<string>("startDate")));
-                        return rStartDate.DayOfYear == startDate.DayOfYear;
+                        return rStartDate.DayOfYear == startDate.Value.DayOfYear;
                     })
                     .ToList();
 
-                filterDescription += $" on {startDate.ToShortDateString()}";
+                filterDescription += $" on {startDate.Value.ToShortDateString()}";
                 showDate = false;
             }
 
@@ -249,19 +267,19 @@ namespace BoatTracker.Bot
 
             bool showDate = true;
 
-            if (startDate != DateTime.MinValue)
+            if (startDate.HasValue)
             {
                 reservations = reservations
                     .Where(r =>
                     {
                         var rStartDate = this.currentUserState.ConvertToLocalTime(
                             DateTime.Parse(r.Value<string>("startDate")));
-                        return rStartDate.DayOfYear == startDate.DayOfYear;
+                        return rStartDate.DayOfYear == startDate.Value.DayOfYear;
                     })
                     .ToList();
 
                 showDate = false;
-                filterDescription += $" on {startDate.ToShortDateString()}";
+                filterDescription += $" on {startDate.Value.ToShortDateString()}";
             }
 
             if (reservations.Count == 0)
@@ -310,19 +328,19 @@ namespace BoatTracker.Bot
 
             bool showDate = true;
 
-            if (startDate != DateTime.MinValue)
+            if (startDate.HasValue)
             {
                 reservations = reservations
                     .Where(r =>
                     {
                         var rStartDate = this.currentUserState.ConvertToLocalTime(
                             DateTime.Parse(r.Value<string>("startDate")));
-                        return rStartDate.DayOfYear == startDate.DayOfYear;
+                        return rStartDate.DayOfYear == startDate.Value.DayOfYear;
                     })
                     .ToList();
 
                 showDate = false;
-                filterDescription += $" on {startDate.ToShortDateString()}";
+                filterDescription += $" on {startDate.Value.ToShortDateString()}";
             }
 
             string reservationDescription;
@@ -472,7 +490,7 @@ namespace BoatTracker.Bot
             return await this.currentUserState.FindBestResourceMatchAsync(result.Entities);
         }
 
-        private DateTime FindStartDate(LuisResult result)
+        private DateTime? FindStartDate(LuisResult result)
         {
             EntityRecommendation builtinDate = null;
             result.TryFindEntity(EntityBuiltinDate, out builtinDate);
@@ -489,10 +507,7 @@ namespace BoatTracker.Bot
                 }
             }
 
-            EntityRecommendation startDate = null;
-            result.TryFindEntity(EntityStart, out startDate);
-
-            if (startDate != null)
+            foreach (var startDate in result.Entities.Where(e => e.Type == EntityStart))
             {
                 var parser = new Chronic.Parser();
                 var span = parser.Parse(startDate.Entity);
@@ -500,14 +515,18 @@ namespace BoatTracker.Bot
                 if (span != null)
                 {
                     var when = span.Start ?? span.End;
-                    return when.Value;
+
+                    if (when.Value.HasDate())
+                    {
+                        return when.Value.Date;
+                    }
                 }
             }
 
-            return DateTime.MinValue;
+            return null;
         }
 
-        private DateTime FindStartTime(LuisResult result)
+        private DateTime? FindStartTime(LuisResult result)
         {
             EntityRecommendation builtinTime = null;
             result.TryFindEntity(EntityBuiltinTime, out builtinTime);
@@ -520,14 +539,34 @@ namespace BoatTracker.Bot
                 if (span != null)
                 {
                     var when = span.Start ?? span.End;
-                    return when.Value;
+
+                    if (when.Value.HasTime())
+                    {
+                        return when.Value;
+                    }
                 }
             }
 
-            return DateTime.MinValue;
+            foreach (var startDate in result.Entities.Where(e => e.Type == EntityStart))
+            {
+                var parser = new Chronic.Parser();
+                var span = parser.Parse(startDate.Entity.Replace("at ", ""));
+
+                if (span != null)
+                {
+                    var when = span.Start ?? span.End;
+
+                    if (when.Value.HasTime())
+                    {
+                        return DateTime.MinValue + when.Value.TimeOfDay;
+                    }
+                }
+            }
+
+            return null;
         }
 
-        private TimeSpan FindDuration(LuisResult result)
+        private TimeSpan? FindDuration(LuisResult result)
         {
             EntityRecommendation builtinDuration = null;
             result.TryFindEntity(EntityBuiltinDuration, out builtinDuration);
@@ -537,7 +576,7 @@ namespace BoatTracker.Bot
                 return System.Xml.XmlConvert.ToTimeSpan(builtinDuration.Resolution["duration"]);
             }
 
-            return TimeSpan.Zero;
+            return null;
         }
 
         #endregion

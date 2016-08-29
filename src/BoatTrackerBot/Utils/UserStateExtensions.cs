@@ -68,6 +68,26 @@ namespace BoatTracker.Bot.Utils
         }
 
         /// <summary>
+        /// Look for a matching boat resource given a user-entered name string.
+        /// </summary>
+        /// <param name="userState">The user context</param>
+        /// <param name="name">The boat name as typed by the user</param>
+        /// <returns>The JToken for the matching boat resource, or null if no good match was found.</returns>
+        public static Task<JToken> FindBestResourceMatchAsync(this UserState userState, string name)
+        {
+            return FindBestResourceMatchAsync(
+                userState,
+                new List<EntityRecommendation>()
+                {
+                    new EntityRecommendation
+                    {
+                        Type = "boatName",
+                        Entity = name
+                    }
+                });
+        }
+
+        /// <summary>
         /// Look for an acceptable match between the 'boatName' entities found by LUIS and
         /// the known set of boat names for the user's club. Consider alternate names for
         /// each boat as configured by the administrator using a custom attribute.
@@ -184,16 +204,24 @@ namespace BoatTracker.Bot.Utils
 
         public static DateTime ConvertToLocalTime(this UserState userState, DateTime dateTime)
         {
+            return dateTime + userState.LocalOffsetForDate(dateTime);
+        }
+
+        public static TimeSpan LocalOffsetForDate(this UserState userState, DateTime date)
+        {
             var mappings = TzdbDateTimeZoneSource.Default.WindowsMapping.MapZones;
             var mappedTz = mappings.FirstOrDefault(x => x.TzdbIds.Any(z => z.Equals(userState.Timezone, StringComparison.OrdinalIgnoreCase)));
 
             if (mappedTz == null)
             {
-                return dateTime;
+                return TimeSpan.Zero;
             }
 
             var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(mappedTz.WindowsId);
-            return dateTime + tzInfo.GetUtcOffset(dateTime);
+
+            TimeSpan offset = tzInfo.GetUtcOffset(date.Date);
+
+            return offset;
         }
     }
 }

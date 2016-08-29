@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -377,6 +378,65 @@ namespace BoatTracker.BookedScheduler
                 if (!httpResponse.IsSuccessStatusCode)
                 {
                     throw new HttpRequestException($"GetReservation failed: {httpResponse.ReasonPhrase}");
+                }
+            }
+        }
+
+        public async Task CreateReservationAsysnc(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null)
+        {
+            using (var client = this.GetHttpClient())
+            {
+                StringBuilder sb = new StringBuilder();
+
+                sb.Append("{");
+
+                if (!string.IsNullOrEmpty(title))
+                {
+                    sb.Append($"\"title\": \"{title}\", ");
+                }
+
+                if (!string.IsNullOrEmpty(title))
+                {
+                    sb.Append($"\"description\": \"{description}\", ");
+                }
+
+                sb.Append($"\"userId\": {userId}, ");
+                sb.Append($"\"resourceId\": {boat.Value<long>("resourceId")}, ");
+                sb.Append($"\"startDateTime\": \"{start.ToString("s")}{start.ToString("zzz")}\", ");
+                var end = start + duration;
+                sb.Append($"\"endDateTime\": \"{end.ToString("s")}{end.ToString("zzz")}\"");
+
+                sb.Append("}");
+
+                var requestBody = sb.ToString();
+
+                var httpResponse = await client.PostAsync($"Reservations/", new StringContent(requestBody));
+
+                if (!httpResponse.IsSuccessStatusCode)
+                {
+                    var responseBody = await httpResponse.Content.ReadAsStringAsync();
+
+                    string message = httpResponse.ReasonPhrase;
+
+                    // If we got a response body, look for formatted error messages from the server
+                    // to pass along to the user.
+                    if (!string.IsNullOrEmpty(responseBody))
+                    {
+                        string errors = string.Empty;
+
+                        var resp = JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
+                        foreach (var error in resp["errors"])
+                        {
+                            errors += error.Value<string>() + " ";
+                        }
+
+                        if (!string.IsNullOrEmpty(errors))
+                        {
+                            message = errors;
+                        }
+                    }
+
+                    throw new HttpRequestException(message);
                 }
             }
         }
