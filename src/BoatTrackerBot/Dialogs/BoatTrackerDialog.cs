@@ -122,7 +122,7 @@ namespace BoatTracker.Bot
                         boat = await this.currentUserState.FindBestResourceMatchAsync(request.BoatName);
                     }
 
-                    await client.CreateReservationAsysnc(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot");
+                    await client.CreateReservationAsync(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot");
 
                     await context.PostAsync("Okay, you're all set!");
                 }

@@ -382,7 +382,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task CreateReservationAsysnc(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null)
+        public async Task CreateReservationAsync(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null)
         {
             using (var client = this.GetHttpClient())
             {
