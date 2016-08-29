@@ -22,7 +22,7 @@ namespace BoatTracker.Bot.Utils
 
         private BookedSchedulerCache()
         {
-            this.entries = new ConcurrentDictionary<string, BookedSchedulerCacheEntry>();
+            this.ResetCache();
         }
 
         private ConcurrentDictionary<string, BookedSchedulerCacheEntry> entries;
@@ -39,6 +39,11 @@ namespace BoatTracker.Bot.Utils
 
                 return this.entries[clubId];
             }
+        }
+
+        public void ResetCache()
+        {
+            this.entries = new ConcurrentDictionary<string, BookedSchedulerCacheEntry>();
         }
 
         public class BookedSchedulerCacheEntry

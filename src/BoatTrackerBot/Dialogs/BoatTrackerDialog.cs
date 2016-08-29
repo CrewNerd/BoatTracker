@@ -72,6 +72,11 @@ namespace BoatTracker.Bot
                 await context.FlushAsync(CancellationToken.None);
                 await context.PostAsync("User data cleared");
             }
+            else if (msg == "resetcache")
+            {
+                BookedSchedulerCache.Instance.ResetCache();
+                await context.PostAsync("Cache reset complete");
+            }
             else
             {
                 await context.PostAsync($"Unrecognized command: {msg}");
