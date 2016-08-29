@@ -7,6 +7,14 @@ namespace BoatTracker.Bot.Configuration
     /// </summary>
     public class DevelopmentEnvironmentDefinition : EnvironmentDefinition
     {
+        public override string BotAccountKeyDisplayName
+        {
+            get
+            {
+                return "Bot account key (dev)";
+            }
+        }
+
         public override bool IsDevelopment
         {
             get

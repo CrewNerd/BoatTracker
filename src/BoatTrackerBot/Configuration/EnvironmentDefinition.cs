@@ -48,6 +48,8 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        public abstract string BotAccountKeyDisplayName { get; }
+
         public virtual bool IsLocal { get { return false; } }
 
         public virtual bool IsDevelopment { get { return false; } }
@@ -144,7 +146,12 @@ namespace BoatTracker.Bot.Configuration
 
                     try
                     {
-                        var user = users.Where(u => u["customAttributes"].Where(attr => attr.Value<string>("label") == UserState.BotAccountKeyDisplayName).First().Value<string>("value") == userBotId).FirstOrDefault();
+                        var user = users
+                            .Where(u => u["customAttributes"]
+                                .Where(attr => attr.Value<string>("label") == this.BotAccountKeyDisplayName)
+                                .First()
+                                .Value<string>("value") == userBotId)
+                            .FirstOrDefault();
 
                         if (user != null)
                         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Bot.Builder.Dialogs;
@@ -46,6 +47,13 @@ namespace BoatTracker.Bot
         [LuisIntent("")]
         public async Task None(IDialogContext context, LuisResult result)
         {
+            if (result.Query.StartsWith("#!"))
+            {
+                await this.ProcessControlMessage(context, result.Query.Substring(2));
+                context.Wait(MessageReceived);
+                return;
+            }
+
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
             bool forceHelp = result.Query.ToLower().Contains("help");
@@ -61,6 +69,20 @@ namespace BoatTracker.Bot
             }
 
             context.Wait(MessageReceived);
+        }
+
+        private async Task ProcessControlMessage(IDialogContext context, string msg)
+        {
+            if (msg == "clearuserdata")
+            {
+                context.UserData.Clear();
+                await context.FlushAsync(CancellationToken.None);
+                await context.PostAsync("User data cleared");
+            }
+            else
+            {
+                await context.PostAsync($"Unrecognized command: {msg}");
+            }
         }
 
         [LuisIntent("CreateReservation")]
@@ -122,7 +144,7 @@ namespace BoatTracker.Bot
                         boat = await this.currentUserState.FindBestResourceMatchAsync(request.BoatName);
                     }
 
-                    await client.CreateReservationAsysnc(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot");
+                    await client.CreateReservationAsync(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot");
 
                     await context.PostAsync("Okay, you're all set!");
                 }
@@ -622,7 +644,7 @@ namespace BoatTracker.Bot
             }
             else
             {
-                await context.PostAsync($"It looks like you haven't registered your Bot account with BookedScheduler yet. To connect your Skype account to BookedScheduler, please go to your BookedScheduler profile and set your '{UserState.BotAccountKeyDisplayName}' to {userState.BotAccountKey}.");
+                await context.PostAsync($"It looks like you haven't registered your Bot account with BookedScheduler yet. To connect your Skype account to BookedScheduler, please go to your BookedScheduler profile and set your '{EnvironmentDefinition.Instance.BotAccountKeyDisplayName}' to {userState.BotAccountKey}");
                 context.Wait(MessageReceived);
                 return false;
             }
