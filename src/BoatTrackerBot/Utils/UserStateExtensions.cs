@@ -129,17 +129,16 @@ namespace BoatTracker.Bot.Utils
             // This could happen if LUIS failed to classify some words as being part of the boat
             // name OR if the user provides only a portion of a longer name.
             //
-            boat = resources.FirstOrDefault((b) => UnderMatchBoat(entityWords, b));
+            var underMatches = resources.Where((b) => UnderMatchBoat(entityWords, b));
 
-            if (boat != null)
+            // TODO: If one partial match is superior to all others, we should allow it.
+
+            if (underMatches.Count() > 1)
             {
-                return boat;
+                return null; // The name partially matches multiple boats so return a failure.
             }
 
-            // TODO: Consider adding fuzzy matching of the individual entity words before we give
-            // up entirely.
-
-            return null;    // no match
+            return underMatches.FirstOrDefault();
         }
 
         private static bool PerfectMatchBoat(IList<string> entityWords, JToken boat)
