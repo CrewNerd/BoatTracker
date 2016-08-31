@@ -30,11 +30,29 @@ namespace BoatTracker.Bot.Utils
 
         public static DateTime? FindStartDate(this LuisResult result, UserState userState)
         {
+            TimeSpan MaxDaysInFuture = TimeSpan.FromDays(30);   // Limit how far in the future we can recognize
+
             EntityRecommendation builtinDate = null;
             result.TryFindEntity(EntityBuiltinDate, out builtinDate);
 
             if (builtinDate != null && builtinDate.Resolution.ContainsKey("date"))
             {
+                //
+                // Give DateTime a crack at parsing it first. This handles cases like MM/DD which Chronic
+                // can't handle, for some reason.
+                //
+                DateTime date;
+
+                if (DateTime.TryParse(builtinDate.Entity, out date))
+                {
+                    date = date.Date;
+                    // Only accept dates in the reasonably near future.
+                    if (date >= DateTime.Now.Date && date <= DateTime.Now.Date + MaxDaysInFuture)
+                    {
+                        return date;
+                    }
+                }
+
                 var parser = new Chronic.Parser(
                     new Chronic.Options
                     {
@@ -53,7 +71,7 @@ namespace BoatTracker.Bot.Utils
                 if (span != null)
                 {
                     var when = span.Start ?? span.End;
-                    return when.Value;
+                    return when.Value.Date;
                 }
             }
 
