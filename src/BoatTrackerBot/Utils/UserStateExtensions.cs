@@ -27,36 +27,8 @@ namespace BoatTracker.Bot.Utils
             int i = 1;
             foreach (var reservation in reservations)
             {
-                DateTime startDate = DateTime.Parse(reservation.Value<string>("startDate"));
-                startDate = userState.ConvertToLocalTime(startDate);
-                var duration = reservation.Value<string>("duration");
-
-                var boatName = await BookedSchedulerCache
-                    .Instance[userState.ClubId]
-                    .GetResourceNameFromIdAsync(reservation.Value<long>("resourceId"));
-
-                string owner = string.Empty;
-
-                if (showOwner)
-                {
-                    owner = $" {reservation.Value<string>("firstName")} {reservation.Value<string>("lastName")}";
-                }
-
-                string index = string.Empty;
-
-                if (showIndex)
-                {
-                    index = $"**{i++}**:  ";
-                }
-
-                sb.AppendFormat(
-                    "\n\n{0}**{1} {2}** {3} *({4})*{5}",
-                    index,
-                    showDate ? startDate.ToLocalTime().ToString("d") : string.Empty,
-                    startDate.ToLocalTime().ToString("t"),
-                    boatName,
-                    duration,
-                    owner);
+                sb.Append("\n\n");
+                sb.Append(await userState.DescribeReservationAsync(reservation, i++, showOwner, showDate, showIndex));
             }
 
             if (showIndex)
@@ -65,6 +37,56 @@ namespace BoatTracker.Bot.Utils
             }
 
             return sb.ToString();
+        }
+
+        public static async Task<string> DescribeReservationAsync(
+            this UserState userState,
+            JToken reservation,
+            int index = 0,
+            bool showOwner = false,
+            bool showDate = true,
+            bool showIndex = false)
+        {
+            DateTime startDate = DateTime.Parse(reservation.Value<string>("startDate"));
+            startDate = userState.ConvertToLocalTime(startDate);
+            var duration = reservation.Value<string>("duration");
+
+            var boatName = await BookedSchedulerCache
+                .Instance[userState.ClubId]
+                .GetResourceNameFromIdAsync(reservation.Value<long>("resourceId"));
+
+            string owner = string.Empty;
+
+            if (showOwner)
+            {
+                owner = $" {reservation.Value<string>("firstName")} {reservation.Value<string>("lastName")}";
+            }
+
+            return string.Format(
+                "{0}**{1} {2}** {3} *({4})*{5}",
+                showIndex ? $"**{index}**:  " : string.Empty,
+                showDate ? startDate.ToLocalTime().ToString("d") : string.Empty,
+                startDate.ToLocalTime().ToString("t"),
+                boatName,
+                duration,
+                owner);
+        }
+
+        public static async Task<string> SummarizeReservationAsync(this UserState userState, JToken reservation)
+        {
+            DateTime startDate = DateTime.Parse(reservation.Value<string>("startDate"));
+            startDate = userState.ConvertToLocalTime(startDate);
+
+            var boatName = await BookedSchedulerCache
+                .Instance[userState.ClubId]
+                .GetResourceNameFromIdAsync(reservation.Value<long>("resourceId"));
+
+            return string.Format(
+                "{0} {1} {2}",
+                startDate.ToLocalTime().ToString("d"),
+                startDate.ToLocalTime().ToString("t"),
+                boatName
+                );
         }
 
         /// <summary>

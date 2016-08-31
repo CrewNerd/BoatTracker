@@ -115,10 +115,7 @@ namespace BoatTracker.BookedScheduler
             {
                 var httpResponse = await client.GetAsync("Users/");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetUsers failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
 
                 var resp = JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
 
@@ -132,10 +129,7 @@ namespace BoatTracker.BookedScheduler
             {
                 var httpResponse = await client.GetAsync($"Users/{userId}");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetUser failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
 
                 return JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
             }
@@ -153,10 +147,7 @@ namespace BoatTracker.BookedScheduler
             {
                 var httpResponse = await client.GetAsync("Resources/");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetResources failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
 
                 var resp = JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
 
@@ -170,10 +161,7 @@ namespace BoatTracker.BookedScheduler
             {
                 var httpResponse = await client.GetAsync($"Resources/{resourceId}");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetResource failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
 
                 return JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
             }
@@ -191,10 +179,7 @@ namespace BoatTracker.BookedScheduler
             {
                 var httpResponse = await client.GetAsync("Groups/");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetGroups failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
 
                 var resp = JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
 
@@ -208,10 +193,7 @@ namespace BoatTracker.BookedScheduler
             {
                 var httpResponse = await client.GetAsync($"Groups/{groupId}");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetGroup failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
 
                 return JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
             }
@@ -227,10 +209,7 @@ namespace BoatTracker.BookedScheduler
             {
                 var httpResponse = await client.GetAsync("Schedules/");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetSchedules failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
 
                 var resp = JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
 
@@ -244,10 +223,7 @@ namespace BoatTracker.BookedScheduler
             {
                 var httpResponse = await client.GetAsync($"Schedules/{scheduleId}");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetSchedule failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
 
                 return JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
             }
@@ -259,10 +235,7 @@ namespace BoatTracker.BookedScheduler
             {
                 var httpResponse = await client.GetAsync($"Schedules/{scheduleId}/Slots");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetScheduleSlots failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
 
                 return JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
             }
@@ -338,10 +311,7 @@ namespace BoatTracker.BookedScheduler
 
                 var httpResponse = await client.GetAsync($"Reservations/{query}");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetReservations failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
 
                 var resp = JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
 
@@ -355,10 +325,7 @@ namespace BoatTracker.BookedScheduler
             {
                 var httpResponse = await client.GetAsync($"Reservations/{referenceNumber}");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetReservation failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
 
                 return JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
             }
@@ -375,10 +342,7 @@ namespace BoatTracker.BookedScheduler
             {
                 var httpResponse = await client.DeleteAsync($"Reservations/{referenceNumber}");
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    throw new HttpRequestException($"GetReservation failed: {httpResponse.ReasonPhrase}");
-                }
+                await this.CheckResponseAsync(httpResponse);
             }
         }
 
@@ -412,32 +376,7 @@ namespace BoatTracker.BookedScheduler
 
                 var httpResponse = await client.PostAsync($"Reservations/", new StringContent(requestBody));
 
-                if (!httpResponse.IsSuccessStatusCode)
-                {
-                    var responseBody = await httpResponse.Content.ReadAsStringAsync();
-
-                    string message = httpResponse.ReasonPhrase;
-
-                    // If we got a response body, look for formatted error messages from the server
-                    // to pass along to the user.
-                    if (!string.IsNullOrEmpty(responseBody))
-                    {
-                        string errors = string.Empty;
-
-                        var resp = JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
-                        foreach (var error in resp["errors"])
-                        {
-                            errors += error.Value<string>() + " ";
-                        }
-
-                        if (!string.IsNullOrEmpty(errors))
-                        {
-                            message = errors;
-                        }
-                    }
-
-                    throw new HttpRequestException(message);
-                }
+                await this.CheckResponseAsync(httpResponse);
             }
         }
 
@@ -457,6 +396,37 @@ namespace BoatTracker.BookedScheduler
             }
 
             return client;
+        }
+
+        private async Task CheckResponseAsync(HttpResponseMessage response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                var responseBody = await response.Content.ReadAsStringAsync();
+
+                string message = response.ReasonPhrase;
+
+                // If we got a response body, look for formatted error messages from the server
+                // to pass along to the user.
+                if (!string.IsNullOrEmpty(responseBody))
+                {
+                    string errors = string.Empty;
+
+                    var resp = JToken.Parse(await response.Content.ReadAsStringAsync());
+
+                    foreach (var error in resp["errors"])
+                    {
+                        errors += error.Value<string>() + " ";
+                    }
+
+                    if (!string.IsNullOrEmpty(errors))
+                    {
+                        message = errors;
+                    }
+                }
+
+                throw new HttpRequestException(message);
+            }
         }
 
         #endregion
