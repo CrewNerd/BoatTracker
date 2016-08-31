@@ -1,20 +1,21 @@
-﻿using Microsoft.Bot.Builder.Luis;
-using Microsoft.Bot.Builder.Luis.Models;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Web;
+
+using Microsoft.Bot.Builder.Luis;
+using Microsoft.Bot.Builder.Luis.Models;
+
+using BoatTracker.Bot.Configuration;
 
 namespace BoatTracker.Bot.Utils
 {
     public static class LuisResultExtensions
     {
-        public const string EntityBoatName = "boatName";
-        public const string EntityStart = "DateTime::startDate";
-        public const string EntityDuration = "DateTime::duration";
-        public const string EntityBuiltinDate = "builtin.datetime.date";
-        public const string EntityBuiltinTime = "builtin.datetime.time";
-        public const string EntityBuiltinDuration = "builtin.datetime.duration";
+        private const string EntityBoatName = "boatName";
+        private const string EntityStart = "DateTime::startDate";
+        private const string EntityDuration = "DateTime::duration";
+        private const string EntityBuiltinDate = "builtin.datetime.date";
+        private const string EntityBuiltinTime = "builtin.datetime.time";
+        private const string EntityBuiltinDuration = "builtin.datetime.duration";
 
         public static bool ContainsBoatNameEntity(this LuisResult result)
         {
@@ -27,14 +28,26 @@ namespace BoatTracker.Bot.Utils
             return string.Join(" ", nameEntities);
         }
 
-        public static DateTime? FindStartDate(this LuisResult result)
+        public static DateTime? FindStartDate(this LuisResult result, UserState userState)
         {
             EntityRecommendation builtinDate = null;
             result.TryFindEntity(EntityBuiltinDate, out builtinDate);
 
             if (builtinDate != null && builtinDate.Resolution.ContainsKey("date"))
             {
-                var parser = new Chronic.Parser();
+                var parser = new Chronic.Parser(
+                    new Chronic.Options
+                    {
+                        Context = Chronic.Pointer.Type.Future,
+                        Clock = () =>
+                        {
+                            var utcNow = DateTime.UtcNow;
+                            var tzOffset = userState.LocalOffsetForDate(utcNow);
+
+                            return new DateTime((utcNow + tzOffset).Ticks, DateTimeKind.Unspecified);
+                        }
+                    });
+
                 var span = parser.Parse(builtinDate.Entity);
 
                 if (span != null)
@@ -63,14 +76,25 @@ namespace BoatTracker.Bot.Utils
             return null;
         }
 
-        public static DateTime? FindStartTime(this LuisResult result)
+        public static DateTime? FindStartTime(this LuisResult result, UserState userState)
         {
             EntityRecommendation builtinTime = null;
             result.TryFindEntity(EntityBuiltinTime, out builtinTime);
 
             if (builtinTime != null && builtinTime.Resolution.ContainsKey("time"))
             {
-                var parser = new Chronic.Parser();
+                var parser = new Chronic.Parser(
+                    new Chronic.Options
+                    {
+                        Context = Chronic.Pointer.Type.Future,
+                        Clock = () =>
+                        {
+                            var utcNow = DateTime.UtcNow;
+                            var tzOffset = userState.LocalOffsetForDate(utcNow);
+
+                            return new DateTime((utcNow + tzOffset).Ticks, DateTimeKind.Unspecified);
+                        }
+                    });
                 var span = parser.Parse(builtinTime.Entity);
 
                 if (span != null)

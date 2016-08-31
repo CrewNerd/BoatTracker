@@ -66,6 +66,13 @@ namespace BoatTracker.Bot
 
         private async Task ProcessControlMessage(IDialogContext context, string msg)
         {
+            Func<Task> help = async () =>
+            {
+                await context.PostAsync(
+                    "clearuserdata - clear all data for the calling user\n\n" +
+                    "resetcache - clear the cache of BookedScheduler data");
+            };
+
             if (msg == "clearuserdata")
             {
                 context.UserData.Clear();
@@ -77,9 +84,14 @@ namespace BoatTracker.Bot
                 BookedSchedulerCache.Instance.ResetCache();
                 await context.PostAsync("Cache reset complete");
             }
+            else if (msg == "help")
+            {
+                await help.Invoke();
+            }
             else
             {
                 await context.PostAsync($"Unrecognized command: {msg}");
+                await help.Invoke();
             }
         }
 
@@ -89,8 +101,8 @@ namespace BoatTracker.Bot
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
             var boatName = await this.FindBoatNameAsync(result);
-            var startDate = result.FindStartDate();
-            var startTime = result.FindStartTime();
+            var startDate = result.FindStartDate(this.currentUserState);
+            var startTime = result.FindStartTime(this.currentUserState);
             var duration = result.FindDuration();
 
             ReservationRequest reservationRequest = new ReservationRequest
@@ -196,7 +208,7 @@ namespace BoatTracker.Bot
                 reservations = (await client.GetReservationsAsync()).ToList();
             }
 
-            var startDate = result.FindStartDate();
+            var startDate = result.FindStartDate(this.currentUserState);
 
             bool showDate = true;
 
@@ -295,7 +307,7 @@ namespace BoatTracker.Bot
                 filterDescription = " for you";
             }
 
-            var startDate = result.FindStartDate();
+            var startDate = result.FindStartDate(this.currentUserState);
 
             bool showDate = true;
 
@@ -356,7 +368,7 @@ namespace BoatTracker.Bot
                 filterDescription = " for you";
             }
 
-            var startDate = result.FindStartDate();
+            var startDate = result.FindStartDate(this.currentUserState);
 
             bool showDate = true;
 
