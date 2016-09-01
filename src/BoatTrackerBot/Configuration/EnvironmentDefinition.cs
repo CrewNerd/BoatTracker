@@ -48,13 +48,34 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
-        public abstract string BotAccountKeyDisplayName { get; }
-
         public virtual bool IsLocal { get { return false; } }
 
         public virtual bool IsDevelopment { get { return false; } }
 
         public virtual bool IsProduction { get { return false; } }
+
+        public ChannelInfo GetChannelInfo(string channel)
+        {
+            ChannelInfo channelInfo;
+            string devName = this.IsDevelopment ? " (dev)" : string.Empty;
+
+            if (channel == "skype")
+            {
+                channelInfo = new ChannelInfo("Skype", "Skype account key" + devName, true, true);
+            }
+            else if (channel == "facebook")
+            {
+                channelInfo = new ChannelInfo("Facebook Messenger", "Facebook account key" + devName, false, false);
+            }
+            else
+            {
+                throw new ArgumentException("Invalid channel name: " + channel);
+            }
+
+            return channelInfo;
+        }
+
+        #region Clubs
 
         private IEnumerable<string> clubIds;
 
@@ -130,8 +151,12 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
-        public async Task<UserState> TryBuildStateForUser(string userBotId)
+        #endregion
+
+        public async Task<UserState> TryBuildStateForUser(string userBotId, string channel)
         {
+            string botAccountKeyDisplayName = this.GetChannelInfo(channel).BotAccountKeyDisplayName;
+
             foreach (var clubId in this.ClubIds)
             {
                 var clubInfo = this.MapClubIdToClubInfo[clubId];
@@ -148,7 +173,7 @@ namespace BoatTracker.Bot.Configuration
                     {
                         var user = users
                             .Where(u => u["customAttributes"]
-                                .Where(attr => attr.Value<string>("label") == this.BotAccountKeyDisplayName)
+                                .Where(attr => attr.Value<string>("label") == botAccountKeyDisplayName)
                                 .First()
                                 .Value<string>("value") == userBotId)
                             .FirstOrDefault();
