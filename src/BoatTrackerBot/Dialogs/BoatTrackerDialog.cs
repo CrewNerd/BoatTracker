@@ -253,7 +253,7 @@ namespace BoatTracker.Bot
 
             if (reservations.Count == 0)
             {
-                await context.PostAsync($"I don't see any reservations {filterDescription}, currently.");
+                await context.PostAsync($"I don't see any reservations{filterDescription}, currently.");
             }
             else
             {
@@ -352,7 +352,7 @@ namespace BoatTracker.Bot
 
             if (reservations.Count == 0)
             {
-                await context.PostAsync($"I don't see any reservations {filterDescription}, currently.");
+                await context.PostAsync($"I don't see any reservations{filterDescription}, currently.");
             }
             else
             {
