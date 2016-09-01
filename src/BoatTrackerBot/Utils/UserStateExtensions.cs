@@ -20,7 +20,8 @@ namespace BoatTracker.Bot.Utils
             IList<JToken> reservations,
             bool showOwner = false,
             bool showDate = true,
-            bool showIndex = false)
+            bool showIndex = false,
+            bool useMarkdown = true)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -28,12 +29,19 @@ namespace BoatTracker.Bot.Utils
             foreach (var reservation in reservations)
             {
                 sb.Append("\n\n");
-                sb.Append(await userState.DescribeReservationAsync(reservation, i++, showOwner, showDate, showIndex));
+                sb.Append(await userState.DescribeReservationAsync(reservation, i++, showOwner, showDate, showIndex, useMarkdown));
             }
 
             if (showIndex)
             {
-                sb.AppendFormat("\n\n**{0}**:  **None of the above**", i);
+                if (useMarkdown)
+                {
+                    sb.AppendFormat("\n\n**{0}**:  **None of the above**", i);
+                }
+                else
+                {
+                    sb.AppendFormat("\n\n{0}:  None of the above", i);
+                }
             }
 
             return sb.ToString();
@@ -42,10 +50,11 @@ namespace BoatTracker.Bot.Utils
         public static async Task<string> DescribeReservationAsync(
             this UserState userState,
             JToken reservation,
-            int index = 0,
-            bool showOwner = false,
-            bool showDate = true,
-            bool showIndex = false)
+            int index,
+            bool showOwner,
+            bool showDate,
+            bool showIndex,
+            bool useMarkdown)
         {
             DateTime startDate = DateTime.Parse(reservation.Value<string>("startDate"));
             startDate = userState.ConvertToLocalTime(startDate);
@@ -62,14 +71,28 @@ namespace BoatTracker.Bot.Utils
                 owner = $" {reservation.Value<string>("firstName")} {reservation.Value<string>("lastName")}";
             }
 
-            return string.Format(
-                "{0}**{1} {2}** {3} *({4})*{5}",
-                showIndex ? $"**{index}**:  " : string.Empty,
-                showDate ? startDate.ToLocalTime().ToString("d") : string.Empty,
-                startDate.ToLocalTime().ToString("t"),
-                boatName,
-                duration,
-                owner);
+            if (useMarkdown)
+            {
+                return string.Format(
+                    "{0}**{1} {2}** {3} *({4})*{5}",
+                    showIndex ? $"**{index}**:  " : string.Empty,
+                    showDate ? startDate.ToLocalTime().ToString("d") : string.Empty,
+                    startDate.ToLocalTime().ToString("t"),
+                    boatName,
+                    duration,
+                    owner);
+            }
+            else
+            {
+                return string.Format(
+                    "{0}{1} {2} {3} ({4}) {5}",
+                    showIndex ? $"{index}:  " : string.Empty,
+                    showDate ? startDate.ToLocalTime().ToString("d") : string.Empty,
+                    startDate.ToLocalTime().ToString("t"),
+                    boatName,
+                    duration,
+                    owner);
+            }
         }
 
         public static async Task<string> SummarizeReservationAsync(this UserState userState, JToken reservation)
@@ -246,4 +269,3 @@ namespace BoatTracker.Bot.Utils
         }
     }
 }
-

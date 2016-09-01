@@ -1,6 +1,4 @@
-﻿#define USE_BUTTONS
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -25,6 +23,9 @@ namespace BoatTracker.Bot
     {
         [NonSerialized]
         private UserState currentUserState;
+
+        [NonSerialized]
+        private ChannelInfo currentChannelInfo;
 
         [NonSerialized]
         private BookedSchedulerClient cachedClient;
@@ -257,8 +258,13 @@ namespace BoatTracker.Bot
             }
             else
             {
-                string reservationDescription = await this.currentUserState.DescribeReservationsAsync(reservations, showOwner:true, showDate:showDate);
-                await context.PostAsync($"I found the following reservation{this.Pluralize(reservations.Count)}{filterDescription}:\r\n---{reservationDescription}");
+                string reservationDescription = await this.currentUserState.DescribeReservationsAsync(
+                    reservations,
+                    showOwner:true,
+                    showDate:showDate,
+                    useMarkdown:this.currentChannelInfo.SupportsMarkdown);
+
+                await context.PostAsync($"I found the following reservation{this.Pluralize(reservations.Count)}{filterDescription}:\n\n---{reservationDescription}");
             }
 
             context.Wait(MessageReceived);
@@ -356,8 +362,12 @@ namespace BoatTracker.Bot
             }
             else
             {
-                string reservationDescription = await this.currentUserState.DescribeReservationsAsync(reservations, showDate: showDate);
-                await context.PostAsync($"I found the following reservation{this.Pluralize(reservations.Count)}{filterDescription}:\r\n---{reservationDescription}");
+                string reservationDescription = await this.currentUserState.DescribeReservationsAsync(
+                    reservations,
+                    showDate: showDate,
+                    useMarkdown: this.currentChannelInfo.SupportsMarkdown);
+
+                await context.PostAsync($"I found the following reservation{this.Pluralize(reservations.Count)}{filterDescription}:\n\n---{reservationDescription}");
             }
 
             context.Wait(MessageReceived);
@@ -427,7 +437,8 @@ namespace BoatTracker.Bot
                     //
                     reservationDescription = await this.currentUserState.DescribeReservationsAsync(
                         reservations,
-                        showDate: showDate);
+                        showDate: showDate,
+                        useMarkdown: this.currentChannelInfo.SupportsMarkdown);
 
                     this.pendingReservationToCancel = reservations[0].Value<string>("referenceNumber");
 
@@ -446,7 +457,7 @@ namespace BoatTracker.Bot
                     // We found multiple reservations matching the given criteria, so present
                     // them all and ask the user which one they want to cancel.
                     //
-#if USE_BUTTONS
+                    if (this.currentChannelInfo.SupportsButtons)
                     {
                         var response = context.MakeMessage();
                         List<CardAction> cardButtons = new List<CardAction>();
@@ -473,23 +484,25 @@ namespace BoatTracker.Bot
                         await context.PostAsync(response);
                         context.Wait(MessageReceived);
                     }
-#else
-                    reservationDescription = await this.currentUserState.DescribeReservationsAsync(
-                        reservations,
-                        showDate: showDate,
-                        showIndex: true);
+                    else
+                    {
+                        reservationDescription = await this.currentUserState.DescribeReservationsAsync(
+                            reservations,
+                            showDate: showDate,
+                            showIndex: true,
+                            useMarkdown: this.currentChannelInfo.SupportsMarkdown);
 
-                    await context.PostAsync($"I found multiple reservations{filterDescription}:\n\n{reservationDescription}\n\n");
+                        await context.PostAsync($"I found multiple reservations{filterDescription}:\n\n{reservationDescription}\n\n");
 
-                    this.pendingReservationsToCancel = reservations.Select(r => r.Value<string>("referenceNumber")).ToList();
+                        this.pendingReservationsToCancel = reservations.Select(r => r.Value<string>("referenceNumber")).ToList();
 
-                    PromptDialog.Number(
-                        context,
-                        AfterSelectingReservation_DeleteReservation,
-                        $"Please enter the number of the reservation you want to cancel, or {reservations.Count + 1} for 'none'.",
-                        "I'm sorry, but that isn't a valid response. Please select one of the options listed above.",
-                        3);
-#endif
+                        PromptDialog.Number(
+                            context,
+                            AfterSelectingReservation_DeleteReservation,
+                            $"Please enter the number of the reservation you want to cancel, or {reservations.Count + 1} for 'none'.",
+                            "I'm sorry, but that isn't a valid response. Please select one of the options listed above.",
+                            3);
+                    }
                     break;
             }
         }
@@ -592,6 +605,8 @@ namespace BoatTracker.Bot
 
         private async Task<bool> CheckUserIsRegistered(IDialogContext context)
         {
+            this.currentChannelInfo = EnvironmentDefinition.Instance.GetChannelInfo(context.GetChannel());
+
             UserState userState = null;
 
             //
@@ -612,7 +627,7 @@ namespace BoatTracker.Bot
                 return true;
             }
 
-            var builtUserState = await EnvironmentDefinition.Instance.TryBuildStateForUser(userState.BotAccountKey);
+            var builtUserState = await EnvironmentDefinition.Instance.TryBuildStateForUser(userState.BotAccountKey, context.GetChannel());
 
             if (builtUserState != null)
             {
@@ -629,7 +644,11 @@ namespace BoatTracker.Bot
             }
             else
             {
-                await context.PostAsync($"It looks like you haven't registered your Bot account with BookedScheduler yet. To connect your Skype account to BookedScheduler, please go to your BookedScheduler profile and set your '{EnvironmentDefinition.Instance.BotAccountKeyDisplayName}' to {userState.BotAccountKey}");
+                await context.PostAsync(
+                    "It looks like you haven't registered your Bot account with BookedScheduler yet. " +
+                    "To connect your Skype account to BookedScheduler, please go to your BookedScheduler " +
+                    $"profile and set your '{this.currentChannelInfo.BotAccountKeyDisplayName}' to {userState.BotAccountKey}");
+
                 context.Wait(MessageReceived);
                 return false;
             }
