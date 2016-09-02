@@ -23,14 +23,19 @@ namespace BoatTracker.BookedScheduler
         private string sessionToken;
         private DateTime sessionExpires;
 
-        public BookedSchedulerClient(string baseUri)
+        public BookedSchedulerClient(Uri baseUri)
         {
-            if (string.IsNullOrEmpty(baseUri))
+            if (baseUri == null)
             {
                 throw new ArgumentNullException(nameof(baseUri));
             }
 
-            this.baseUri = new Uri(baseUri);
+            this.baseUri = baseUri;
+        }
+
+        public BookedSchedulerClient(string service)
+            : this(new Uri(service))
+        {
         }
 
         public long UserId { get { return this.userId; } }

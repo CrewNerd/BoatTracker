@@ -11,12 +11,22 @@ using BoatTracker.BookedScheduler;
 namespace BoatTracker.Bot.Configuration
 {
     /// <summary>
-    /// Represents the configuration necessary to operate in an environment.
+    /// Represents the configuration necessary to operate in an environment. Some configuration is
+    /// read from Azure service properties, but we bake as much into the code as possible. Child
+    /// classes represent each deployment environment: local, development (cloud), and production.
     /// </summary>
     public abstract class EnvironmentDefinition
     {
         private const string LuisModelIdKey = "LuisModelId";
         private const string LuisSubscriptionKeyKey = "LuisSubscriptionKey";
+
+        /// <summary>
+        /// The club ID list provides the internal id's of each BookedScheduler instance that we
+        /// are configured to work with. The list is comma-separated with no spaces. When a new
+        /// club is added, there are four additional properties that must also be set to provide
+        /// the friendly name, the URL, the admin account for the bot to use, and the account
+        /// password.
+        /// </summary>
         private const string ClubIdListKey = "ClubIdList";
 
         // For the club details, we build the property key from a base followed by the club's ID.
@@ -32,6 +42,9 @@ namespace BoatTracker.Bot.Configuration
 
         public static EnvironmentDefinition Instance { get; private set; }
 
+        /// <summary>
+        /// Gets the model ID for our LUIS service.
+        /// </summary>
         public virtual string LuisModelId
         {
             get
@@ -40,6 +53,9 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        /// <summary>
+        /// Gets the subscription key for our LUIS service
+        /// </summary>
         public virtual string LuisSubscriptionKey
         {
             get
@@ -54,6 +70,11 @@ namespace BoatTracker.Bot.Configuration
 
         public virtual bool IsProduction { get { return false; } }
 
+        /// <summary>
+        /// Returns channel information for the given channel name.
+        /// </summary>
+        /// <param name="channel">The internal name of the channel</param>
+        /// <returns>A ChannelInfo object with configuration information for the channel.</returns>
         public ChannelInfo GetChannelInfo(string channel)
         {
             ChannelInfo channelInfo;
@@ -61,11 +82,19 @@ namespace BoatTracker.Bot.Configuration
 
             if (channel == "skype")
             {
-                channelInfo = new ChannelInfo("Skype", "Skype account key" + devName, true, true);
+                channelInfo = new ChannelInfo(
+                    "Skype",
+                    "Skype account key" + devName,
+                    supportsButtons:true,
+                    supportsMarkdown:true);
             }
             else if (channel == "facebook")
             {
-                channelInfo = new ChannelInfo("Facebook Messenger", "Facebook account key" + devName, false, false);
+                channelInfo = new ChannelInfo(
+                    "Facebook Messenger",
+                    "Facebook account key" + devName,
+                    supportsButtons:false,
+                    supportsMarkdown:false);
             }
             else
             {
@@ -82,7 +111,8 @@ namespace BoatTracker.Bot.Configuration
         /// <summary>
         /// Gets a list of club id's that we're configured to talk to.
         /// </summary>
-        public virtual IEnumerable<string> ClubIds
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
+        protected virtual IEnumerable<string> ClubIds
         {
             get
             {
@@ -107,7 +137,8 @@ namespace BoatTracker.Bot.Configuration
         /// <summary>
         /// Gets a mapping from club id to its ClubInfo object.
         /// </summary>
-        public virtual IDictionary<string, ClubInfo> MapClubIdToClubInfo
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
+        public virtual IReadOnlyDictionary<string, ClubInfo> MapClubIdToClubInfo
         {
             get
             {
@@ -143,7 +174,7 @@ namespace BoatTracker.Bot.Configuration
 
                         this.mapClubIdToClubInfo.Add(
                             id,
-                            new ClubInfo { Name = name, Url = url, UserName = username, Password = password });
+                            new ClubInfo { Name = name, Url = new Uri(url), UserName = username, Password = password });
                     }
                 }
 
