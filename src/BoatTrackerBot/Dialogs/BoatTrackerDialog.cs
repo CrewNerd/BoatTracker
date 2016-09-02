@@ -125,7 +125,7 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            var boatName = await this.FindBoatNameAsync(result);
+            var boatName = await this.currentUserState.FindBestResourceNameAsync(result);
             var startDate = result.FindStartDate(this.currentUserState);
             var startTime = result.FindStartTime(this.currentUserState);
             var duration = result.FindDuration();
@@ -209,7 +209,7 @@ namespace BoatTracker.Bot
             //
             // Check for (and apply) a boat name filter
             //
-            var boat = await this.FindBoatAsync(result);
+            var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
 
             if (result.ContainsBoatNameEntity() && boat == null)
             {
@@ -275,7 +275,7 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            string boatName = await this.FindBoatNameAsync(result);
+            string boatName = await this.currentUserState.FindBestResourceNameAsync(result);
 
             if (string.IsNullOrEmpty(boatName))
             {
@@ -294,7 +294,7 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            string boatName = await this.FindBoatNameAsync(result);
+            string boatName = await this.currentUserState.FindBestResourceNameAsync(result);
 
             if (string.IsNullOrEmpty(boatName))
             {
@@ -322,7 +322,7 @@ namespace BoatTracker.Bot
             //
             // Check for (and apply) a boat name filter
             //
-            var boat = await this.FindBoatAsync(result);
+            var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
 
             if (boat != null)
             {
@@ -387,7 +387,7 @@ namespace BoatTracker.Bot
             //
             // Check for (and apply) a boat name filter
             //
-            var boat = await this.FindBoatAsync(result);
+            var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
 
             if (boat != null)
             {
@@ -580,29 +580,18 @@ namespace BoatTracker.Bot
 
 #endregion
 
-#region Entity Helpers
+        #region Misc Helpers
 
-        private async Task<string> FindBoatNameAsync(LuisResult result)
-        {
-            var bestResource = await this.currentUserState.FindBestResourceMatchAsync(result.Entities);
-
-            if (bestResource != null)
-            {
-                return bestResource.Value<string>("name");
-            }
-
-            return null;
-        }
-
-        private async Task<JToken> FindBoatAsync(LuisResult result)
-        {
-            return await this.currentUserState.FindBestResourceMatchAsync(result.Entities);
-        }
-
-#endregion
-
-#region Misc Helpers
-
+        /// <summary>
+        /// Checks to see if the user has connected their channel and BookedScheduler accounts. If so, then
+        /// the currentUserState and currentChannelInfo members are initialized and we return true. If the
+        /// accounts are not yet connected, we return false and no further action of any significance should
+        /// be performed. Intent handlers (and other callbacks) should invoke this method first and bail out
+        /// if we return false. If we return false, we also post instructions to the user for making the
+        /// connection.
+        /// </summary>
+        /// <param name="context">The caller's dialog context</param>
+        /// <returns>True if the user accounts are connected, false otherwise.</returns>
         private async Task<bool> CheckUserIsRegistered(IDialogContext context)
         {
             this.currentChannelInfo = EnvironmentDefinition.Instance.GetChannelInfo(context.GetChannel());
@@ -654,6 +643,10 @@ namespace BoatTracker.Bot
             }
         }
 
+        /// <summary>
+        /// Gets a client object for the user's BookedScheduler instance. These are cached and reused.
+        /// </summary>
+        /// <returns>A BookedSchedulerClient instance that is signed in and ready for use.</returns>
         private async Task<BookedSchedulerClient> GetClient()
         {
             var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.currentUserState.ClubId];
@@ -701,6 +694,6 @@ namespace BoatTracker.Bot
             return count > 1 ? "s" : string.Empty;
         }
 
-#endregion
+        #endregion
     }
 }

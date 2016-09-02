@@ -8,6 +8,9 @@ using BoatTracker.Bot.Configuration;
 
 namespace BoatTracker.Bot.Utils
 {
+    /// <summary>
+    /// Extension methods for extracting information from LUIS results.
+    /// </summary>
     public static class LuisResultExtensions
     {
         private const string EntityBoatName = "boatName";

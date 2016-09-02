@@ -15,7 +15,7 @@ namespace BoatTracker.Bot.Configuration
         /// <summary>
         /// Gets or sets the URL where we access the club's API.
         /// </summary>
-        public string Url { get; set; }
+        public Uri Url { get; set; }
 
         /// <summary>
         /// Gets or sets the user name for accessing the club.

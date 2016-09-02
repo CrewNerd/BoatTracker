@@ -34,7 +34,7 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
-        public override IEnumerable<string> ClubIds
+        protected override IEnumerable<string> ClubIds
         {
             get
             {
@@ -43,7 +43,7 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
-        public override IDictionary<string, ClubInfo> MapClubIdToClubInfo
+        public override IReadOnlyDictionary<string, ClubInfo> MapClubIdToClubInfo
         {
             get
             {
@@ -53,7 +53,7 @@ namespace BoatTracker.Bot.Configuration
                     ["foo"] = new ClubInfo
                     {
                         Name = "Foo",
-                        Url = "https://foo.bookedscheduler.com/Web/Services/index.php/",
+                        Url = new Uri("https://foo.bookedscheduler.com/Web/Services/index.php/"),
                         UserName = "boattrackerbot",
                         Password = "foo"
                     }

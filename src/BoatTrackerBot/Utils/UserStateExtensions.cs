@@ -122,12 +122,15 @@ namespace BoatTracker.Bot.Utils
         {
             return FindBestResourceMatchAsync(
                 userState,
-                new List<EntityRecommendation>()
+                new LuisResult
                 {
-                    new EntityRecommendation
+                    Entities = new List<EntityRecommendation>()
                     {
-                        Type = "boatName",
-                        Entity = name
+                        new EntityRecommendation
+                        {
+                            Type = "boatName",
+                            Entity = name
+                        }
                     }
                 });
         }
@@ -140,8 +143,9 @@ namespace BoatTracker.Bot.Utils
         /// <param name="userState">The user context</param>
         /// <param name="entities">The entities discovered by LUIS</param>
         /// <returns>The JToken for the matching boat resource, or null if no good match was found.</returns>
-        public static async Task<JToken> FindBestResourceMatchAsync(this UserState userState, IList<EntityRecommendation> entities)
+        public static async Task<JToken> FindBestResourceMatchAsync(this UserState userState, LuisResult result)
         {
+            var entities = result.Entities;
             var entityWords = entities.Where(e => e.Type == "boatName").SelectMany(e => e.Entity.ToLower().Split(' ')).ToList();
 
             if (entityWords.Count == 0)
@@ -184,6 +188,18 @@ namespace BoatTracker.Bot.Utils
             }
 
             return underMatches.FirstOrDefault();
+        }
+
+        public static async Task<string> FindBestResourceNameAsync(this UserState userState, LuisResult result)
+        {
+            var resource = await userState.FindBestResourceMatchAsync(result);
+
+            if (resource != null)
+            {
+                return resource.Value<string>("name");
+            }
+
+            return null;
         }
 
         private static bool PerfectMatchBoat(IList<string> entityWords, JToken boat)
