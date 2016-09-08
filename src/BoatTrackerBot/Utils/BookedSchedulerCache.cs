@@ -101,7 +101,7 @@ namespace BoatTracker.Bot.Utils
             {
                 var resources = await this.GetResourcesAsync();
 
-                var resource = resources.FirstOrDefault(r => r.Value<long>("resourceId") == id);
+                var resource = resources.FirstOrDefault(r => r.ResourceId() == id);
 
                 return resource;
             }
@@ -110,7 +110,7 @@ namespace BoatTracker.Bot.Utils
             {
                 var resource = await this.GetResourceFromIdAsync(id);
 
-                return resource != null ? resource.Value<string>("name") : "**Unknown!**";
+                return resource != null ? resource.Name() : "**Unknown!**";
             }
 
             #endregion

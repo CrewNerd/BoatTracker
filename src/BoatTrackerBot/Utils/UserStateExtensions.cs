@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using NodaTime.TimeZones;
 
 using BoatTracker.Bot.Configuration;
+using BoatTracker.BookedScheduler;
 
 namespace BoatTracker.Bot.Utils
 {
@@ -56,13 +57,13 @@ namespace BoatTracker.Bot.Utils
             bool showIndex,
             bool useMarkdown)
         {
-            DateTime startDate = DateTime.Parse(reservation.Value<string>("startDate"));
+            DateTime startDate = DateTime.Parse(reservation.StartDate());
             startDate = userState.ConvertToLocalTime(startDate);
             var duration = reservation.Value<string>("duration");
 
             var boatName = await BookedSchedulerCache
                 .Instance[userState.ClubId]
-                .GetResourceNameFromIdAsync(reservation.Value<long>("resourceId"));
+                .GetResourceNameFromIdAsync(reservation.ResourceId());
 
             string owner = string.Empty;
 
@@ -97,12 +98,12 @@ namespace BoatTracker.Bot.Utils
 
         public static async Task<string> SummarizeReservationAsync(this UserState userState, JToken reservation)
         {
-            DateTime startDate = DateTime.Parse(reservation.Value<string>("startDate"));
+            DateTime startDate = DateTime.Parse(reservation.StartDate());
             startDate = userState.ConvertToLocalTime(startDate);
 
             var boatName = await BookedSchedulerCache
                 .Instance[userState.ClubId]
-                .GetResourceNameFromIdAsync(reservation.Value<long>("resourceId"));
+                .GetResourceNameFromIdAsync(reservation.ResourceId());
 
             return string.Format(
                 "{0} {1} {2}",
@@ -128,7 +129,7 @@ namespace BoatTracker.Bot.Utils
                     {
                         new EntityRecommendation
                         {
-                            Type = "boatName",
+                            Type = LuisResultExtensions.EntityBoatName,
                             Entity = name
                         }
                     }
@@ -146,7 +147,10 @@ namespace BoatTracker.Bot.Utils
         public static async Task<JToken> FindBestResourceMatchAsync(this UserState userState, LuisResult result)
         {
             var entities = result.Entities;
-            var entityWords = entities.Where(e => e.Type == "boatName").SelectMany(e => e.Entity.ToLower().Split(' ')).ToList();
+            var entityWords = entities
+                .Where(e => e.Type == LuisResultExtensions.EntityBoatName)
+                .SelectMany(e => e.Entity.ToLower().Split(' '))
+                .ToList();
 
             if (entityWords.Count == 0)
             {
@@ -196,7 +200,7 @@ namespace BoatTracker.Bot.Utils
 
             if (resource != null)
             {
-                return resource.Value<string>("name");
+                return resource.Name();
             }
 
             return null;
@@ -257,7 +261,7 @@ namespace BoatTracker.Bot.Utils
                 .ToList();
 
             // And add its preferred name
-            boatNames.Add(boat.Value<string>("name"));
+            boatNames.Add(boat.Name());
 
             return boatNames;
         }

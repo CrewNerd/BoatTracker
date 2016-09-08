@@ -370,7 +370,7 @@ namespace BoatTracker.BookedScheduler
                 }
 
                 sb.Append($"\"userId\": {userId}, ");
-                sb.Append($"\"resourceId\": {boat.Value<long>("resourceId")}, ");
+                sb.Append($"\"resourceId\": {boat.ResourceId()}, ");
                 sb.Append($"\"startDateTime\": \"{start.ToString("s")}{start.ToString("zzz")}\", ");
                 var end = start + duration;
                 sb.Append($"\"endDateTime\": \"{end.ToString("s")}{end.ToString("zzz")}\"");
