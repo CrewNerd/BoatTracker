@@ -223,10 +223,9 @@ namespace BoatTracker.Bot
 
             if (boat != null)
             {
-                long resourceId = boat.Value<long>("resourceId");
-                reservations = (await client.GetReservationsAsync(resourceId: resourceId)).ToList();
+                reservations = (await client.GetReservationsAsync(resourceId: boat.ResourceId())).ToList();
 
-                filterDescription += $" for the {boat.Value<string>("name")}";
+                filterDescription += $" for the {boat.Name()}";
             }
             else
             {
@@ -243,7 +242,7 @@ namespace BoatTracker.Bot
                     .Where(r =>
                     {
                         var rStartDate = this.currentUserState.ConvertToLocalTime(
-                            DateTime.Parse(r.Value<string>("startDate")));
+                            DateTime.Parse(r.StartDate()));
                         return rStartDate.DayOfYear == startDate.Value.DayOfYear;
                     })
                     .ToList();
@@ -327,10 +326,10 @@ namespace BoatTracker.Bot
             if (boat != null)
             {
                 reservations = reservations
-                    .Where(r => r.Value<string>("resourceId") == boat.Value<string>("resourceId"))
+                    .Where(r => r.ResourceId() == boat.ResourceId())
                     .ToList();
 
-                filterDescription = $" for the {boat.Value<string>("name")}";
+                filterDescription = $" for the {boat.Name()}";
             }
             else
             {
@@ -347,7 +346,7 @@ namespace BoatTracker.Bot
                     .Where(r =>
                     {
                         var rStartDate = this.currentUserState.ConvertToLocalTime(
-                            DateTime.Parse(r.Value<string>("startDate")));
+                            DateTime.Parse(r.StartDate()));
                         return rStartDate.DayOfYear == startDate.Value.DayOfYear;
                     })
                     .ToList();
@@ -392,10 +391,10 @@ namespace BoatTracker.Bot
             if (boat != null)
             {
                 reservations = reservations
-                    .Where(r => r.Value<string>("resourceId") == boat.Value<string>("resourceId"))
+                    .Where(r => r.ResourceId() == boat.ResourceId())
                     .ToList();
 
-                filterDescription = $" for the {boat.Value<string>("name")}";
+                filterDescription = $" for the {boat.Name()}";
             }
             else
             {
@@ -412,7 +411,7 @@ namespace BoatTracker.Bot
                     .Where(r =>
                     {
                         var rStartDate = this.currentUserState.ConvertToLocalTime(
-                            DateTime.Parse(r.Value<string>("startDate")));
+                            DateTime.Parse(r.StartDate()));
                         return rStartDate.DayOfYear == startDate.Value.DayOfYear;
                     })
                     .ToList();
@@ -440,7 +439,7 @@ namespace BoatTracker.Bot
                         showDate: showDate,
                         useMarkdown: this.currentChannelInfo.SupportsMarkdown);
 
-                    this.pendingReservationToCancel = reservations[0].Value<string>("referenceNumber");
+                    this.pendingReservationToCancel = reservations[0].ReferenceNumber();
 
                     PromptDialog.Confirm(
                         context,
@@ -467,7 +466,7 @@ namespace BoatTracker.Bot
                             cardButtons.Add(new CardAction
                             {
                                 Type = ActionTypes.ImBack,
-                                Value = $"#!CancelReservation {reservation.Value<string>("referenceNumber")}",
+                                Value = $"#!CancelReservation {reservation.ReferenceNumber()}",
                                 Title = await this.currentUserState.SummarizeReservationAsync(reservation)
                             });
                         }
@@ -494,7 +493,7 @@ namespace BoatTracker.Bot
 
                         await context.PostAsync($"I found multiple reservations{filterDescription}:\n\n{reservationDescription}\n\n");
 
-                        this.pendingReservationsToCancel = reservations.Select(r => r.Value<string>("referenceNumber")).ToList();
+                        this.pendingReservationsToCancel = reservations.Select(r => r.ReferenceNumber()).ToList();
 
                         PromptDialog.Number(
                             context,

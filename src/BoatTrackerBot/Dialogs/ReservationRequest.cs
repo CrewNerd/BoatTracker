@@ -3,10 +3,9 @@ using System.Threading.Tasks;
 
 using Microsoft.Bot.Builder.FormFlow;
 
+using BoatTracker.BookedScheduler;
 using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.Utils;
-
-using Newtonsoft.Json.Linq;
 
 namespace BoatTracker.Bot
 {
@@ -103,11 +102,11 @@ namespace BoatTracker.Bot
 
             if (boat != null)
             {
-                state.BoatId = boat.Value<long>("resourceId");
+                state.BoatId = boat.ResourceId();
                 return new ValidateResult
                 {
                     IsValid = true,
-                    Value = boat.Value<string>("name")
+                    Value = boat.Name()
                 };
             }
             else

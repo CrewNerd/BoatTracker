@@ -13,7 +13,7 @@ namespace BoatTracker.Bot.Utils
     /// </summary>
     public static class LuisResultExtensions
     {
-        private const string EntityBoatName = "boatName";
+        public const string EntityBoatName = "boatName";
         private const string EntityStart = "DateTime::startDate";
         private const string EntityDuration = "DateTime::duration";
         private const string EntityBuiltinDate = "builtin.datetime.date";
