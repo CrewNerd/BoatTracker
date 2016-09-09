@@ -23,9 +23,11 @@ namespace BoatTracker.Bot
         public string BoatName { get; set; }
 
         [Prompt("What day do you want to reserve it?")]
+        [Template(TemplateUsage.StatusFormat, "{&}: {:d}")]
         public DateTime? StartDate { get; set; }
 
         [Prompt("What time do you want to start?")]
+        [Template(TemplateUsage.StatusFormat, "{&}: {:t}")]
         public DateTime? StartTime { get; set; }
 
         [Prompt("How long do you want to use the boat?")]
