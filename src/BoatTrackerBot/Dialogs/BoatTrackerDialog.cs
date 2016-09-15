@@ -53,7 +53,7 @@ namespace BoatTracker.Bot
 
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            bool forceHelp = result.Query.ToLower().Contains("help");
+            bool forceHelp = result.Query.ToLower().Contains("help") || result.Query.Equals("?");
 
             if (forceHelp || !this.currentUserState.HelpMessageShown)
             {
@@ -61,7 +61,7 @@ namespace BoatTracker.Bot
             }
             else
             {
-                string message = "I'm sorry, I don't understand. Enter 'help' to see what you can say.";
+                string message = "I'm sorry, I don't understand. Enter '?' to see what you can say at any time.";
                 await context.PostAsync(message);
             }
 
