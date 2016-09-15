@@ -96,6 +96,14 @@ namespace BoatTracker.Bot.Configuration
                     supportsButtons:false,
                     supportsMarkdown:false);
             }
+            else if (channel == "sms")
+            {
+                channelInfo = new ChannelInfo(
+                    "Text Message",
+                    "Text message account key" + devName,
+                    supportsButtons:false,
+                    supportsMarkdown:false);
+            }
             else
             {
                 throw new ArgumentException("Invalid channel name: " + channel);
