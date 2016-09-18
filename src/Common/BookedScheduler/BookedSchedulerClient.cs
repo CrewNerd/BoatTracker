@@ -52,7 +52,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Authentication
 
-        public async Task SignIn(string userName, string password)
+        public virtual async Task SignIn(string userName, string password)
         {
             using (var client = this.GetHttpClient())
             {
@@ -85,7 +85,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task SignOut()
+        public virtual async Task SignOut()
         {
             using (var client = this.GetHttpClient())
             {
@@ -112,7 +112,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Users
 
-        public async Task<JArray> GetUsersAsync()
+        public virtual async Task<JArray> GetUsersAsync()
         {
             // TODO: support queries
 
@@ -128,7 +128,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetUserAsync(string userId)
+        public virtual async Task<JToken> GetUserAsync(string userId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -144,7 +144,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Resources
 
-        public async Task<JArray> GetResourcesAsync()
+        public virtual async Task<JArray> GetResourcesAsync()
         {
             // TODO: support queries
 
@@ -160,7 +160,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetResourceAsync(string resourceId)
+        public virtual async Task<JToken> GetResourceAsync(string resourceId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -176,7 +176,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Groups
 
-        public async Task<JArray> GetGroupsAsync()
+        public virtual async Task<JArray> GetGroupsAsync()
         {
             // TODO: support queries
 
@@ -192,7 +192,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetGroupAsync(string groupId)
+        public virtual async Task<JToken> GetGroupAsync(string groupId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -208,7 +208,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Schedules
 
-        public async Task<JArray> GetSchedulesAsync()
+        public virtual async Task<JArray> GetSchedulesAsync()
         {
             using (var client = this.GetHttpClient())
             {
@@ -222,7 +222,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetScheduleAsync(string scheduleId)
+        public virtual async Task<JToken> GetScheduleAsync(string scheduleId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -234,7 +234,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetScheduleSlotsAsync(string scheduleId)
+        public virtual async Task<JToken> GetScheduleSlotsAsync(string scheduleId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -250,7 +250,7 @@ namespace BoatTracker.BookedScheduler
 
         #region Reservations
 
-        public async Task<JArray> GetReservationsAsync(long? userId = null, long? resourceId = null, DateTime? start = null, DateTime? end = null)
+        public virtual async Task<JArray> GetReservationsAsync(long? userId = null, long? resourceId = null, DateTime? start = null, DateTime? end = null)
         {
             using (var client = this.GetHttpClient())
             {
@@ -324,7 +324,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JToken> GetReservationAsync(string referenceNumber)
+        public virtual async Task<JToken> GetReservationAsync(string referenceNumber)
         {
             using (var client = this.GetHttpClient())
             {
@@ -336,12 +336,12 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task<JArray> GetReservationsForUserAsync(long userId)
+        public virtual async Task<JArray> GetReservationsForUserAsync(long userId)
         {
             return await this.GetReservationsAsync(userId: userId);
         }
 
-        public async Task DeleteReservationAsync(string referenceNumber)
+        public virtual async Task DeleteReservationAsync(string referenceNumber)
         {
             using (var client = this.GetHttpClient())
             {
@@ -351,7 +351,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public async Task CreateReservationAsync(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null)
+        public virtual async Task CreateReservationAsync(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null)
         {
             using (var client = this.GetHttpClient())
             {

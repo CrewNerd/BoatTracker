@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure;
 
 using BoatTracker.BookedScheduler;
+using BoatTracker.Bot.Utils;
 
 namespace BoatTracker.Bot.Configuration
 {
@@ -37,7 +38,7 @@ namespace BoatTracker.Bot.Configuration
 
         static EnvironmentDefinition()
         {
-            Instance = EnvironmentDefinition.CreateFromEnvironment();
+            Instance = CreateFromEnvironment();
         }
 
         public static EnvironmentDefinition Instance { get; private set; }
@@ -200,7 +201,7 @@ namespace BoatTracker.Bot.Configuration
             {
                 var clubInfo = this.MapClubIdToClubInfo[clubId];
 
-                BookedSchedulerClient client = new BookedSchedulerClient(clubInfo.Url);
+                BookedSchedulerClient client = new BookedSchedulerLoggingClient(clubId);
 
                 await client.SignIn(clubInfo.UserName, clubInfo.Password);
 

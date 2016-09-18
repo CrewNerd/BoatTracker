@@ -141,7 +141,7 @@ namespace BoatTracker.Bot.Utils
 
                 var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.clubId];
 
-                BookedSchedulerClient client = new BookedSchedulerClient(clubInfo.Url);
+                BookedSchedulerClient client = new BookedSchedulerLoggingClient(this.clubId);
 
                 await client.SignIn(clubInfo.UserName, clubInfo.Password);
 
