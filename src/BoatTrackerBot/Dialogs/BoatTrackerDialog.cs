@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.ApplicationInsights;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.FormFlow;
 using Microsoft.Bot.Builder.Luis;
@@ -39,6 +40,22 @@ namespace BoatTracker.Bot
         {
         }
 
+        [NonSerialized]
+        private TelemetryClient telemetryClient;
+
+        private TelemetryClient TelemetryClient
+        {
+            get
+            {
+                if (this.telemetryClient == null)
+                {
+                    this.telemetryClient = new TelemetryClient();
+                }
+
+                return this.telemetryClient;
+            }
+        }
+
         #region Intents
 
         [LuisIntent("")]
@@ -46,12 +63,18 @@ namespace BoatTracker.Bot
         {
             if (result.Query.StartsWith("#!"))
             {
-                await this.ProcessControlMessage(context, result.Query.Substring(2));
+                string command = result.Query.Substring(2);
+
+                this.TelemetryClient.TrackEvent("ControlMessage", new Dictionary<string, string> { ["Command"] = command });
+
+                await this.ProcessControlMessage(context, command);
                 context.Wait(MessageReceived);
                 return;
             }
 
             if (!await this.CheckUserIsRegistered(context)) { return; }
+
+            this.TrackIntent(context, "None");
 
             bool forceHelp = result.Query.ToLower().Contains("help") || result.Query.Equals("?");
 
@@ -124,6 +147,8 @@ namespace BoatTracker.Bot
         public async Task CreateReservation(IDialogContext context, LuisResult result)
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
+
+            this.TrackIntent(context, "CreateReservation");
 
             var boatName = await this.currentUserState.FindBestResourceNameAsync(result);
             var startDate = result.FindStartDate(this.currentUserState);
@@ -206,6 +231,8 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
+            this.TrackIntent(context, "CheckBoatAvailability");
+
             //
             // Check for (and apply) a boat name filter
             //
@@ -274,6 +301,8 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
+            this.TrackIntent(context, "Checkout");
+
             string boatName = await this.currentUserState.FindBestResourceNameAsync(result);
 
             if (string.IsNullOrEmpty(boatName))
@@ -293,6 +322,8 @@ namespace BoatTracker.Bot
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
+            this.TrackIntent(context, "Checkin");
+
             string boatName = await this.currentUserState.FindBestResourceNameAsync(result);
 
             if (string.IsNullOrEmpty(boatName))
@@ -311,6 +342,8 @@ namespace BoatTracker.Bot
         public async Task CheckReservations(IDialogContext context, LuisResult result)
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
+
+            this.TrackIntent(context, "CheckReservations");
 
             var client = await this.GetClient();
 
@@ -376,6 +409,8 @@ namespace BoatTracker.Bot
         public async Task CancelReservation(IDialogContext context, LuisResult result)
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
+
+            this.TrackIntent(context, "CancelReservation");
 
             var client = await this.GetClient();
 
@@ -642,6 +677,15 @@ namespace BoatTracker.Bot
             }
         }
 
+        private void TrackIntent(IDialogContext context, string intent)
+        {
+            this.TelemetryClient.TrackEvent(intent, new Dictionary<string, string>
+            {
+                ["ClubId"] = this.currentUserState.ClubId,
+                ["Channel"] = context.GetChannel()
+            });
+        }
+
         /// <summary>
         /// Gets a client object for the user's BookedScheduler instance. These are cached and reused.
         /// </summary>
@@ -652,7 +696,7 @@ namespace BoatTracker.Bot
 
             if (this.cachedClient == null)
             {
-                this.cachedClient = new BookedSchedulerClient(clubInfo.Url);
+                this.cachedClient = new BookedSchedulerLoggingClient(this.currentUserState.ClubId);
             }
 
             if (!this.cachedClient.IsSignedIn || this.cachedClient.IsSessionExpired)

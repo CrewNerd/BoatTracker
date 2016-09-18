@@ -26,8 +26,6 @@ namespace BoatTracker.Bot
         {
             if (activity != null)
             {
-                Trace.TraceInformation("Message from: {0} / {1}", activity.From.Id, activity.From.Name);
-
                 switch (activity.GetActivityType())
                 {
                     case ActivityTypes.Message:
