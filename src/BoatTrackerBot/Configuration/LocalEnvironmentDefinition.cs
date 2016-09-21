@@ -34,15 +34,6 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
-        protected override IEnumerable<string> ClubIds
-        {
-            get
-            {
-                // Using placeholder value for security reasons... fill it in by hand when debugging locally
-                return new List<string>() { "foo" };
-            }
-        }
-
         public override IReadOnlyDictionary<string, ClubInfo> MapClubIdToClubInfo
         {
             get

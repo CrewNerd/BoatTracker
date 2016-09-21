@@ -158,6 +158,7 @@
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Configuration\ChannelInfo.cs" />
+    <Compile Include="Configuration\ClubConfiguration.cs" />
     <Compile Include="Configuration\ClubInfo.cs" />
     <Compile Include="Configuration\DevelopmentEnvironmentDefinition.cs" />
     <Compile Include="Configuration\EnvironmentDefinition.cs" />

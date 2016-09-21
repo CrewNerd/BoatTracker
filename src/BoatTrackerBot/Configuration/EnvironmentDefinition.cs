@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,6 +9,7 @@ using Microsoft.Azure;
 
 using BoatTracker.BookedScheduler;
 using BoatTracker.Bot.Utils;
+using Newtonsoft.Json;
 
 namespace BoatTracker.Bot.Configuration
 {
@@ -115,32 +117,6 @@ namespace BoatTracker.Bot.Configuration
 
         #region Clubs
 
-        private IEnumerable<string> clubIds;
-
-        /// <summary>
-        /// Gets a list of club id's that we're configured to talk to.
-        /// </summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations")]
-        protected virtual IEnumerable<string> ClubIds
-        {
-            get
-            {
-                if (clubIds == null)
-                {
-                    var ids = CloudConfigurationManager.GetSetting(ClubIdListKey);
-
-                    if (string.IsNullOrEmpty(ids))
-                    {
-                        throw new ApplicationException("Missing club id list");
-                    }
-
-                    this.clubIds = ids.Split(',');
-                }
-
-                return this.clubIds;
-            }
-        }
-
         private Dictionary<string, ClubInfo> mapClubIdToClubInfo;
 
         /// <summary>
@@ -153,38 +129,11 @@ namespace BoatTracker.Bot.Configuration
             {
                 if (this.mapClubIdToClubInfo == null)
                 {
-                    this.mapClubIdToClubInfo = new Dictionary<string, ClubInfo>(this.ClubIds.Count());
+                    // TODO: lock needed here.
+                    var body = File.ReadAllText(@"d:\home\site\wwwroot\ClubConfiguration.json");
+                    var config = JsonConvert.DeserializeObject<ClubConfiguration>(body);
 
-                    foreach (var id in this.ClubIds)
-                    {
-                        var name = CloudConfigurationManager.GetSetting(ClubNameBaseKey + id);
-                        if (string.IsNullOrEmpty(name))
-                        {
-                            throw new ApplicationException($"Missing name for club id '{id}'");
-                        }
-
-                        var url = CloudConfigurationManager.GetSetting(ClubUrlBaseKey + id);
-                        if (string.IsNullOrEmpty(url))
-                        {
-                            throw new ApplicationException($"Missing URL for club id '{id}'");
-                        }
-
-                        var username = CloudConfigurationManager.GetSetting(ClubUserNameBaseKey + id);
-                        if (string.IsNullOrEmpty(username))
-                        {
-                            throw new ApplicationException($"Missing user name for club id '{id}'");
-                        }
-
-                        var password = CloudConfigurationManager.GetSetting(ClubPasswordBaseKey + id);
-                        if (string.IsNullOrEmpty(password))
-                        {
-                            throw new ApplicationException($"Missing password for club id '{id}'");
-                        }
-
-                        this.mapClubIdToClubInfo.Add(
-                            id,
-                            new ClubInfo { Name = name, Url = new Uri(url), UserName = username, Password = password });
-                    }
+                    this.mapClubIdToClubInfo = config.Clubs.ToDictionary(c => c.Id);
                 }
 
                 return this.mapClubIdToClubInfo;
@@ -197,7 +146,7 @@ namespace BoatTracker.Bot.Configuration
         {
             string botAccountKeyDisplayName = this.GetChannelInfo(channel).BotAccountKeyDisplayName;
 
-            foreach (var clubId in this.ClubIds)
+            foreach (var clubId in this.MapClubIdToClubInfo.Keys)
             {
                 var clubInfo = this.MapClubIdToClubInfo[clubId];
 
