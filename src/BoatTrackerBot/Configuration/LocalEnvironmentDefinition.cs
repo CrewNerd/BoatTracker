@@ -8,6 +8,22 @@ namespace BoatTracker.Bot.Configuration
     /// </summary>
     public class LocalEnvironmentDefinition : EnvironmentDefinition
     {
+        public LocalEnvironmentDefinition()
+        {
+            this.MapClubIdToClubInfo = new Dictionary<string, ClubInfo>
+            {
+                ["foo"] = new ClubInfo
+                {
+                    Id = "foo",
+                    Name = "Foo Bar",
+                    Url = new Uri("https://foo.bookedscheduler.com/Web/Services/index.php/"),
+                    UserName = "boattrackerbot",
+                    Password = "foo",
+                    DoorNames = new [] { "Main door", "Side door" }
+                }
+            };
+        }
+
         public override string LuisModelId
         {
             get
@@ -31,33 +47,6 @@ namespace BoatTracker.Bot.Configuration
             get
             {
                 return true;
-            }
-        }
-
-        protected override IEnumerable<string> ClubIds
-        {
-            get
-            {
-                // Using placeholder value for security reasons... fill it in by hand when debugging locally
-                return new List<string>() { "foo" };
-            }
-        }
-
-        public override IReadOnlyDictionary<string, ClubInfo> MapClubIdToClubInfo
-        {
-            get
-            {
-                // Using placeholder values for security reasons... replace these when debugging locally
-                return new Dictionary<string, ClubInfo>
-                {
-                    ["foo"] = new ClubInfo
-                    {
-                        Name = "Foo",
-                        Url = new Uri("https://foo.bookedscheduler.com/Web/Services/index.php/"),
-                        UserName = "boattrackerbot",
-                        Password = "foo"
-                    }
-                };
             }
         }
     }
