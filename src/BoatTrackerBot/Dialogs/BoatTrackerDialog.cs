@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 
 using BoatTracker.BookedScheduler;
 using BoatTracker.Bot.Configuration;
+using BoatTracker.Bot.DataObjects;
 using BoatTracker.Bot.Utils;
 
 namespace BoatTracker.Bot

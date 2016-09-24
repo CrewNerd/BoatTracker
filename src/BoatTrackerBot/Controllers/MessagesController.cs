@@ -15,6 +15,7 @@ using BoatTracker.Bot.Configuration;
 namespace BoatTracker.Bot
 {
     [BotAuthentication]
+    [Route("api/messages")]
     public class MessagesController : ApiController
     {
         /// <summary>

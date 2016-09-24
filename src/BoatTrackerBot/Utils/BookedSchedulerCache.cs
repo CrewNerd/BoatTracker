@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 
 using BoatTracker.BookedScheduler;
 using BoatTracker.Bot.Configuration;
+using BoatTracker.Bot.DataObjects;
 
 namespace BoatTracker.Bot.Utils
 {
@@ -62,9 +63,14 @@ namespace BoatTracker.Bot.Utils
 
             private DateTime timestamp;
 
+            private JToken botUser;
+
+            private ConcurrentDictionary<long, RfidEvent> mapResourceIdToLastEvent;
+
             public BookedSchedulerCacheEntry(string clubId)
             {
                 this.clubId = clubId;
+                this.mapResourceIdToLastEvent = new ConcurrentDictionary<long, RfidEvent>();
             }
 
             #region Cache accessor methods
@@ -93,6 +99,73 @@ namespace BoatTracker.Bot.Utils
                 return this.schedules;
             }
 
+            public async Task<JToken> GetBotUserAsync()
+            {
+                if (this.botUser == null)
+                {
+                    await this.EnsureCacheIsCurrentAsync();
+
+                    var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.clubId];
+
+                    this.botUser = this.users
+                        .Where(u => u.UserName() == clubInfo.UserName)
+                        .FirstOrDefault();
+                }
+
+                return this.botUser;
+            }
+
+            #endregion
+
+            #region Event handling methods
+
+            /// <summary>
+            /// It will be common to get two events for the same boat close together since we
+            /// normally have two tags per boat. We want to make sure we only process the first
+            /// event in this case and ignore the redundant ones.
+            /// </summary>
+            /// <param name="ev">An incoming event</param>
+            /// <returns>True if the event is redundant</returns>
+            public async Task<bool> IsEventRedundantAsync(RfidEvent ev)
+            {
+                TimeSpan EventLifetime = TimeSpan.FromSeconds(30);
+
+                var boat = await this.GetResourceFromRfidTagAsync(ev.Id);
+                var boatId = boat.ResourceId();
+
+                if (!ev.Timestamp.HasValue)
+                {
+                    ev.Timestamp = DateTime.Now;
+                }
+
+                RfidEvent lastEvent;
+
+                bool isRedundant = true;
+
+                // If no event for this boat, this isn't redundant
+                if (!this.mapResourceIdToLastEvent.TryGetValue(boatId, out lastEvent))
+                {
+                    isRedundant = false;
+                }
+                else if (lastEvent.Timestamp.Value + EventLifetime < DateTime.Now)
+                {
+                    // If we haven't seen an event for this boat in a while, this isn't redundant
+                    isRedundant = false;
+                }
+                else if (lastEvent.EventType != ev.EventType || lastEvent.Antenna != ev.Antenna)
+                {
+                    // If the door or direction are different, this is a new event
+                    isRedundant = false;
+                }
+
+                if (!isRedundant)
+                {
+                    this.mapResourceIdToLastEvent.TryAdd(boatId, ev);
+                }
+
+                return isRedundant;
+            }
+
             #endregion
 
             #region Public utility methods
@@ -111,6 +184,17 @@ namespace BoatTracker.Bot.Utils
                 var resource = await this.GetResourceFromIdAsync(id);
 
                 return resource != null ? resource.Name() : "**Unknown!**";
+            }
+
+            public async Task<JToken> GetResourceFromRfidTagAsync(string rfidTag)
+            {
+                var resources = await this.GetResourcesAsync();
+
+                var resource = resources
+                    .Where(t => t.GetBoatTagIds().Contains(rfidTag, StringComparer.InvariantCultureIgnoreCase))
+                    .FirstOrDefault();
+
+                return resource;
             }
 
             #endregion

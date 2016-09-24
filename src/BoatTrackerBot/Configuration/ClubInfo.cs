@@ -44,6 +44,9 @@ namespace BoatTracker.Bot.Configuration
         /// Gets or sets the list of names associated with the reader antennas.
         /// </summary>
         [JsonProperty("doorNames")]
-        public IEnumerable<string> DoorNames { get; set; }
+        public IReadOnlyList<string> DoorNames { get; set; }
+
+        [JsonProperty("rfidPassword")]
+        public string RfidPassword { get; set; }
     }
 }

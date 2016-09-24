@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Bot.Builder.FormFlow;
 
 using BoatTracker.BookedScheduler;
-using BoatTracker.Bot.Configuration;
+using BoatTracker.Bot.DataObjects;
 using BoatTracker.Bot.Utils;
 
 namespace BoatTracker.Bot
