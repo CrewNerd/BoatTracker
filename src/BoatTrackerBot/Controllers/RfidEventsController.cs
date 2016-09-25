@@ -52,7 +52,7 @@ namespace BoatTracker.Bot.Controllers
         private async Task ProcessEvent(RfidEvent ev)
         {
             var boat = await this.bsCache.GetResourceFromRfidTagAsync(ev.Id);
-            var makerChannelKey = (await this.bsCache.GetBotUserAsync()).GetMakerChannelKey();
+            var makerChannelKey = (await this.bsCache.GetBotUserAsync()).MakerChannelKey();
 
             string doorName = "Unknown";
 

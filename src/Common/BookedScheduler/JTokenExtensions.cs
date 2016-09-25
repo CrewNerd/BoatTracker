@@ -1,6 +1,7 @@
-﻿using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+
+using Newtonsoft.Json.Linq;
 
 namespace BoatTracker.BookedScheduler
 {
@@ -18,7 +19,7 @@ namespace BoatTracker.BookedScheduler
             return jtoken.Value<string>("name");
         }
 
-        public static IEnumerable<string> GetBoatTagIds(this JToken jtoken)
+        public static IEnumerable<string> BoatTagIds(this JToken jtoken)
         {
             var boatTagIds = jtoken
                 .Value<JArray>("customAttributes")
@@ -51,15 +52,14 @@ namespace BoatTracker.BookedScheduler
             return jtoken.Value<string>("username");
         }
 
-        public static string GetMakerChannelKey(this JToken jtoken)
+        public static string MakerChannelKey(this JToken jtoken)
         {
-            var iftttMakerChannelKey = jtoken
+            var jTokenChannelKey = jtoken
                 .Value<JArray>("customAttributes")
                 .Where(x => x.Value<string>("label").StartsWith("IFTTT"))
-                .First()
-                .Value<string>("value") ?? string.Empty;
+                .FirstOrDefault();
 
-            return iftttMakerChannelKey.Trim();
+            return jTokenChannelKey?.Value<string>("value") ?? string.Empty;
         }
 
         #endregion

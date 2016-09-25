@@ -49,7 +49,8 @@ namespace BoatTracker.Bot.Utils
 
         public class BookedSchedulerCacheEntry
         {
-            private readonly TimeSpan CacheTimeout = TimeSpan.FromHours(8);
+            private static readonly TimeSpan CacheTimeout = TimeSpan.FromHours(8);
+            private static readonly TimeSpan EventLifetime = TimeSpan.FromSeconds(15);
 
             private string clubId;
 
@@ -128,8 +129,6 @@ namespace BoatTracker.Bot.Utils
             /// <returns>True if the event is redundant</returns>
             public async Task<bool> IsEventRedundantAsync(RfidEvent ev)
             {
-                TimeSpan EventLifetime = TimeSpan.FromSeconds(30);
-
                 if (!ev.Timestamp.HasValue)
                 {
                     ev.Timestamp = DateTime.Now;
@@ -178,6 +177,11 @@ namespace BoatTracker.Bot.Utils
 
             #region Public utility methods
 
+            /// <summary>
+            /// Return a boat resource given its id.
+            /// </summary>
+            /// <param name="id">The id of the boat</param>
+            /// <returns>The JToken representing the boat resource or null if no boat was found.</returns>
             public async Task<JToken> GetResourceFromIdAsync(long id)
             {
                 var resources = await this.GetResourcesAsync();
@@ -187,6 +191,11 @@ namespace BoatTracker.Bot.Utils
                 return resource;
             }
 
+            /// <summary>
+            /// Gets the name of a boat given it's id.
+            /// </summary>
+            /// <param name="id">The id of the boat</param>
+            /// <returns>The boat's name or a fixed string if the boat couldn't be found.</returns>
             public async Task<string> GetResourceNameFromIdAsync(long id)
             {
                 var resource = await this.GetResourceFromIdAsync(id);
@@ -194,12 +203,17 @@ namespace BoatTracker.Bot.Utils
                 return resource != null ? resource.Name() : "**Unknown!**";
             }
 
+            /// <summary>
+            /// Return a boat resource given the id of one of its RFID tags.
+            /// </summary>
+            /// <param name="rfidTag">The RFID tag value.</param>
+            /// <returns>The JToken representing the boat, or null if not boat was found.</returns>
             public async Task<JToken> GetResourceFromRfidTagAsync(string rfidTag)
             {
                 var resources = await this.GetResourcesAsync();
 
                 var resource = resources
-                    .Where(t => t.GetBoatTagIds().Contains(rfidTag, StringComparer.InvariantCultureIgnoreCase))
+                    .Where(t => t.BoatTagIds().Contains(rfidTag, StringComparer.InvariantCultureIgnoreCase))
                     .FirstOrDefault();
 
                 return resource;
