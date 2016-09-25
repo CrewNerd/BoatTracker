@@ -164,7 +164,10 @@
     <Compile Include="Configuration\EnvironmentDefinition.cs" />
     <Compile Include="Configuration\LocalEnvironmentDefinition.cs" />
     <Compile Include="Configuration\ProductionEnvironmentDefinition.cs" />
-    <Compile Include="Configuration\UserState.cs" />
+    <Compile Include="DataObjects\RfidEvent.cs" />
+    <Compile Include="DataObjects\RfidEvents.cs" />
+    <Compile Include="DataObjects\UserState.cs" />
+    <Compile Include="Controllers\RfidEventsController.cs" />
     <Compile Include="Dialogs\BoatTrackerDialog.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Dialogs\ReservationRequest.cs" />

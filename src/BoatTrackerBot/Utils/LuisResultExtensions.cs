@@ -4,7 +4,7 @@ using System.Linq;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
 
-using BoatTracker.Bot.Configuration;
+using BoatTracker.Bot.DataObjects;
 
 namespace BoatTracker.Bot.Utils
 {

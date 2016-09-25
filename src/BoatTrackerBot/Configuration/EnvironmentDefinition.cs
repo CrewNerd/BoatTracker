@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure;
 
 using BoatTracker.BookedScheduler;
+using BoatTracker.Bot.DataObjects;
 using BoatTracker.Bot.Utils;
 using Newtonsoft.Json;
 

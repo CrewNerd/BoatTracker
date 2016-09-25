@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BoatTracker.Bot.Configuration
+namespace BoatTracker.Bot.DataObjects
 {
     [Serializable]
     public class UserState

@@ -9,7 +9,7 @@ using Microsoft.Bot.Builder.Luis.Models;
 using Newtonsoft.Json.Linq;
 using NodaTime.TimeZones;
 
-using BoatTracker.Bot.Configuration;
+using BoatTracker.Bot.DataObjects;
 using BoatTracker.BookedScheduler;
 
 namespace BoatTracker.Bot.Utils
