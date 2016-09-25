@@ -297,43 +297,43 @@ namespace BoatTracker.Bot
             context.Wait(MessageReceived);
         }
 
-        [LuisIntent("Checkout")]
-        public async Task Checkout(IDialogContext context, LuisResult result)
+        [LuisIntent("Return")]
+        public async Task Return(IDialogContext context, LuisResult result)
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "Checkout");
+            this.TrackIntent(context, "Return");
 
             string boatName = await this.currentUserState.FindBestResourceNameAsync(result);
 
             if (string.IsNullOrEmpty(boatName))
             {
-                await context.PostAsync("It sounds like you want to check out a boat but I don't know how to do that yet.");
+                await context.PostAsync("It sounds like you want to return a boat but I don't know how to do that yet.");
             }
             else
             {
-                await context.PostAsync($"It sounds like you want to check out the '{boatName}' but I don't know how to do that yet.");
+                await context.PostAsync($"It sounds like you want to return the '{boatName}' but I don't know how to do that yet.");
             }
 
             context.Wait(MessageReceived);
         }
 
-        [LuisIntent("Checkin")]
-        public async Task Checkin(IDialogContext context, LuisResult result)
+        [LuisIntent("TakeOut")]
+        public async Task TakeOut(IDialogContext context, LuisResult result)
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "Checkin");
+            this.TrackIntent(context, "TakeOut");
 
             string boatName = await this.currentUserState.FindBestResourceNameAsync(result);
 
             if (string.IsNullOrEmpty(boatName))
             {
-                await context.PostAsync("It sounds like you want to check in a boat but I don't know how to do that yet.");
+                await context.PostAsync("It sounds like you want to take out a boat but I don't know how to do that yet.");
             }
             else
             {
-                await context.PostAsync($"It sounds like you want to check in the '{boatName}' but I don't know how to do that yet.");
+                await context.PostAsync($"It sounds like you want to take out the '{boatName}' but I don't know how to do that yet.");
             }
 
             context.Wait(MessageReceived);
@@ -722,11 +722,10 @@ namespace BoatTracker.Bot
                 "* Show my reservations\n" +
                 "* Did I reserve the Little Thunder?\n" +
                 "* Show my reservation for the Little Thunder on Friday\n\n" +
-                "## Checking out a boat\n\n" +
-                "* Check out the Little Thunder for two hours\n\n" +
-                "## Checking in a boat\n\n" +
-                "* Check in\n" +
-                "* Check in the Little Thunder"
+                "## Taking out a boat\n\n" +
+                "* Take out the Little Thunder for two hours\n\n" +
+                "## Returning a boat\n\n" +
+                "* Return the Little Thunder"
             );
 
             this.currentUserState.HelpMessageShown = true;
