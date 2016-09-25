@@ -304,15 +304,36 @@ namespace BoatTracker.Bot
 
             this.TrackIntent(context, "Return");
 
-            string boatName = await this.currentUserState.FindBestResourceNameAsync(result);
+            var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
+            long? boatId = boat?.ResourceId();
+            var now = DateTime.Now;
 
-            if (string.IsNullOrEmpty(boatName))
+            var client = await this.GetClient();
+
+            var reservations = (await client.GetReservationsAsync(
+                this.currentUserState.UserId,
+                boatId,
+                start:this.currentUserState.ConvertToLocalTime(now - TimeSpan.FromHours(6))))
+                .ToList();
+
+            // Filter down to current or recently-completed reservations
+            // TODO: Also filter out reservations that have already been "returned".
+            reservations = reservations.Where(r => now > r.StartDateTime() && now < (r.EndDateTime() + TimeSpan.FromHours(2))).ToList();
+
+            switch (reservations.Count())
             {
-                await context.PostAsync("It sounds like you want to return a boat but I don't know how to do that yet.");
-            }
-            else
-            {
-                await context.PostAsync($"It sounds like you want to return the '{boatName}' but I don't know how to do that yet.");
+                case 0:
+                    await context.PostAsync("Sorry, but I don't see a current (or recent) reservation for you to close out at this time.");
+                    break;
+
+                case 1:
+                    // TODO: When we have a "check out" API on BS, use it here. For now, we just mark the reservation appropriately.
+                    await context.PostAsync("Okay, you're good to go. Thanks!");
+                    break;
+
+                default:
+                    await context.PostAsync("It looks like you have more than one current or recent reservation that hasn't been closed out, but I don't know how to ask you which one, yet.");
+                    break;
             }
 
             context.Wait(MessageReceived);
