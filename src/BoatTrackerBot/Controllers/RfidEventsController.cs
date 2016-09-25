@@ -52,6 +52,7 @@ namespace BoatTracker.Bot.Controllers
         private async Task ProcessEvent(RfidEvent ev)
         {
             var boat = await this.bsCache.GetResourceFromRfidTagAsync(ev.Id);
+            var makerChannelKey = (await this.bsCache.GetBotUserAsync()).GetMakerChannelKey();
 
             string doorName = "Unknown";
 
@@ -62,32 +63,56 @@ namespace BoatTracker.Bot.Controllers
 
             this.LogBoatEvent(boat, doorName, ev);
 
-            var makerChannelKey = (await this.bsCache.GetBotUserAsync()).GetMakerChannelKey();
-            if (!string.IsNullOrEmpty(makerChannelKey))
+            if (boat == null)
             {
-                await this.SendBoatEventTrigger(boat, doorName, makerChannelKey, ev);
+                await this.SendIftttTrigger(makerChannelKey, "new_tag", ev.Timestamp.Value.ToString(), ev.Id, doorName);
+                return;
             }
+
+            await this.SendIftttTrigger(makerChannelKey, ev.EventType, ev.Timestamp.Value.ToString(), boat.Name(), doorName);
+
+            //
+            // TODO: Looks for a reservation to see if we can just annotate it with in/out times.
+            // Otherwise, we need to create a reservation with an "unknown" rower to log the usage.
+            //
         }
 
-        private async Task SendBoatEventTrigger(JToken boat, string doorName, string channelKey, RfidEvent ev)
+        private async Task SendIftttTrigger(string channelKey, string eventName, string data1 = null, string data2 = null, string data3 = null)
         {
-            try
+            if (!string.IsNullOrEmpty(channelKey))
             {
-                using (var client = new HttpClient())
+                string triggerUrl = $"https://maker.ifttt.com/trigger/{eventName}/with/key/{channelKey}";
+
+                if (data1 != null)
                 {
-                    await client.GetAsync(
-                        string.Format(
-                            "https://maker.ifttt.com/trigger/{0}/with/key/{1}?value1={2}&value2={3}&value3={4}",
-                            ev.EventType,
-                            channelKey,
-                            Uri.EscapeUriString(ev.Timestamp.Value.ToString()),
-                            Uri.EscapeUriString(boat.Name()),
-                            Uri.EscapeUriString(doorName)));
+                    triggerUrl += $"?value1={Uri.EscapeUriString(data1)}";
                 }
-            }
-            catch (Exception ex)
-            {
-                this.telemetryClient.TrackException(ex, new Dictionary<string, string> { ["clubId"] = this.currentClub.Id });
+
+                if (data2 != null)
+                {
+                    triggerUrl += $"&value2={Uri.EscapeUriString(data2)}";
+                }
+
+                if (data3 != null)
+                {
+                    triggerUrl += $"&value3={Uri.EscapeUriString(data3)}";
+                }
+
+                try
+                {
+                    using (var client = new HttpClient())
+                    {
+                        await client.GetAsync(triggerUrl);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    this.telemetryClient.TrackException(ex, new Dictionary<string, string>
+                    {
+                        ["clubId"] = this.currentClub.Id,
+                        ["eventName"] = eventName
+                    });
+                }
             }
         }
 
@@ -129,14 +154,27 @@ namespace BoatTracker.Bot.Controllers
 
         private void LogBoatEvent(JToken boat, string doorName, RfidEvent ev)
         {
-            telemetryClient.TrackEvent(ev.EventType, new Dictionary<string, string>
+            if (boat != null)
             {
-                ["ClubId"] = this.currentClub.Id,
-                ["Timestamp"] = ev.Timestamp.Value.ToString(),
-                ["TagId"] = ev.Id,
-                ["BoatName"] = boat.Name(),
-                ["DoorName"] = doorName
-            });
+                telemetryClient.TrackEvent(ev.EventType, new Dictionary<string, string>
+                {
+                    ["ClubId"] = this.currentClub.Id,
+                    ["Timestamp"] = ev.Timestamp.Value.ToString(),
+                    ["TagId"] = ev.Id,
+                    ["BoatName"] = boat.Name(),
+                    ["DoorName"] = doorName
+                });
+            }
+            else
+            {
+                telemetryClient.TrackEvent("new_tag", new Dictionary<string, string>
+                {
+                    ["ClubId"] = this.currentClub.Id,
+                    ["Timestamp"] = ev.Timestamp.Value.ToString(),
+                    ["DoorName"] = doorName,
+                    ["TagId"] = ev.Id,
+                });
+            }
         }
     }
 }

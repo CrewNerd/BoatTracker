@@ -130,13 +130,21 @@ namespace BoatTracker.Bot.Utils
             {
                 TimeSpan EventLifetime = TimeSpan.FromSeconds(30);
 
-                var boat = await this.GetResourceFromRfidTagAsync(ev.Id);
-                var boatId = boat.ResourceId();
-
                 if (!ev.Timestamp.HasValue)
                 {
                     ev.Timestamp = DateTime.Now;
                 }
+
+                var boat = await this.GetResourceFromRfidTagAsync(ev.Id);
+
+                if (boat == null)
+                {
+                    // If the tag isn't associated with a boat, it can't be redundant
+                    // but we also don't want to cache it.
+                    return false;
+                }
+
+                var boatId = boat.ResourceId();
 
                 RfidEvent lastEvent;
 
