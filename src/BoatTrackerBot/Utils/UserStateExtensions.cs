@@ -16,6 +16,8 @@ namespace BoatTracker.Bot.Utils
 {
     public static class UserStateExtensions
     {
+        #region Reservations
+
         public static async Task<string> DescribeReservationsAsync(
             this UserState userState,
             IList<JToken> reservations,
@@ -111,6 +113,44 @@ namespace BoatTracker.Bot.Utils
                 startDate.ToLocalTime().ToString("t"),
                 boatName
                 );
+        }
+
+        #endregion
+
+        #region Resources
+
+        public static async Task<bool> HasPermissionForResourceAsync(this UserState userState, JToken resource)
+        {
+            var cache = BookedSchedulerCache.Instance[userState.ClubId];
+            var user = await cache.GetUserAsync(userState.UserId);
+            var resourceId = resource.ResourceId();
+
+            // See if the user is granted permission to the resource directly.
+            var okByUser = user
+                .Value<JArray>("permissions")
+                .Any(r => r.Value<long>("id") == resourceId);
+
+            if (okByUser)
+            {
+                return true;
+            }
+
+            // See if any of the user's group memberships grant permission to the resource
+            foreach (var group in user.Value<JArray>("groups"))
+            {
+                var groupNode = await cache.GetGroupAsync(group.Value<long>("id"));
+
+                var okByGroup = groupNode
+                    .Value<JArray>("permissions")
+                    .Any(r => r.Value<string>().EndsWith($"/{resourceId}"));
+
+                if (okByGroup)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -266,6 +306,10 @@ namespace BoatTracker.Bot.Utils
             return boatNames;
         }
 
+#endregion
+
+#region Timezones
+
         public static DateTime ConvertToLocalTime(this UserState userState, DateTime dateTime)
         {
             return dateTime + userState.LocalOffsetForDate(dateTime);
@@ -287,5 +331,7 @@ namespace BoatTracker.Bot.Utils
 
             return offset;
         }
+
+#endregion
     }
 }

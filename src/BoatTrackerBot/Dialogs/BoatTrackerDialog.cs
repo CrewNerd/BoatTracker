@@ -151,7 +151,8 @@ namespace BoatTracker.Bot
 
             this.TrackIntent(context, "CreateReservation");
 
-            var boatName = await this.currentUserState.FindBestResourceNameAsync(result);
+            var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
+            var boatName = boat?.Name();
             var startDate = result.FindStartDate(this.currentUserState);
             var startTime = result.FindStartTime(this.currentUserState);
             var duration = result.FindDuration();
@@ -172,6 +173,11 @@ namespace BoatTracker.Bot
             if (result.ContainsBoatNameEntity() && boatName == null)
             {
                 await context.PostAsync($"I'm sorry, but I don't recognize the boat name '{result.BoatName()}'.");
+            }
+
+            if (boat != null && !await this.currentUserState.HasPermissionForResourceAsync(boat))
+            {
+                await context.PostAsync($"I'm sorry, but you don't have permission to use the {boat.Name()}.");
             }
 
             var reservationForm = new FormDialog<ReservationRequest>(reservationRequest, ReservationRequest.BuildForm, FormOptions.PromptInStart, result.Entities);
@@ -242,6 +248,15 @@ namespace BoatTracker.Bot
             if (result.ContainsBoatNameEntity() && boat == null)
             {
                 await context.PostAsync($"I'm sorry, but I don't recognize the boat name '{result.BoatName()}'.");
+                context.Wait(MessageReceived);
+                return;
+            }
+
+            if (boat != null && !await this.currentUserState.HasPermissionForResourceAsync(boat))
+            {
+                await context.PostAsync($"I'm sorry, but you don't have permission to use the {boat.Name()}.");
+                context.Wait(MessageReceived);
+                return;
             }
 
             var client = await this.GetClient();
@@ -279,6 +294,17 @@ namespace BoatTracker.Bot
                 showDate = false;
             }
 
+            // Finally, filter out boats that the user doesn't have permission to use.
+            for (int i = reservations.Count - 1; i >= 0; i--)
+            {
+                JToken res = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourceFromIdAsync(reservations[i].ResourceId());
+
+                if (!await this.currentUserState.HasPermissionForResourceAsync(res))
+                {
+                    reservations.RemoveAt(i);
+                }
+            }
+
             if (reservations.Count == 0)
             {
                 await context.PostAsync($"I don't see any reservations{filterDescription}, currently.");
@@ -307,6 +333,22 @@ namespace BoatTracker.Bot
             var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
             long? boatId = boat?.ResourceId();
             var now = DateTime.Now;
+
+            if (boat == null)
+            {
+                await context.PostAsync($"I'm sorry, but I don't recognize boat name '{result.BoatName()}'");
+                context.Wait(MessageReceived);
+                return;
+            }
+
+            // Check that the user even has permission for the boat.
+            JToken res = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourceFromIdAsync(boatId.Value);
+            if (!await this.currentUserState.HasPermissionForResourceAsync(res))
+            {
+                await context.PostAsync($"I'm sorry, but you don't have permission to use the {res.Name()}");
+                context.Wait(MessageReceived);
+                return;
+            }
 
             var client = await this.GetClient();
 

@@ -104,12 +104,24 @@ namespace BoatTracker.Bot
 
             if (boat != null)
             {
-                state.BoatId = boat.ResourceId();
-                return new ValidateResult
+                if (await state.UserState.HasPermissionForResourceAsync(boat))
                 {
-                    IsValid = true,
-                    Value = boat.Name()
-                };
+                    state.BoatId = boat.ResourceId();
+                    return new ValidateResult
+                    {
+                        IsValid = true,
+                        Value = boat.Name()
+                    };
+                }
+                else
+                {
+                    return new ValidateResult
+                    {
+                        IsValid = false,
+                        Value = null,
+                        Feedback = "Sorry, but you don't have permission to use that boat."
+                    };
+                }
             }
             else
             {
