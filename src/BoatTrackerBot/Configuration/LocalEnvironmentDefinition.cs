@@ -19,7 +19,12 @@ namespace BoatTracker.Bot.Configuration
                     Url = new Uri("https://foo.bookedscheduler.com/Web/Services/index.php/"),
                     UserName = "boattrackerbot",
                     Password = "foo",
-                    DoorNames = new [] { "Main door", "Side door" }
+                    DoorNames = new [] { "Main door", "Side door" },
+                    EarliestUseHour = 5,
+                    LatestUseHour = 23,
+                    MinimumDurationHours = 0.5f,
+                    MaximumDurationHours = 4f,
+                    RfidPassword = "abcdefgh"
                 }
             };
         }

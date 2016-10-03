@@ -38,6 +38,19 @@ namespace BoatTracker.Bot.Utils
             EntityRecommendation builtinDate = null;
             result.TryFindEntity(EntityBuiltinDate, out builtinDate);
 
+            var parser = new Chronic.Parser(
+                new Chronic.Options
+                {
+                    Context = Chronic.Pointer.Type.Future,
+                    Clock = () =>
+                    {
+                        var utcNow = DateTime.UtcNow;
+                        var tzOffset = userState.LocalOffsetForDate(utcNow);
+
+                        return new DateTime((utcNow + tzOffset).Ticks, DateTimeKind.Unspecified);
+                    }
+                });
+
             if (builtinDate != null && builtinDate.Resolution.ContainsKey("date"))
             {
                 //
@@ -56,18 +69,6 @@ namespace BoatTracker.Bot.Utils
                     }
                 }
 
-                var parser = new Chronic.Parser(
-                    new Chronic.Options
-                    {
-                        Context = Chronic.Pointer.Type.Future,
-                        Clock = () =>
-                        {
-                            var utcNow = DateTime.UtcNow;
-                            var tzOffset = userState.LocalOffsetForDate(utcNow);
-
-                            return new DateTime((utcNow + tzOffset).Ticks, DateTimeKind.Unspecified);
-                        }
-                    });
 
                 var span = parser.Parse(builtinDate.Entity);
 
@@ -80,7 +81,6 @@ namespace BoatTracker.Bot.Utils
 
             foreach (var startDate in result.Entities.Where(e => e.Type == EntityStart))
             {
-                var parser = new Chronic.Parser();
                 var span = parser.Parse(startDate.Entity);
 
                 if (span != null)
@@ -102,20 +102,21 @@ namespace BoatTracker.Bot.Utils
             EntityRecommendation builtinTime = null;
             result.TryFindEntity(EntityBuiltinTime, out builtinTime);
 
+            var parser = new Chronic.Parser(
+                new Chronic.Options
+                {
+                    Context = Chronic.Pointer.Type.Future,
+                    Clock = () =>
+                    {
+                        var utcNow = DateTime.UtcNow;
+                        var tzOffset = userState.LocalOffsetForDate(utcNow);
+
+                        return new DateTime((utcNow + tzOffset).Ticks, DateTimeKind.Unspecified);
+                    }
+                });
+
             if (builtinTime != null && builtinTime.Resolution.ContainsKey("time"))
             {
-                var parser = new Chronic.Parser(
-                    new Chronic.Options
-                    {
-                        Context = Chronic.Pointer.Type.Future,
-                        Clock = () =>
-                        {
-                            var utcNow = DateTime.UtcNow;
-                            var tzOffset = userState.LocalOffsetForDate(utcNow);
-
-                            return new DateTime((utcNow + tzOffset).Ticks, DateTimeKind.Unspecified);
-                        }
-                    });
                 var span = parser.Parse(builtinTime.Entity);
 
                 if (span != null)
@@ -131,7 +132,6 @@ namespace BoatTracker.Bot.Utils
 
             foreach (var startDate in result.Entities.Where(e => e.Type == EntityStart))
             {
-                var parser = new Chronic.Parser();
                 var span = parser.Parse(startDate.Entity.Replace("at ", ""));
 
                 if (span != null)

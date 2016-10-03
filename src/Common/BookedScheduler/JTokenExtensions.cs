@@ -30,6 +30,17 @@ namespace BoatTracker.BookedScheduler
             return boatTagIds;
         }
 
+        public static bool IsPrivate(this JToken jtoken)
+        {
+            var isPrivate = jtoken
+                .Value<JArray>("customAttributes")
+                .Where(x => x.Value<string>("label").StartsWith("Private"))
+                .Select(t => t.Value<bool>("value"))
+                .FirstOrDefault();
+
+            return isPrivate;
+        }
+
         #endregion
 
         #region Reservation helpers

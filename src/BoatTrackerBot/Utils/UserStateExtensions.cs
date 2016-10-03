@@ -9,6 +9,7 @@ using Microsoft.Bot.Builder.Luis.Models;
 using Newtonsoft.Json.Linq;
 using NodaTime.TimeZones;
 
+using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.DataObjects;
 using BoatTracker.BookedScheduler;
 
@@ -16,6 +17,11 @@ namespace BoatTracker.Bot.Utils
 {
     public static class UserStateExtensions
     {
+        public static ClubInfo ClubInfo(this UserState userState)
+        {
+            return EnvironmentDefinition.Instance.MapClubIdToClubInfo[userState.ClubId];
+        }
+
         #region Reservations
 
         public static async Task<string> DescribeReservationsAsync(
@@ -308,7 +314,12 @@ namespace BoatTracker.Bot.Utils
 
 #endregion
 
-#region Timezones
+        #region Timezones
+
+        public static DateTime LocalTime(this UserState userState)
+        {
+            return userState.ConvertToLocalTime(DateTime.UtcNow);
+        }
 
         public static DateTime ConvertToLocalTime(this UserState userState, DateTime dateTime)
         {
@@ -332,6 +343,6 @@ namespace BoatTracker.Bot.Utils
             return offset;
         }
 
-#endregion
+        #endregion
     }
 }

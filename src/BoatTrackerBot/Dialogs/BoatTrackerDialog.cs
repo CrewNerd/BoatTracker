@@ -323,16 +323,15 @@ namespace BoatTracker.Bot
             context.Wait(MessageReceived);
         }
 
-        [LuisIntent("Return")]
-        public async Task Return(IDialogContext context, LuisResult result)
+        [LuisIntent("TakeOut")]
+        public async Task TakeOut(IDialogContext context, LuisResult result)
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "Return");
+            this.TrackIntent(context, "TakeOut");
 
             var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
             long? boatId = boat?.ResourceId();
-            var now = DateTime.Now;
 
             if (boat == null)
             {
@@ -350,53 +349,118 @@ namespace BoatTracker.Bot
                 return;
             }
 
+            var localTime = this.currentUserState.LocalTime();
             var client = await this.GetClient();
 
             var reservations = (await client.GetReservationsAsync(
                 this.currentUserState.UserId,
                 boatId,
-                start:this.currentUserState.ConvertToLocalTime(now - TimeSpan.FromHours(6))))
+                start:localTime - TimeSpan.FromHours(6)))
                 .ToList();
 
-            // Filter down to current or recently-completed reservations
-            // TODO: Also filter out reservations that have already been "returned".
-            reservations = reservations.Where(r => now > r.StartDateTime() && now < (r.EndDateTime() + TimeSpan.FromHours(2))).ToList();
+            // Look for reservations starting within 15 minutes (plus or minus) of the current time
+            var qualifiedReservations = reservations
+                .Where(r =>
+                    localTime > this.currentUserState.ConvertToLocalTime(r.StartDateTime() - TimeSpan.FromMinutes(15)) &&
+                    localTime < this.currentUserState.ConvertToLocalTime(r.StartDateTime() + TimeSpan.FromMinutes(15)))
+                .ToList();
 
-            switch (reservations.Count())
+            switch (qualifiedReservations.Count())
             {
                 case 0:
-                    await context.PostAsync("Sorry, but I don't see a current (or recent) reservation for you to close out at this time.");
+                    // TODO: create a reservation on the fly here and check in.
+                    await context.PostAsync("Sorry, but I don't see a reservation for you at this time.");
                     break;
 
                 case 1:
-                    // TODO: When we have a "check out" API on BS, use it here. For now, we just mark the reservation appropriately.
-                    await context.PostAsync("Okay, you're good to go. Thanks!");
+                    try
+                    {
+                        var response = await client.CheckInReservationAsync(qualifiedReservations[0].ReferenceNumber());
+                        var updatedReservation = await client.GetReservationAsync(qualifiedReservations[0].ReferenceNumber());
+                        var endTime = this.currentUserState.ConvertToLocalTime(qualifiedReservations[0].EndDateTime());
+                        await context.PostAsync($"Okay, you're all set. Your reservation ends at {endTime.ToShortTimeString()}."); 
+                    }
+                    catch (Exception ex)
+                    {
+                        await context.PostAsync($"Sorry, but I couldn't check you in. {ex.Message}");
+                    }
+
                     break;
 
                 default:
-                    await context.PostAsync("It looks like you have more than one current or recent reservation that hasn't been closed out, but I don't know how to ask you which one, yet.");
+                    await context.PostAsync("It looks like you have more than one reservation starting about now. Can you be more specific?");
                     break;
             }
 
             context.Wait(MessageReceived);
         }
 
-        [LuisIntent("TakeOut")]
-        public async Task TakeOut(IDialogContext context, LuisResult result)
+        [LuisIntent("Return")]
+        public async Task Return(IDialogContext context, LuisResult result)
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "TakeOut");
+            this.TrackIntent(context, "Return");
 
-            string boatName = await this.currentUserState.FindBestResourceNameAsync(result);
+            var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
+            long? boatId = boat?.ResourceId();
 
-            if (string.IsNullOrEmpty(boatName))
+            if (boat == null)
             {
-                await context.PostAsync("It sounds like you want to take out a boat but I don't know how to do that yet.");
+                await context.PostAsync($"I'm sorry, but I don't recognize boat name '{result.BoatName()}'");
+                context.Wait(MessageReceived);
+                return;
             }
-            else
+
+            // Check that the user even has permission for the boat.
+            JToken res = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourceFromIdAsync(boatId.Value);
+            if (!await this.currentUserState.HasPermissionForResourceAsync(res))
             {
-                await context.PostAsync($"It sounds like you want to take out the '{boatName}' but I don't know how to do that yet.");
+                await context.PostAsync($"I'm sorry, but you don't have permission to use the {res.Name()}");
+                context.Wait(MessageReceived);
+                return;
+            }
+
+            var localTime = this.currentUserState.LocalTime();
+            var client = await this.GetClient();
+
+            var reservations = (await client.GetReservationsAsync(
+                this.currentUserState.UserId,
+                boatId,
+                start:localTime - TimeSpan.FromHours(6)))
+                .ToList();
+
+            // Filter down to current or recently-completed reservations
+            // TODO: Also filter out reservations that have already been "returned".
+            var qualifiedReservations = reservations
+                .Where(r =>
+                    localTime > this.currentUserState.ConvertToLocalTime(r.StartDateTime()) &&
+                    localTime < this.currentUserState.ConvertToLocalTime(r.EndDateTime() + TimeSpan.FromHours(1)))
+                .ToList();
+
+            switch (qualifiedReservations.Count())
+            {
+                case 0:
+                    await context.PostAsync("Sorry, but I don't see a current (or recent) reservation for you to check out of at this time.");
+                    break;
+
+                case 1:
+                    try
+                    {
+                        var response = await client.CheckOutReservationAsync(qualifiedReservations[0].ReferenceNumber());
+                        var updatedReservation = await client.GetReservationAsync(qualifiedReservations[0].ReferenceNumber());
+                        await context.PostAsync("Okay, you're good to go. Thanks!");
+                    }
+                    catch (Exception ex)
+                    {
+                        await context.PostAsync($"Sorry, but I couldn't check you out of your reservation. {ex.Message}");
+                    }
+
+                    break;
+
+                default:
+                    await context.PostAsync("It looks like you have more than one current or recent reservation that hasn't been closed out, but I don't know how to ask you which one, yet.");
+                    break;
             }
 
             context.Wait(MessageReceived);
@@ -707,7 +771,7 @@ namespace BoatTracker.Bot
 
             // Check that the user state is complete and has been refreshed in the last 2 days
             if (userState.UserId != 0 && !string.IsNullOrEmpty(userState.ClubId)
-                && userState.Timestamp != null && userState.Timestamp + TimeSpan.FromDays(2) > DateTime.Now)
+                && userState.Timestamp != null && userState.Timestamp + TimeSpan.FromDays(2) > DateTime.UtcNow)
             {
                 // The user is fully registered and their data is reasonably current
                 this.currentUserState = userState;
@@ -723,7 +787,7 @@ namespace BoatTracker.Bot
                 userState.ClubId = builtUserState.ClubId;
                 userState.UserId = builtUserState.UserId;
                 userState.Timezone = builtUserState.Timezone;
-                userState.Timestamp = DateTime.Now;
+                userState.Timestamp = DateTime.UtcNow;
 
                 context.UserData.SetValue(UserState.PropertyName, userState);
                 this.currentUserState = userState;
