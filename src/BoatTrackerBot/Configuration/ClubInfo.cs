@@ -48,5 +48,57 @@ namespace BoatTracker.Bot.Configuration
 
         [JsonProperty("rfidPassword")]
         public string RfidPassword { get; set; }
+
+        [JsonProperty("earliestUseHour")]
+        public float? EarliestUseHour { get; set; }
+
+        [JsonProperty("latestUseHour")]
+        public float? LatestUseHour { get; set; }
+
+        [JsonProperty("minimumDurationHours")]
+        public float? MinimumDurationHours { get; set; }
+
+        [JsonProperty("maximumDurationHours")]
+        public float? MaximumDurationHours { get; set; }
+
+        #region Helpers
+
+        [JsonIgnore]
+        public TimeSpan EarliestUseTime
+        {
+            get
+            {
+                return TimeSpan.FromHours(this.EarliestUseHour ?? 5);
+            }
+        }
+
+        [JsonIgnore]
+        public TimeSpan LatestUseTime
+        {
+            get
+            {
+                return TimeSpan.FromHours(this.LatestUseHour ?? 21);
+            }
+        }
+
+        [JsonIgnore]
+        public TimeSpan MinimumDuration
+        {
+            get
+            {
+                return TimeSpan.FromHours(this.MinimumDurationHours ?? 0.5);
+            }
+        }
+
+        [JsonIgnore]
+        public TimeSpan MaximumDuration
+        {
+            get
+            {
+                return TimeSpan.FromHours(this.MaximumDurationHours ?? 3);
+            }
+        }
+
+        #endregion
     }
 }

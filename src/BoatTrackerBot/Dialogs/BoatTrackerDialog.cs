@@ -151,7 +151,8 @@ namespace BoatTracker.Bot
 
             this.TrackIntent(context, "CreateReservation");
 
-            var boatName = await this.currentUserState.FindBestResourceNameAsync(result);
+            var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
+            var boatName = boat?.Name();
             var startDate = result.FindStartDate(this.currentUserState);
             var startTime = result.FindStartTime(this.currentUserState);
             var duration = result.FindDuration();
@@ -172,6 +173,11 @@ namespace BoatTracker.Bot
             if (result.ContainsBoatNameEntity() && boatName == null)
             {
                 await context.PostAsync($"I'm sorry, but I don't recognize the boat name '{result.BoatName()}'.");
+            }
+
+            if (boat != null && !await this.currentUserState.HasPermissionForResourceAsync(boat))
+            {
+                await context.PostAsync($"I'm sorry, but you don't have permission to use the {boat.Name()}.");
             }
 
             var reservationForm = new FormDialog<ReservationRequest>(reservationRequest, ReservationRequest.BuildForm, FormOptions.PromptInStart, result.Entities);
@@ -242,6 +248,15 @@ namespace BoatTracker.Bot
             if (result.ContainsBoatNameEntity() && boat == null)
             {
                 await context.PostAsync($"I'm sorry, but I don't recognize the boat name '{result.BoatName()}'.");
+                context.Wait(MessageReceived);
+                return;
+            }
+
+            if (boat != null && !await this.currentUserState.HasPermissionForResourceAsync(boat))
+            {
+                await context.PostAsync($"I'm sorry, but you don't have permission to use the {boat.Name()}.");
+                context.Wait(MessageReceived);
+                return;
             }
 
             var client = await this.GetClient();
@@ -279,6 +294,17 @@ namespace BoatTracker.Bot
                 showDate = false;
             }
 
+            // Finally, filter out boats that the user doesn't have permission to use.
+            for (int i = reservations.Count - 1; i >= 0; i--)
+            {
+                JToken res = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourceFromIdAsync(reservations[i].ResourceId());
+
+                if (!await this.currentUserState.HasPermissionForResourceAsync(res))
+                {
+                    reservations.RemoveAt(i);
+                }
+            }
+
             if (reservations.Count == 0)
             {
                 await context.PostAsync($"I don't see any reservations{filterDescription}, currently.");
@@ -297,43 +323,144 @@ namespace BoatTracker.Bot
             context.Wait(MessageReceived);
         }
 
-        [LuisIntent("Checkout")]
-        public async Task Checkout(IDialogContext context, LuisResult result)
+        [LuisIntent("TakeOut")]
+        public async Task TakeOut(IDialogContext context, LuisResult result)
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "Checkout");
+            this.TrackIntent(context, "TakeOut");
 
-            string boatName = await this.currentUserState.FindBestResourceNameAsync(result);
+            var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
+            long? boatId = boat?.ResourceId();
 
-            if (string.IsNullOrEmpty(boatName))
+            if (boat == null)
             {
-                await context.PostAsync("It sounds like you want to check out a boat but I don't know how to do that yet.");
+                await context.PostAsync($"I'm sorry, but I don't recognize boat name '{result.BoatName()}'");
+                context.Wait(MessageReceived);
+                return;
             }
-            else
+
+            // Check that the user even has permission for the boat.
+            JToken res = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourceFromIdAsync(boatId.Value);
+            if (!await this.currentUserState.HasPermissionForResourceAsync(res))
             {
-                await context.PostAsync($"It sounds like you want to check out the '{boatName}' but I don't know how to do that yet.");
+                await context.PostAsync($"I'm sorry, but you don't have permission to use the {res.Name()}");
+                context.Wait(MessageReceived);
+                return;
+            }
+
+            var localTime = this.currentUserState.LocalTime();
+            var client = await this.GetClient();
+
+            var reservations = (await client.GetReservationsAsync(
+                this.currentUserState.UserId,
+                boatId,
+                start:localTime - TimeSpan.FromHours(6)))
+                .ToList();
+
+            // Look for reservations starting within 15 minutes (plus or minus) of the current time
+            var qualifiedReservations = reservations
+                .Where(r =>
+                    localTime > this.currentUserState.ConvertToLocalTime(r.StartDateTime() - TimeSpan.FromMinutes(15)) &&
+                    localTime < this.currentUserState.ConvertToLocalTime(r.StartDateTime() + TimeSpan.FromMinutes(15)))
+                .ToList();
+
+            switch (qualifiedReservations.Count())
+            {
+                case 0:
+                    // TODO: create a reservation on the fly here and check in.
+                    await context.PostAsync("Sorry, but I don't see a reservation for you at this time.");
+                    break;
+
+                case 1:
+                    try
+                    {
+                        var response = await client.CheckInReservationAsync(qualifiedReservations[0].ReferenceNumber());
+                        var updatedReservation = await client.GetReservationAsync(qualifiedReservations[0].ReferenceNumber());
+                        var endTime = this.currentUserState.ConvertToLocalTime(qualifiedReservations[0].EndDateTime());
+                        await context.PostAsync($"Okay, you're all set. Your reservation ends at {endTime.ToShortTimeString()}."); 
+                    }
+                    catch (Exception ex)
+                    {
+                        await context.PostAsync($"Sorry, but I couldn't check you in. {ex.Message}");
+                    }
+
+                    break;
+
+                default:
+                    await context.PostAsync("It looks like you have more than one reservation starting about now. Can you be more specific?");
+                    break;
             }
 
             context.Wait(MessageReceived);
         }
 
-        [LuisIntent("Checkin")]
-        public async Task Checkin(IDialogContext context, LuisResult result)
+        [LuisIntent("Return")]
+        public async Task Return(IDialogContext context, LuisResult result)
         {
             if (!await this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "Checkin");
+            this.TrackIntent(context, "Return");
 
-            string boatName = await this.currentUserState.FindBestResourceNameAsync(result);
+            var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
+            long? boatId = boat?.ResourceId();
 
-            if (string.IsNullOrEmpty(boatName))
+            if (boat == null)
             {
-                await context.PostAsync("It sounds like you want to check in a boat but I don't know how to do that yet.");
+                await context.PostAsync($"I'm sorry, but I don't recognize boat name '{result.BoatName()}'");
+                context.Wait(MessageReceived);
+                return;
             }
-            else
+
+            // Check that the user even has permission for the boat.
+            JToken res = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourceFromIdAsync(boatId.Value);
+            if (!await this.currentUserState.HasPermissionForResourceAsync(res))
             {
-                await context.PostAsync($"It sounds like you want to check in the '{boatName}' but I don't know how to do that yet.");
+                await context.PostAsync($"I'm sorry, but you don't have permission to use the {res.Name()}");
+                context.Wait(MessageReceived);
+                return;
+            }
+
+            var localTime = this.currentUserState.LocalTime();
+            var client = await this.GetClient();
+
+            var reservations = (await client.GetReservationsAsync(
+                this.currentUserState.UserId,
+                boatId,
+                start:localTime - TimeSpan.FromHours(6)))
+                .ToList();
+
+            // Filter down to current or recently-completed reservations
+            // TODO: Also filter out reservations that have already been "returned".
+            var qualifiedReservations = reservations
+                .Where(r =>
+                    localTime > this.currentUserState.ConvertToLocalTime(r.StartDateTime()) &&
+                    localTime < this.currentUserState.ConvertToLocalTime(r.EndDateTime() + TimeSpan.FromHours(1)))
+                .ToList();
+
+            switch (qualifiedReservations.Count())
+            {
+                case 0:
+                    await context.PostAsync("Sorry, but I don't see a current (or recent) reservation for you to check out of at this time.");
+                    break;
+
+                case 1:
+                    try
+                    {
+                        var response = await client.CheckOutReservationAsync(qualifiedReservations[0].ReferenceNumber());
+                        var updatedReservation = await client.GetReservationAsync(qualifiedReservations[0].ReferenceNumber());
+                        await context.PostAsync("Okay, you're good to go. Thanks!");
+                    }
+                    catch (Exception ex)
+                    {
+                        await context.PostAsync($"Sorry, but I couldn't check you out of your reservation. {ex.Message}");
+                    }
+
+                    break;
+
+                default:
+                    await context.PostAsync("It looks like you have more than one current or recent reservation that hasn't been closed out, but I don't know how to ask you which one, yet.");
+                    break;
             }
 
             context.Wait(MessageReceived);
@@ -644,7 +771,7 @@ namespace BoatTracker.Bot
 
             // Check that the user state is complete and has been refreshed in the last 2 days
             if (userState.UserId != 0 && !string.IsNullOrEmpty(userState.ClubId)
-                && userState.Timestamp != null && userState.Timestamp + TimeSpan.FromDays(2) > DateTime.Now)
+                && userState.Timestamp != null && userState.Timestamp + TimeSpan.FromDays(2) > DateTime.UtcNow)
             {
                 // The user is fully registered and their data is reasonably current
                 this.currentUserState = userState;
@@ -660,7 +787,7 @@ namespace BoatTracker.Bot
                 userState.ClubId = builtUserState.ClubId;
                 userState.UserId = builtUserState.UserId;
                 userState.Timezone = builtUserState.Timezone;
-                userState.Timestamp = DateTime.Now;
+                userState.Timestamp = DateTime.UtcNow;
 
                 context.UserData.SetValue(UserState.PropertyName, userState);
                 this.currentUserState = userState;
@@ -722,11 +849,10 @@ namespace BoatTracker.Bot
                 "* Show my reservations\n" +
                 "* Did I reserve the Little Thunder?\n" +
                 "* Show my reservation for the Little Thunder on Friday\n\n" +
-                "## Checking out a boat\n\n" +
-                "* Check out the Little Thunder for two hours\n\n" +
-                "## Checking in a boat\n\n" +
-                "* Check in\n" +
-                "* Check in the Little Thunder"
+                "## Taking out a boat\n\n" +
+                "* Take out the Little Thunder for two hours\n\n" +
+                "## Returning a boat\n\n" +
+                "* Return the Little Thunder"
             );
 
             this.currentUserState.HelpMessageShown = true;

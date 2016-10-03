@@ -137,6 +137,46 @@ namespace BoatTracker.Bot.Utils
             }
         }
 
+        public override Task<JToken> CheckInReservationAsync(string referenceNumber)
+        {
+            this.StartCall();
+
+            bool success = true;
+            try
+            {
+                return base.CheckInReservationAsync(referenceNumber);
+            }
+            catch (Exception)
+            {
+                success = false;
+                throw;
+            }
+            finally
+            {
+                this.FinishCall("checkinReservation", success);
+            }
+        }
+
+        public override Task<JToken> CheckOutReservationAsync(string referenceNumber)
+        {
+            this.StartCall();
+
+            bool success = true;
+            try
+            {
+                return base.CheckOutReservationAsync(referenceNumber);
+            }
+            catch (Exception)
+            {
+                success = false;
+                throw;
+            }
+            finally
+            {
+                this.FinishCall("checkoutReservation", success);
+            }
+        }
+
         public override Task<JArray> GetReservationsAsync(long? userId = default(long?), long? resourceId = default(long?), DateTime? start = default(DateTime?), DateTime? end = default(DateTime?))
         {
             this.StartCall();

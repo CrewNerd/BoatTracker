@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Newtonsoft.Json.Linq;
@@ -29,6 +30,17 @@ namespace BoatTracker.BookedScheduler
             return boatTagIds;
         }
 
+        public static bool IsPrivate(this JToken jtoken)
+        {
+            var isPrivate = jtoken
+                .Value<JArray>("customAttributes")
+                .Where(x => x.Value<string>("label").StartsWith("Private"))
+                .Select(t => t.Value<bool>("value"))
+                .FirstOrDefault();
+
+            return isPrivate;
+        }
+
         #endregion
 
         #region Reservation helpers
@@ -36,6 +48,35 @@ namespace BoatTracker.BookedScheduler
         public static string StartDate(this JToken jtoken)
         {
             return jtoken.Value<string>("startDate");
+        }
+
+        public static DateTime StartDateTime(this JToken jtoken)
+        {
+            DateTime startDate;
+
+            if (!DateTime.TryParse(jtoken.StartDate(), out startDate))
+            {
+                throw new FormatException("Invalid reservation start date");
+            }
+
+            return startDate;
+        }
+
+        public static string EndDate(this JToken jtoken)
+        {
+            return jtoken.Value<string>("endDate");
+        }
+
+        public static DateTime EndDateTime(this JToken jtoken)
+        {
+            DateTime endDate;
+
+            if (!DateTime.TryParse(jtoken.EndDate(), out endDate))
+            {
+                throw new FormatException("Invalid reservation end date");
+            }
+
+            return endDate;
         }
 
         public static string ReferenceNumber(this JToken jtoken)

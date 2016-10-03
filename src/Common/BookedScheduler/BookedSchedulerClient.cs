@@ -336,6 +336,30 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
+        public virtual async Task<JToken> CheckInReservationAsync(string referenceNumber)
+        {
+            using (var client = this.GetHttpClient())
+            {
+                var httpResponse = await client.PostAsync($"Reservations/{referenceNumber}/CheckIn", new StringContent(string.Empty));
+
+                await this.CheckResponseAsync(httpResponse);
+
+                return JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
+            }
+        }
+
+        public virtual async Task<JToken> CheckOutReservationAsync(string referenceNumber)
+        {
+            using (var client = this.GetHttpClient())
+            {
+                var httpResponse = await client.PostAsync($"Reservations/{referenceNumber}/CheckOut", new StringContent(string.Empty));
+
+                await this.CheckResponseAsync(httpResponse);
+
+                return JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
+            }
+        }
+
         public virtual async Task<JArray> GetReservationsForUserAsync(long userId)
         {
             return await this.GetReservationsAsync(userId: userId);

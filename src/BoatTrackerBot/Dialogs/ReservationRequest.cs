@@ -104,12 +104,24 @@ namespace BoatTracker.Bot
 
             if (boat != null)
             {
-                state.BoatId = boat.ResourceId();
-                return new ValidateResult
+                if (await state.UserState.HasPermissionForResourceAsync(boat))
                 {
-                    IsValid = true,
-                    Value = boat.Name()
-                };
+                    state.BoatId = boat.ResourceId();
+                    return new ValidateResult
+                    {
+                        IsValid = true,
+                        Value = boat.Name()
+                    };
+                }
+                else
+                {
+                    return new ValidateResult
+                    {
+                        IsValid = false,
+                        Value = null,
+                        Feedback = "Sorry, but you don't have permission to use that boat."
+                    };
+                }
             }
             else
             {
@@ -126,7 +138,7 @@ namespace BoatTracker.Bot
         {
             DateTime startDate = (DateTime)value;
 
-            if (startDate.Date < DateTime.Now.Date)
+            if (startDate.Date < state.UserState.LocalTime().Date)
             {
                 return Task.FromResult(new ValidateResult
                 {
@@ -137,7 +149,7 @@ namespace BoatTracker.Bot
             }
 
             // TODO: This should be a club-specific policy setting
-            if (startDate.Date > (DateTime.Now.Date + TimeSpan.FromDays(14)))
+            if (startDate.Date > (state.UserState.LocalTime() + TimeSpan.FromDays(14)))
             {
                 return Task.FromResult(new ValidateResult
                 {
@@ -159,10 +171,8 @@ namespace BoatTracker.Bot
             DateTime startTime = (DateTime)value;
             TimeSpan time = startTime.TimeOfDay;
 
-            // TODO: should be based on the club's calendar
-
-            TimeSpan StartLowerBound = TimeSpan.FromHours(5);
-            TimeSpan StartUpperBound = TimeSpan.FromHours(19);
+            TimeSpan StartLowerBound = state.UserState.ClubInfo().EarliestUseTime;
+            TimeSpan StartUpperBound = state.UserState.ClubInfo().LatestUseTime;
 
             if (time < StartLowerBound)
             {
@@ -191,47 +201,50 @@ namespace BoatTracker.Bot
             });
         }
 
-        private static Task<ValidateResult> ValidateDuration(ReservationRequest state, object value)
+        private static async Task<ValidateResult> ValidateDuration(ReservationRequest state, object value)
         {
             var duration = TimeSpanExtensions.FromDisplayString((string)value);
 
             if (!duration.HasValue)
             {
-                return Task.FromResult(new ValidateResult
+                return new ValidateResult
                 {
                     IsValid = false,
                     Value = null,
                     Feedback = "That doesn't look like a valid duration. Please try again."
-                });
+                };
             }
 
-            // TODO: This should be per-club policy.
+            var minDuration = state.UserState.ClubInfo().MinimumDuration;
 
-            if (duration.Value < TimeSpan.FromMinutes(30))
+            if (duration.Value < minDuration)
             {
-                return Task.FromResult(new ValidateResult
+                return new ValidateResult
                 {
                     IsValid = false,
                     Value = null,
-                    Feedback = "Reservatons must be for at least 30 minutes"
-                });
+                    Feedback = $"Reservations must be for at least {minDuration.TotalMinutes} minutes"
+                };
             }
 
-            if (duration.Value > TimeSpan.FromHours(24))
+            var boatResource = await BookedSchedulerCache.Instance[state.UserState.ClubId].GetResourceFromIdAsync(state.BoatId);
+            var maxDuration = state.UserState.ClubInfo().MaximumDuration;
+
+            if (duration.Value > maxDuration && !boatResource.IsPrivate())
             {
-                return Task.FromResult(new ValidateResult
+                return new ValidateResult
                 {
                     IsValid = false,
                     Value = null,
-                    Feedback = "Multi-day reservations are not permitted."
-                });
+                    Feedback = $"The maximum duration allowed is {maxDuration.TotalHours} hours."
+                };
             }
 
-            return Task.FromResult(new ValidateResult
+            return new ValidateResult
             {
                 IsValid = true,
                 Value = duration.Value.ToDisplayString()
-            });
+            };
         }
 
         private static Task<PromptAttribute> GenerateConfirmationMessage(ReservationRequest state)

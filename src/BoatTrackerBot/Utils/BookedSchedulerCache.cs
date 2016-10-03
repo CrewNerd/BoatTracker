@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,9 +57,9 @@ namespace BoatTracker.Bot.Utils
 
             private JArray resources;
 
-            private JArray users;
+            private Dictionary<long, JToken> userMap;
 
-            private JArray groups;
+            private Dictionary<long, JToken> groupMap;
 
             private JArray schedules;
 
@@ -82,16 +83,42 @@ namespace BoatTracker.Bot.Utils
                 return this.resources;
             }
 
-            public async Task<JArray> GetUsersAsync()
+            public async Task<IEnumerable<JToken>> GetUsersAsync()
             {
                 await this.EnsureCacheIsCurrentAsync();
-                return this.users;
+                return this.userMap.Values.ToList();
             }
 
-            public async Task<JArray> GetGroupsAsync()
+            public async Task<JToken> GetUserAsync(long userId)
             {
                 await this.EnsureCacheIsCurrentAsync();
-                return this.groups;
+
+                JToken user;
+                if (this.userMap.TryGetValue(userId, out user))
+                {
+                    return user;
+                }
+
+                return null;
+            }
+
+            public async Task<IEnumerable<JToken>> GetGroupsAsync()
+            {
+                await this.EnsureCacheIsCurrentAsync();
+                return this.groupMap.Values.ToList();
+            }
+
+            public async Task<JToken> GetGroupAsync(long groupId)
+            {
+                await this.EnsureCacheIsCurrentAsync();
+
+                JToken group;
+                if (this.groupMap.TryGetValue(groupId, out group))
+                {
+                    return group;
+                }
+
+                return null;
             }
 
             public async Task<JArray> GetSchedulesAsync()
@@ -108,7 +135,8 @@ namespace BoatTracker.Bot.Utils
 
                     var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.clubId];
 
-                    this.botUser = this.users
+                    this.botUser = this.userMap
+                        .Values
                         .Where(u => u.UserName() == clubInfo.UserName)
                         .FirstOrDefault();
                 }
@@ -116,9 +144,9 @@ namespace BoatTracker.Bot.Utils
                 return this.botUser;
             }
 
-            #endregion
+#endregion
 
-            #region Event handling methods
+#region Event handling methods
 
             /// <summary>
             /// It will be common to get two events for the same boat close together since we
@@ -173,9 +201,9 @@ namespace BoatTracker.Bot.Utils
                 return isRedundant;
             }
 
-            #endregion
+#endregion
 
-            #region Public utility methods
+#region Public utility methods
 
             /// <summary>
             /// Return a boat resource given its id.
@@ -219,9 +247,9 @@ namespace BoatTracker.Bot.Utils
                 return resource;
             }
 
-            #endregion
+#endregion
 
-            #region Cache management
+#region Cache management
 
             private async Task EnsureCacheIsCurrentAsync()
             {
@@ -252,15 +280,31 @@ namespace BoatTracker.Bot.Utils
                 await client.SignIn(clubInfo.UserName, clubInfo.Password);
 
                 this.resources = await client.GetResourcesAsync();
-                this.users = await client.GetUsersAsync();
-                this.groups = await client.GetGroupsAsync();
+                var users = await client.GetUsersAsync();
+                this.userMap = new Dictionary<long, JToken>();
+
+                foreach (var u in users)
+                {
+                    var fullUser = await client.GetUserAsync(u.Value<string>("id"));
+                    this.userMap.Add(fullUser.Value<long>("id"), fullUser);
+                }
+
+                var groups = await client.GetGroupsAsync();
+                this.groupMap = new Dictionary<long, JToken>();
+
+                foreach (var g in groups)
+                {
+                    var fullGroup = await client.GetGroupAsync(g.Value<string>("id"));
+                    this.groupMap.Add(fullGroup.Value<long>("id"), fullGroup);
+                }
+
                 this.schedules = await client.GetSchedulesAsync();
 
                 this.timestamp = DateTime.Now;
                 this.RefreshInProgress = 0;
             }
 
-            #endregion
+#endregion
         }
     }
 }
