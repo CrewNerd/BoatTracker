@@ -19,6 +19,8 @@ namespace BoatTracker.Bot
 
         public UserState UserState { get; set; }
 
+        public bool CheckInAfterCreation { get; set; }
+
         [Prompt("What boat do you want to reserve?")]
         public string BoatName { get; set; }
 
@@ -174,6 +176,16 @@ namespace BoatTracker.Bot
             TimeSpan StartLowerBound = state.UserState.ClubInfo().EarliestUseTime;
             TimeSpan StartUpperBound = state.UserState.ClubInfo().LatestUseTime;
 
+            if (time.Minutes != 0 && time.Minutes != 15 && time.Minutes != 30 && time.Minutes != 45)
+            {
+                return Task.FromResult(new ValidateResult
+                {
+                    IsValid = false,
+                    Value = null,
+                    Feedback = $"Reservations must start on an even 15-minute slot."
+                });
+            }
+
             if (time < StartLowerBound)
             {
                 return Task.FromResult(new ValidateResult
@@ -212,6 +224,16 @@ namespace BoatTracker.Bot
                     IsValid = false,
                     Value = null,
                     Feedback = "That doesn't look like a valid duration. Please try again."
+                };
+            }
+
+            if (duration.Value.Minutes % 15 != 0)
+            {
+                return new ValidateResult
+                {
+                    IsValid = false,
+                    Value = null,
+                    Feedback = $"Reservations must last for quarter-hour increments."
                 };
             }
 

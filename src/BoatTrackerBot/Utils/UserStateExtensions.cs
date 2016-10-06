@@ -65,8 +65,7 @@ namespace BoatTracker.Bot.Utils
             bool showIndex,
             bool useMarkdown)
         {
-            DateTime startDate = DateTime.Parse(reservation.StartDate());
-            startDate = userState.ConvertToLocalTime(startDate);
+            var startDate = userState.ConvertToLocalTime(reservation.StartDate());
             var duration = reservation.Value<string>("duration");
 
             var boatName = await BookedSchedulerCache
@@ -106,8 +105,7 @@ namespace BoatTracker.Bot.Utils
 
         public static async Task<string> SummarizeReservationAsync(this UserState userState, JToken reservation)
         {
-            DateTime startDate = DateTime.Parse(reservation.StartDate());
-            startDate = userState.ConvertToLocalTime(startDate);
+            var startDate = userState.ConvertToLocalTime(reservation.StartDate());
 
             var boatName = await BookedSchedulerCache
                 .Instance[userState.ClubId]

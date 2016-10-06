@@ -375,7 +375,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public virtual async Task CreateReservationAsync(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null)
+        public virtual async Task<JToken> CreateReservationAsync(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null)
         {
             using (var client = this.GetHttpClient())
             {
@@ -406,6 +406,8 @@ namespace BoatTracker.BookedScheduler
                 var httpResponse = await client.PostAsync($"Reservations/", new StringContent(requestBody));
 
                 await this.CheckResponseAsync(httpResponse);
+
+                return JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
             }
         }
 
