@@ -216,9 +216,19 @@ namespace BoatTracker.Bot
                         boat = await this.currentUserState.FindBestResourceMatchAsync(request.BoatName);
                     }
 
-                    await client.CreateReservationAsync(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot");
+                    var reservation = await client.CreateReservationAsync(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot");
 
-                    await context.PostAsync("Okay, you're all set!");
+                    if (request.CheckInAfterCreation)
+                    {
+                        var response = await client.CheckInReservationAsync(reservation.ReferenceNumber());
+                        var updatedReservation = await client.GetReservationAsync(reservation.ReferenceNumber());
+                        var endTime = this.currentUserState.ConvertToLocalTime(updatedReservation.EndDate());
+                        await context.PostAsync($"Okay, you're checked in and clear to go. Your reservation ends at {endTime.ToShortTimeString()}."); 
+                    }
+                    else
+                    {
+                        await context.PostAsync("Okay, you're all set!");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -284,8 +294,7 @@ namespace BoatTracker.Bot
                 reservations = reservations
                     .Where(r =>
                     {
-                        var rStartDate = this.currentUserState.ConvertToLocalTime(
-                            DateTime.Parse(r.StartDate()));
+                        var rStartDate = this.currentUserState.ConvertToLocalTime(r.StartDate());
                         return rStartDate.DayOfYear == startDate.Value.DayOfYear;
                     })
                     .ToList();
@@ -361,23 +370,23 @@ namespace BoatTracker.Bot
             // Look for reservations starting within 15 minutes (plus or minus) of the current time
             var qualifiedReservations = reservations
                 .Where(r =>
-                    localTime > this.currentUserState.ConvertToLocalTime(r.StartDateTime() - TimeSpan.FromMinutes(15)) &&
-                    localTime < this.currentUserState.ConvertToLocalTime(r.StartDateTime() + TimeSpan.FromMinutes(15)))
+                    localTime > this.currentUserState.ConvertToLocalTime(r.StartDate() - TimeSpan.FromMinutes(15)) &&
+                    localTime < this.currentUserState.ConvertToLocalTime(r.StartDate() + TimeSpan.FromMinutes(15)))
                 .ToList();
 
             switch (qualifiedReservations.Count())
             {
                 case 0:
-                    // TODO: create a reservation on the fly here and check in.
-                    await context.PostAsync("Sorry, but I don't see a reservation for you at this time.");
-                    break;
+                    // Handle the (common) case where there's no prior reservation.
+                    await this.CreateReservationOnDemand(context, result, boat);
+                    return;
 
                 case 1:
                     try
                     {
                         var response = await client.CheckInReservationAsync(qualifiedReservations[0].ReferenceNumber());
                         var updatedReservation = await client.GetReservationAsync(qualifiedReservations[0].ReferenceNumber());
-                        var endTime = this.currentUserState.ConvertToLocalTime(qualifiedReservations[0].EndDateTime());
+                        var endTime = this.currentUserState.ConvertToLocalTime(qualifiedReservations[0].EndDate());
                         await context.PostAsync($"Okay, you're all set. Your reservation ends at {endTime.ToShortTimeString()}."); 
                     }
                     catch (Exception ex)
@@ -395,6 +404,64 @@ namespace BoatTracker.Bot
             context.Wait(MessageReceived);
         }
 
+        private async Task CreateReservationOnDemand(IDialogContext context, LuisResult result, JToken boat)
+        {
+            await context.PostAsync("You don't have a reservation, but I can create one for you now.");
+
+            var boatName = boat.Name();
+            var now = this.currentUserState.LocalTime();
+
+            //
+            // Select a starting slot for the reservation. If we're withing 5 minutes of the next slot, we'll
+            // be allowed to check in early, so choose that. Otherwise, choose the slot that's already in progress.
+            //
+            int startMinute;
+            if (now.Minute >= 11 && now.Minute <= 25)
+            {
+                startMinute = 15;
+            }
+            else if (now.Minute >= 26 && now.Minute <= 40)
+            {
+                startMinute = 30;
+            }
+            else if (now.Minute >= 41 && now.Minute <= 55)
+            {
+                startMinute = 45;
+            }
+            else
+            {
+                startMinute = 0;
+            }
+
+            // Adjust the start time to an even 15-minute interval
+            var startTime = new DateTime(
+                now.Year,
+                now.Month,
+                now.Day,
+                now.Hour,
+                startMinute,
+                0,
+                DateTimeKind.Unspecified);
+
+            ReservationRequest reservationRequest = new ReservationRequest
+            {
+                CheckInAfterCreation = true,
+                UserState = this.currentUserState,
+                BoatName = boatName,
+                StartDate = now.Date,
+                StartTime = startTime
+            };
+
+            var duration = result.FindDuration();
+            if (duration.HasValue)
+            {
+                reservationRequest.RawDuration = duration.Value;
+            }
+
+            var reservationForm = new FormDialog<ReservationRequest>(reservationRequest, ReservationRequest.BuildForm, FormOptions.PromptInStart, result.Entities);
+            context.Call(reservationForm, ReservationComplete);
+        }
+
         [LuisIntent("Return")]
         public async Task Return(IDialogContext context, LuisResult result)
         {
@@ -402,24 +469,11 @@ namespace BoatTracker.Bot
 
             this.TrackIntent(context, "Return");
 
+            // Note: we don't require a boat name here. Normally, there will only be one
+            // active reservation for the user and they can simply say "i'm done".
+
             var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
             long? boatId = boat?.ResourceId();
-
-            if (boat == null)
-            {
-                await context.PostAsync($"I'm sorry, but I don't recognize boat name '{result.BoatName()}'");
-                context.Wait(MessageReceived);
-                return;
-            }
-
-            // Check that the user even has permission for the boat.
-            JToken res = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourceFromIdAsync(boatId.Value);
-            if (!await this.currentUserState.HasPermissionForResourceAsync(res))
-            {
-                await context.PostAsync($"I'm sorry, but you don't have permission to use the {res.Name()}");
-                context.Wait(MessageReceived);
-                return;
-            }
 
             var localTime = this.currentUserState.LocalTime();
             var client = await this.GetClient();
@@ -430,12 +484,12 @@ namespace BoatTracker.Bot
                 start:localTime - TimeSpan.FromHours(6)))
                 .ToList();
 
-            // Filter down to current or recently-completed reservations
-            // TODO: Also filter out reservations that have already been "returned".
+            // Filter down to "current" reservations that haven't been checked-out yet.
             var qualifiedReservations = reservations
                 .Where(r =>
-                    localTime > this.currentUserState.ConvertToLocalTime(r.StartDateTime()) &&
-                    localTime < this.currentUserState.ConvertToLocalTime(r.EndDateTime() + TimeSpan.FromHours(1)))
+                    string.IsNullOrEmpty(r.Value<string>("checkOutDate")) &&
+                    localTime > this.currentUserState.ConvertToLocalTime(r.StartDate()) &&
+                    localTime < this.currentUserState.ConvertToLocalTime(r.EndDate() + TimeSpan.FromHours(1)))
                 .ToList();
 
             switch (qualifiedReservations.Count())
@@ -459,7 +513,7 @@ namespace BoatTracker.Bot
                     break;
 
                 default:
-                    await context.PostAsync("It looks like you have more than one current or recent reservation that hasn't been closed out, but I don't know how to ask you which one, yet.");
+                    await context.PostAsync("It looks like you have more than one current or recent reservation that hasn't been closed out. Please try again and include the name of the boat.");
                     break;
             }
 
@@ -506,8 +560,7 @@ namespace BoatTracker.Bot
                 reservations = reservations
                     .Where(r =>
                     {
-                        var rStartDate = this.currentUserState.ConvertToLocalTime(
-                            DateTime.Parse(r.StartDate()));
+                        var rStartDate = this.currentUserState.ConvertToLocalTime(r.StartDate());
                         return rStartDate.DayOfYear == startDate.Value.DayOfYear;
                     })
                     .ToList();
@@ -573,8 +626,7 @@ namespace BoatTracker.Bot
                 reservations = reservations
                     .Where(r =>
                     {
-                        var rStartDate = this.currentUserState.ConvertToLocalTime(
-                            DateTime.Parse(r.StartDate()));
+                        var rStartDate = this.currentUserState.ConvertToLocalTime(r.StartDate());
                         return rStartDate.DayOfYear == startDate.Value.DayOfYear;
                     })
                     .ToList();
@@ -742,7 +794,7 @@ namespace BoatTracker.Bot
 
 #endregion
 
-        #region Misc Helpers
+#region Misc Helpers
 
         /// <summary>
         /// Checks to see if the user has connected their channel and BookedScheduler accounts. If so, then
@@ -864,6 +916,6 @@ namespace BoatTracker.Bot
             return count > 1 ? "s" : string.Empty;
         }
 
-        #endregion
+#endregion
     }
 }

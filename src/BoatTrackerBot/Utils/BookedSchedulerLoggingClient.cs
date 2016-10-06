@@ -37,7 +37,7 @@ namespace BoatTracker.Bot.Utils
             this.telemetryClient.TrackDependency(this.dependencyName, callName, this.callStartTime, this.callTimer.Elapsed, success);
         }
 
-        public override Task CreateReservationAsync(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null)
+        public override Task<JToken> CreateReservationAsync(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null)
         {
             this.StartCall();
 
