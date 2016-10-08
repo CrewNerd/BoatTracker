@@ -16,3 +16,5 @@
 /src/BoatTrackerWebJob/obj/Debug
 /src/BoatTrackerWebJob/BoatTrackerWebJob.csproj.user
 /src/BoatTrackerWebJob/Properties/PublishProfiles/BoatTrackerBot - Web Deploy.pubxml.user
+/src/Common/BoatTrackerBot.Configuration/bin/Debug
+/src/Common/BoatTrackerBot.Configuration/obj/Debug
