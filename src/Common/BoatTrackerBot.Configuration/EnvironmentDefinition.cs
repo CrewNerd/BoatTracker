@@ -3,13 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 
 using Microsoft.Azure;
 
-using BoatTracker.BookedScheduler;
-using BoatTracker.Bot.DataObjects;
-using BoatTracker.Bot.Utils;
 using Newtonsoft.Json;
 
 namespace BoatTracker.Bot.Configuration
@@ -104,51 +100,6 @@ namespace BoatTracker.Bot.Configuration
             }
 
             return channelInfo;
-        }
-
-        public async Task<UserState> TryBuildStateForUser(string userBotId, string channel)
-        {
-            string botAccountKeyDisplayName = this.GetChannelInfo(channel).BotAccountKeyDisplayName;
-
-            foreach (var clubId in this.MapClubIdToClubInfo.Keys)
-            {
-                var clubInfo = this.MapClubIdToClubInfo[clubId];
-
-                BookedSchedulerClient client = new BookedSchedulerLoggingClient(clubId);
-
-                await client.SignIn(clubInfo.UserName, clubInfo.Password);
-
-                if (client.IsSignedIn)
-                {
-                    var users = await client.GetUsersAsync();
-
-                    try
-                    {
-                        var user = users
-                            .Where(u => u["customAttributes"]
-                                .Where(attr => attr.Value<string>("label") == botAccountKeyDisplayName)
-                                .First()
-                                .Value<string>("value") == userBotId)
-                            .FirstOrDefault();
-
-                        if (user != null)
-                        {
-                            return new UserState
-                            {
-                                ClubId = clubId,
-                                UserId = user.Value<long>("id"),
-                                Timezone = user.Value<string>("timezone")
-                            };
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        throw ex;
-                    }
-                }
-            }
-
-            return null;
         }
 
         /// <summary>

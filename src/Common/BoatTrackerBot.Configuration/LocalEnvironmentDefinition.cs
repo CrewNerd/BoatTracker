@@ -12,16 +12,17 @@ namespace BoatTracker.Bot.Configuration
         {
             this.MapClubIdToClubInfo = new Dictionary<string, ClubInfo>
             {
-                ["foo"] = new ClubInfo
+                ["pnw"] = new ClubInfo
                 {
-                    Id = "foo",
-                    Name = "Foo Bar",
-                    Url = new Uri("https://foo.bookedscheduler.com/Web/Services/index.php/"),
+                    Id = "pnw",
+                    Name = "PNW Test Site",
+                    Url = new Uri("http://pnw.bookedscheduler.com/Web/Services/index.php/"),
                     UserName = "boattrackerbot",
-                    Password = "foo",
+                    Password = "xyzzy",
+                    DailyReportRecipients = "",
                     DoorNames = new [] { "Main door", "Side door" },
-                    EarliestUseHour = 5,
-                    LatestUseHour = 23,
+                    EarliestUseHour = 5f,
+                    LatestUseHour = 23.5f,
                     MinimumDurationHours = 0.5f,
                     MaximumDurationHours = 4f,
                     RfidPassword = "abcdefgh"

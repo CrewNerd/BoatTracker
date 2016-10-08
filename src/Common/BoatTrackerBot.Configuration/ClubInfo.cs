@@ -41,23 +41,44 @@ namespace BoatTracker.Bot.Configuration
         public string Password { get; set; }
 
         /// <summary>
+        /// Gets or sets a comma-separated list of email addresses to send the daily report to.
+        /// </summary>
+        [JsonProperty("dailyReportRecipients")]
+        public string DailyReportRecipients { get; set; }
+
+        /// <summary>
         /// Gets or sets the list of names associated with the reader antennas.
         /// </summary>
         [JsonProperty("doorNames")]
         public IReadOnlyList<string> DoorNames { get; set; }
 
+        /// <summary>
+        /// Gets or sets the password used by the RFID reader to push events to the cloud
+        /// </summary>
         [JsonProperty("rfidPassword")]
         public string RfidPassword { get; set; }
 
+        /// <summary>
+        /// Gets or sets the earliest hour of the day when reservations may begin (can be fractional)
+        /// </summary>
         [JsonProperty("earliestUseHour")]
         public float? EarliestUseHour { get; set; }
 
+        /// <summary>
+        /// Gets or sets the latest hour of operation (can be fractional)
+        /// </summary>
         [JsonProperty("latestUseHour")]
         public float? LatestUseHour { get; set; }
 
+        /// <summary>
+        /// Gets or sets the minimum reservation duration in hours (can be fractional)
+        /// </summary>
         [JsonProperty("minimumDurationHours")]
         public float? MinimumDurationHours { get; set; }
 
+        /// <summary>
+        /// Gets or sets the maximum reservation duration in hours (can be fractional)
+        /// </summary>
         [JsonProperty("maximumDurationHours")]
         public float? MaximumDurationHours { get; set; }
 

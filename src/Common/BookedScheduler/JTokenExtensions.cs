@@ -41,6 +41,11 @@ namespace BoatTracker.BookedScheduler
             return isPrivate;
         }
 
+        public static int MaxParticipants(this JToken jtoken)
+        {
+            return jtoken.Value<int>("maxParticipants");
+        }
+
         #endregion
 
         #region Reservation helpers
@@ -79,6 +84,30 @@ namespace BoatTracker.BookedScheduler
             }
 
             return dateTime.Value;
+        }
+
+        public static DateTime? CheckInDate(this JToken jtoken)
+        {
+            DateTime? checkInDate = null;
+
+            if (!string.IsNullOrEmpty(jtoken.Value<string>("checkInDate")))
+            {
+                checkInDate = jtoken.Value<DateTime>("checkInDate");
+            }
+
+            return checkInDate;
+        }
+
+        public static DateTime? CheckOutDate(this JToken jtoken)
+        {
+            DateTime? checkOutDate = null;
+
+            if (!string.IsNullOrEmpty(jtoken.Value<string>("checkOutDate")))
+            {
+                checkOutDate = jtoken.Value<DateTime>("checkOutDate");
+            }
+
+            return checkOutDate;
         }
 
         public static string ReferenceNumber(this JToken jtoken)
