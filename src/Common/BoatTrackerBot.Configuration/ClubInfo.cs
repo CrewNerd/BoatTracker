@@ -41,6 +41,12 @@ namespace BoatTracker.Bot.Configuration
         public string Password { get; set; }
 
         /// <summary>
+        /// Gets or sets the email address from which the daily report is sent.
+        /// </summary>
+        [JsonProperty("dailyReportSender")]
+        public string DailyReportSender { get; set; }
+
+        /// <summary>
         /// Gets or sets a comma-separated list of email addresses to send the daily report to.
         /// </summary>
         [JsonProperty("dailyReportRecipients")]

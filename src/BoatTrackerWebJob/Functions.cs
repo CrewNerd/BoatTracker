@@ -1,15 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.Azure.WebJobs;
 using Newtonsoft.Json.Linq;
 using NodaTime.TimeZones;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 
 using BoatTracker.BookedScheduler;
 using BoatTracker.Bot.Configuration;
-using System.Text;
 
 namespace BoatTrackerWebJob
 {
@@ -32,6 +35,10 @@ namespace BoatTrackerWebJob
                 catch (Exception ex)
                 {
                     log.WriteLine($"CheckAllPolicies failed: {ex.Message}");
+                    if (ex.InnerException != null)
+                    {
+                        log.WriteLine($"CheckAllPolicies failed: inner exception = {ex.InnerException.Message}");
+                    }
                 }
 
                 log.WriteLine($"Finished policy checks for club: {clubId}");
@@ -51,13 +58,9 @@ namespace BoatTrackerWebJob
             // Get all reservations for the last day
             var reservations = await client.GetReservationsAsync(start: DateTime.UtcNow - TimeSpan.FromDays(1), end: DateTime.UtcNow);
 
-            int numAbandoned = 0;
-            int numNoCheckOut = 0;
-            int numUnknownParticipants = 0;
-
-            var sbAbandoned = new StringBuilder();
-            var sbNoCheckOut = new StringBuilder();
-            var sbUnknownParticipants = new StringBuilder();
+            var abandoned = new List<string>();
+            var noCheckOut = new List<string>();
+            var unknownParticipants = new List<string>();
 
             foreach (var reservation in reservations)
             {
@@ -74,30 +77,26 @@ namespace BoatTrackerWebJob
                 {
                     if (!checkOutDate.HasValue)
                     {
-                        numNoCheckOut++;
-
-                        sbNoCheckOut.AppendFormat(
-                            "{0} {1} ({2}) - '{3}' @ {4}\n",
+                        noCheckOut.Add(string.Format(
+                            "{0} {1} ({2}) - '{3}' @ {4}",
                             user.Value<string>("firstName"),
                             user.Value<string>("lastName"),
                             user.Value<string>("emailAddress"),
                             boatName,
                             localStartTime.ToShortTimeString()
-                            );
+                            ));
                     }
                 }
                 else
                 {
-                    numAbandoned++;
-
-                    sbAbandoned.AppendFormat(
-                        "{0} {1} ({2}) - '{3}' @ {4}\n",
+                    abandoned.Add(string.Format(
+                        "{0} {1} ({2}) - '{3}' @ {4}",
                         user.Value<string>("firstName"),
                         user.Value<string>("lastName"),
                         user.Value<string>("emailAddress"),
                         boatName,
                         localStartTime.ToShortTimeString()
-                        );
+                        ));
                 }
 
                 var participants = (JArray)reservation["participants"];
@@ -107,16 +106,14 @@ namespace BoatTrackerWebJob
                 //
                 if (participants.Count + 1 < boat.MaxParticipants())
                 {
-                    numUnknownParticipants++;
-
-                    sbUnknownParticipants.AppendFormat(
-                        "{0} {1} ({2}) - '{3}' @ {4}\n",
+                    unknownParticipants.Add(string.Format(
+                        "{0} {1} ({2}) - '{3}' @ {4}",
                         user.Value<string>("firstName"),
                         user.Value<string>("lastName"),
                         user.Value<string>("emailAddress"),
                         boatName,
                         localStartTime.ToShortTimeString()
-                        );
+                        ));
                 }
 
                 // TODO: Check for guest-related violations.
@@ -124,24 +121,90 @@ namespace BoatTrackerWebJob
 
             var sbMessage = new StringBuilder();
 
-            sbMessage.AppendLine();
-            sbMessage.AppendLine($"Daily report for: {clubInfo.Name}");
-            sbMessage.AppendLine();
-            sbMessage.AppendLine($"Total reservations: {reservations.Count}");
-            sbMessage.AppendLine();
-            sbMessage.AppendLine($"Unused reservations ({numAbandoned}):");
-            sbMessage.Append(sbAbandoned.ToString());
-            sbMessage.AppendLine();
-            sbMessage.AppendLine($"Unclosed reservations ({numNoCheckOut}):");
-            sbMessage.Append(sbNoCheckOut.ToString());
-            sbMessage.AppendLine();
-            sbMessage.AppendLine($"Incomplete roster ({numUnknownParticipants}):");
-            sbMessage.Append(sbUnknownParticipants.ToString());
-            sbMessage.AppendLine();
+            sbMessage.AppendLine($"<h1>BoatTracker Daily Report for: {clubInfo.Name}</h1>");
+            sbMessage.AppendLine($"<p>Total reservations: {reservations.Count}</p>");
+
+            if (abandoned.Count > 0)
+            {
+                sbMessage.AppendLine($"<p>Unused reservations ({abandoned.Count}):<br/>");
+                foreach (var s in abandoned)
+                {
+                    sbMessage.AppendLine(s);
+                    sbMessage.AppendLine("<br/>");
+                }
+
+                sbMessage.AppendLine("</p>");
+            }
+            else
+            {
+                sbMessage.AppendLine("<p>No unused reservations.</p>");
+            }
+
+            if (noCheckOut.Count > 0)
+            {
+                sbMessage.AppendLine($"<p>Unclosed reservations ({noCheckOut.Count}):<br/>");
+                foreach (var s in noCheckOut)
+                {
+                    sbMessage.AppendLine(s);
+                    sbMessage.AppendLine("<br/>");
+
+                }
+
+                sbMessage.AppendLine("</p>");
+            }
+            else
+            {
+                sbMessage.AppendLine("<p>No unclosed reservations.</p>");
+            }
+
+            if (unknownParticipants.Count > 0)
+            {
+                sbMessage.AppendLine($"<p>Incomplete roster ({unknownParticipants.Count}):<br/>");
+                foreach (var s in unknownParticipants)
+                {
+                    sbMessage.AppendLine(s);
+                    sbMessage.AppendLine("<br/>");
+                }
+
+                sbMessage.AppendLine("</p");
+            }
+            else
+            {
+                sbMessage.AppendLine("<p>No incomplete rosters.</p>");
+            }
 
             log.Write(sbMessage.ToString());
 
-            // TODO: send the message by email too
+            await SendDailyReportEmail(
+                log,
+                clubInfo,
+                $"BoatTracker daily report for {clubInfo.Name}",
+                sbMessage.ToString());
+        }
+
+        private static async Task SendDailyReportEmail(TextWriter log, ClubInfo clubInfo, string subject, string body)
+        {
+            dynamic sg = new SendGridAPIClient(EnvironmentDefinition.Instance.SendGridApiKey);
+
+            Email from = new Email(clubInfo.DailyReportSender);
+            Content content = new Content("text/html", body);
+
+            foreach (var recipient in clubInfo.DailyReportRecipients.Split(','))
+            {
+                try
+                {
+                    Email to = new Email(recipient);
+                    Mail mail = new Mail(from, subject, to, content);
+
+                    dynamic response = await sg.client.mail.send.post(requestBody: mail.Get());
+
+                    log.WriteLine($"Sent report email to {recipient}");
+                }
+                catch (Exception ex)
+                {
+                    log.WriteLine($"Failed to send report email to {recipient}: {ex.Message}");
+                }
+            }
         }
 
         #region Timezone helpers

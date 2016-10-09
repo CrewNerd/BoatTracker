@@ -48,6 +48,15 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        public override string SendGridApiKey
+        {
+            get
+            {
+                // Leaving this empty for security reasons... fill it in by hand when debugging locally
+                return "";
+            }
+        }
+
         public override bool IsLocal
         {
             get

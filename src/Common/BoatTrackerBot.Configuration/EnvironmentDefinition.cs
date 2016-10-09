@@ -19,6 +19,7 @@ namespace BoatTracker.Bot.Configuration
     {
         private const string LuisModelIdKey = "LuisModelId";
         private const string LuisSubscriptionKeyKey = "LuisSubscriptionKey";
+        private const string SendGridApiKeyKey = "SendGridApiKey";
 
         static EnvironmentDefinition()
         {
@@ -34,7 +35,7 @@ namespace BoatTracker.Bot.Configuration
         {
             get
             {
-                return CloudConfigurationManager.GetSetting("LuisModelId");
+                return CloudConfigurationManager.GetSetting(LuisModelIdKey);
             }
         }
 
@@ -45,7 +46,18 @@ namespace BoatTracker.Bot.Configuration
         {
             get
             {
-                return CloudConfigurationManager.GetSetting("LuisSubscriptionKey");
+                return CloudConfigurationManager.GetSetting(LuisSubscriptionKeyKey);
+            }
+        }
+
+        /// <summary>
+        /// Gets the API key for SendGrid
+        /// </summary>
+        public virtual string SendGridApiKey
+        {
+            get
+            {
+                return CloudConfigurationManager.GetSetting(SendGridApiKeyKey);
             }
         }
 
