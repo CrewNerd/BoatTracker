@@ -416,6 +416,11 @@ namespace BoatTracker.Bot
             // be allowed to check in early, so choose that. Otherwise, choose the slot that's already in progress.
             //
             int startMinute;
+            int startHour = now.Hour;
+            if (now.Minute >= 0 && now.Minute <= 10)
+            {
+                startMinute = 0;
+            }
             if (now.Minute >= 11 && now.Minute <= 25)
             {
                 startMinute = 15;
@@ -431,14 +436,16 @@ namespace BoatTracker.Bot
             else
             {
                 startMinute = 0;
+                startHour = now.Hour + 1;
             }
 
             // Adjust the start time to an even 15-minute interval
+            // BUG: There's a known bug if we take out a boat within 5 minutes of midnight.
             var startTime = new DateTime(
                 now.Year,
                 now.Month,
                 now.Day,
-                now.Hour,
+                startHour,
                 startMinute,
                 0,
                 DateTimeKind.Unspecified);

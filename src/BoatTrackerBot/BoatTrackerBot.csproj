@@ -157,13 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Configuration\ChannelInfo.cs" />
-    <Compile Include="Configuration\ClubConfiguration.cs" />
-    <Compile Include="Configuration\ClubInfo.cs" />
-    <Compile Include="Configuration\DevelopmentEnvironmentDefinition.cs" />
-    <Compile Include="Configuration\EnvironmentDefinition.cs" />
-    <Compile Include="Configuration\LocalEnvironmentDefinition.cs" />
-    <Compile Include="Configuration\ProductionEnvironmentDefinition.cs" />
+    <Compile Include="Configuration\EnvironmentDefinitionExtensions.cs" />
     <Compile Include="DataObjects\RfidEvent.cs" />
     <Compile Include="DataObjects\RfidEvents.cs" />
     <Compile Include="DataObjects\UserState.cs" />
@@ -204,6 +198,10 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\BoatTrackerBot.Configuration\BoatTrackerBot.Configuration.csproj">
+      <Project>{b8128eab-2087-451e-8391-94518456f1b2}</Project>
+      <Name>BoatTrackerBot.Configuration</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\BookedScheduler\BookedScheduler.csproj">
       <Project>{f84befcf-a54f-4b44-8541-0c5ee53d59be}</Project>
       <Name>BookedScheduler</Name>
@@ -238,6 +236,7 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Import Project="packages\Microsoft.Web.WebJobs.Publish.1.0.12\tools\webjobs.targets" Condition="Exists('packages\Microsoft.Web.WebJobs.Publish.1.0.12\tools\webjobs.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
