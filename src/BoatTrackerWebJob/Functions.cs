@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Microsoft.Azure;
 using Microsoft.Azure.WebJobs;
 using Newtonsoft.Json.Linq;
 using NodaTime.TimeZones;
@@ -21,7 +22,18 @@ namespace BoatTrackerWebJob
         [NoAutomaticTrigger]
         public static void RunPolicyChecks([Blob("container/policychecklog.txt")] TextWriter log)
         {
-            log.WriteLine($"Policy check WebJob starting at {DateTime.UtcNow.ToString()}");
+            if (EnvironmentDefinition.Instance.IsDevelopment)
+            {
+                log.WriteLine($"DEV: Policy check WebJob starting at {DateTime.UtcNow.ToString()}");
+            }
+            else if (EnvironmentDefinition.Instance.IsProduction)
+            {
+                log.WriteLine($"PROD: Policy check WebJob starting at {DateTime.UtcNow.ToString()}");
+            }
+            else
+            {
+                log.WriteLine($"LOCAL: Policy check WebJob starting at {DateTime.UtcNow.ToString()}");
+            }
 
             foreach (var clubId in EnvironmentDefinition.Instance.MapClubIdToClubInfo.Keys)
             {
@@ -35,9 +47,11 @@ namespace BoatTrackerWebJob
                 catch (Exception ex)
                 {
                     log.WriteLine($"CheckAllPolicies failed: {ex.Message}");
+                    log.WriteLine($"CheckAllPolicies failed: {ex.StackTrace}");
                     if (ex.InnerException != null)
                     {
                         log.WriteLine($"CheckAllPolicies failed: inner exception = {ex.InnerException.Message}");
+                        log.WriteLine($"CheckAllPolicies failed: inner exception = {ex.InnerException.StackTrace}");
                     }
                 }
 
@@ -121,7 +135,7 @@ namespace BoatTrackerWebJob
 
             var sbMessage = new StringBuilder();
 
-            sbMessage.AppendLine($"<h1>BoatTracker Daily Report for: {clubInfo.Name}</h1>");
+            sbMessage.AppendLine($"<h2>BoatTracker Daily Report for: {clubInfo.Name}</h2>");
             sbMessage.AppendLine($"<p>Total reservations: {reservations.Count}</p>");
 
             if (abandoned.Count > 0)
@@ -166,7 +180,7 @@ namespace BoatTrackerWebJob
                     sbMessage.AppendLine("<br/>");
                 }
 
-                sbMessage.AppendLine("</p");
+                sbMessage.AppendLine("</p>");
             }
             else
             {
@@ -178,7 +192,7 @@ namespace BoatTrackerWebJob
             await SendDailyReportEmail(
                 log,
                 clubInfo,
-                $"BoatTracker daily report for {clubInfo.Name}",
+                $"BoatTracker daily report for {clubInfo.Name}" + (EnvironmentDefinition.Instance.IsDevelopment ? " (DEV)" : ""),
                 sbMessage.ToString());
         }
 
@@ -189,7 +203,18 @@ namespace BoatTrackerWebJob
             Email from = new Email(clubInfo.DailyReportSender);
             Content content = new Content("text/html", body);
 
-            foreach (var recipient in clubInfo.DailyReportRecipients.Split(','))
+            string[] recipients = new string[0];
+
+            if (EnvironmentDefinition.Instance.IsDevelopment)
+            {
+                recipients = new string[] { CloudConfigurationManager.GetSetting("DeveloperEmail") };
+            }
+            else if (EnvironmentDefinition.Instance.IsProduction)
+            {
+                recipients = clubInfo.DailyReportRecipients.Split(',');
+            }
+
+            foreach (var recipient in recipients)
             {
                 try
                 {

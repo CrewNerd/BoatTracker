@@ -187,7 +187,6 @@
     <None Include="Properties\PublishProfiles\BoatTrackerBot - Web Deploy.pubxml" />
     <Content Include="Service References\Application Insights\ConnectedService.json" />
     <None Include="Properties\PublishProfiles\BoatTrackerBot-prod - Web Deploy.pubxml" />
-    <Content Include="Properties\webjobs-list.json" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
