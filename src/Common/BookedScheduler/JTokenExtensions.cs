@@ -119,9 +119,19 @@ namespace BoatTracker.BookedScheduler
 
         #region User helpers
 
+        public static long Id(this JToken jtoken)
+        {
+            return jtoken.Value<long>("id");
+        }
+
         public static string UserName(this JToken jtoken)
         {
             return jtoken.Value<string>("username");
+        }
+
+        public static string FullName(this JToken jtoken)
+        {
+            return $"{jtoken.Value<string>("firstName")} {jtoken.Value<string>("lastName")}";
         }
 
         public static string MakerChannelKey(this JToken jtoken)

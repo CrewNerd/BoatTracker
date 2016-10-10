@@ -153,6 +153,7 @@ namespace BoatTracker.Bot
 
             var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
             var boatName = boat?.Name();
+            var partner = await this.currentUserState.FindBestUserMatchAsync(result);
             var startDate = result.FindStartDate(this.currentUserState);
             var startTime = result.FindStartTime(this.currentUserState);
             var duration = result.FindDuration();
@@ -161,6 +162,8 @@ namespace BoatTracker.Bot
             {
                 UserState = this.currentUserState,
                 BoatName = boatName,
+                PartnerUserId = partner?.Id(),
+                PartnerName = partner?.FullName(),
                 StartDate = startDate,
                 StartTime = startTime
             };
@@ -216,7 +219,7 @@ namespace BoatTracker.Bot
                         boat = await this.currentUserState.FindBestResourceMatchAsync(request.BoatName);
                     }
 
-                    var reservation = await client.CreateReservationAsync(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot");
+                    var reservation = await client.CreateReservationAsync(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot", request.PartnerUserId);
 
                     if (request.CheckInAfterCreation)
                     {
@@ -411,6 +414,8 @@ namespace BoatTracker.Bot
             var boatName = boat.Name();
             var now = this.currentUserState.LocalTime();
 
+            var partner = await this.currentUserState.FindBestUserMatchAsync(result);
+
             //
             // Select a starting slot for the reservation. If we're withing 5 minutes of the next slot, we'll
             // be allowed to check in early, so choose that. Otherwise, choose the slot that's already in progress.
@@ -421,7 +426,7 @@ namespace BoatTracker.Bot
             {
                 startMinute = 0;
             }
-            if (now.Minute >= 11 && now.Minute <= 25)
+            else if (now.Minute >= 11 && now.Minute <= 25)
             {
                 startMinute = 15;
             }
@@ -455,6 +460,7 @@ namespace BoatTracker.Bot
                 CheckInAfterCreation = true,
                 UserState = this.currentUserState,
                 BoatName = boatName,
+                PartnerName = partner?.FullName(),
                 StartDate = now.Date,
                 StartTime = startTime
             };
