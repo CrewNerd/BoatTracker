@@ -45,7 +45,7 @@ namespace BoatTracker.Bot.Configuration
                             return new UserState
                             {
                                 ClubId = clubId,
-                                UserId = user.Value<long>("id"),
+                                UserId = user.Id(),
                                 Timezone = user.Value<string>("timezone")
                             };
                         }

@@ -78,6 +78,9 @@ namespace BoatTrackerWebJob
 
             foreach (var reservation in reservations)
             {
+                // Get the "full" reservation to make sure the participants list is given as an array
+                var fullReservation = await client.GetReservationAsync(reservation.ReferenceNumber());
+
                 DateTime? checkInDate = reservation.CheckInDate();
                 DateTime? checkOutDate = reservation.CheckOutDate();
 
@@ -113,7 +116,7 @@ namespace BoatTrackerWebJob
                         ));
                 }
 
-                var participants = (JArray)reservation["participants"];
+                var participants = (JArray)fullReservation["participants"];
 
                 //
                 // Check that all of the participants were recorded

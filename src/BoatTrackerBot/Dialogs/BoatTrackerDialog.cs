@@ -153,6 +153,7 @@ namespace BoatTracker.Bot
 
             var boat = await this.currentUserState.FindBestResourceMatchAsync(result);
             var boatName = boat?.Name();
+            var partner = await this.currentUserState.FindBestUserMatchAsync(result);
             var startDate = result.FindStartDate(this.currentUserState);
             var startTime = result.FindStartTime(this.currentUserState);
             var duration = result.FindDuration();
@@ -161,8 +162,14 @@ namespace BoatTracker.Bot
             {
                 UserState = this.currentUserState,
                 BoatName = boatName,
+                PartnerUserId = partner?.Id(),
+                PartnerName = partner?.FullName(),
+
                 StartDate = startDate,
-                StartTime = startTime
+                OriginalStartDate = startDate,
+
+                StartTime = startTime,
+                OriginalStartTime = startTime
             };
 
             if (duration.HasValue)
@@ -216,18 +223,20 @@ namespace BoatTracker.Bot
                         boat = await this.currentUserState.FindBestResourceMatchAsync(request.BoatName);
                     }
 
-                    var reservation = await client.CreateReservationAsync(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot");
+                    var reservation = await client.CreateReservationAsync(boat, this.currentUserState.UserId, start, request.RawDuration, $"Practice in the {request.BoatName}", $"Created by BoatTracker Bot", request.PartnerUserId);
 
                     if (request.CheckInAfterCreation)
                     {
+                        // TODO: Handle partial success here...
                         var response = await client.CheckInReservationAsync(reservation.ReferenceNumber());
                         var updatedReservation = await client.GetReservationAsync(reservation.ReferenceNumber());
                         var endTime = this.currentUserState.ConvertToLocalTime(updatedReservation.EndDate());
-                        await context.PostAsync($"Okay, you're checked in and clear to go. Your reservation ends at {endTime.ToShortTimeString()}."); 
+                        await context.PostAsync($"Okay, you're checked in and clear to go. Your reservation ends at {endTime.ToShortTimeString()}. Be sure to text 'done rowing' when you get back."); 
                     }
                     else
                     {
-                        await context.PostAsync("Okay, you're all set!");
+                        // TODO: Consider shortening this message after the user has seen it a few times.
+                        await context.PostAsync("Okay, you're all set! When it's time for your reservation, just say 'rowing' to sign in. You can sign in up to 5 minutes before your reservation time.");
                     }
                 }
                 catch (Exception ex)
@@ -387,7 +396,7 @@ namespace BoatTracker.Bot
                         var response = await client.CheckInReservationAsync(qualifiedReservations[0].ReferenceNumber());
                         var updatedReservation = await client.GetReservationAsync(qualifiedReservations[0].ReferenceNumber());
                         var endTime = this.currentUserState.ConvertToLocalTime(qualifiedReservations[0].EndDate());
-                        await context.PostAsync($"Okay, you're all set. Your reservation ends at {endTime.ToShortTimeString()}."); 
+                        await context.PostAsync($"Okay, you're all set. Your reservation ends at {endTime.ToShortTimeString()}. Be sure to text 'done rowing' when you return."); 
                     }
                     catch (Exception ex)
                     {
@@ -406,10 +415,24 @@ namespace BoatTracker.Bot
 
         private async Task CreateReservationOnDemand(IDialogContext context, LuisResult result, JToken boat)
         {
-            await context.PostAsync("You don't have a reservation, but I can create one for you now.");
+            //
+            // Some requests look like "TakeOut" even though the user intended to create a
+            // reservation. If we see a start time or date specified then effectively treat
+            // this like CreateReservation.
+            //
+            var startDateEntity = result.FindStartDate(this.currentUserState);
+            var startTimeEntity = result.FindStartTime(this.currentUserState);
+
+            if (!startDateEntity.HasValue && !startTimeEntity.HasValue)
+            {
+                // If it looks like a true "TakeOut", then give them this feedback.
+                await context.PostAsync("You don't have a reservation, but I can create one for you now.");
+            }
 
             var boatName = boat.Name();
             var now = this.currentUserState.LocalTime();
+
+            var partner = await this.currentUserState.FindBestUserMatchAsync(result);
 
             //
             // Select a starting slot for the reservation. If we're withing 5 minutes of the next slot, we'll
@@ -421,7 +444,7 @@ namespace BoatTracker.Bot
             {
                 startMinute = 0;
             }
-            if (now.Minute >= 11 && now.Minute <= 25)
+            else if (now.Minute >= 11 && now.Minute <= 25)
             {
                 startMinute = 15;
             }
@@ -450,14 +473,44 @@ namespace BoatTracker.Bot
                 0,
                 DateTimeKind.Unspecified);
 
-            ReservationRequest reservationRequest = new ReservationRequest
+            ReservationRequest reservationRequest;
+
+            if (startDateEntity.HasValue || startTimeEntity.HasValue)
             {
-                CheckInAfterCreation = true,
-                UserState = this.currentUserState,
-                BoatName = boatName,
-                StartDate = now.Date,
-                StartTime = startTime
-            };
+                reservationRequest = new ReservationRequest
+                {
+                    CheckInAfterCreation = false,
+                    UserState = this.currentUserState,
+                    BoatName = boatName,
+                    PartnerName = partner?.FullName(),
+
+                    // If they only gave us a new time, we let "today" be the default date.
+                    StartDate = startDateEntity.HasValue ? startDateEntity.Value.Date : now.Date,
+                    OriginalStartDate = startDateEntity.HasValue ? startDateEntity.Value.Date : now.Date,
+
+                    StartTime = startTimeEntity,
+                    OriginalStartTime = startTimeEntity
+                };
+            }
+            else
+            {
+                //
+                // In the normal TakeOut case, we use the current date/time.
+                //
+                reservationRequest = new ReservationRequest
+                {
+                    CheckInAfterCreation = true,
+                    UserState = this.currentUserState,
+                    BoatName = boatName,
+                    PartnerName = partner?.FullName(),
+
+                    StartDate = now.Date,
+                    OriginalStartDate = now.Date,
+
+                    StartTime = startTime,
+                    OriginalStartTime = startTime
+                };
+            }
 
             var duration = result.FindDuration();
             if (duration.HasValue)
@@ -666,9 +719,9 @@ namespace BoatTracker.Bot
                     PromptDialog.Confirm(
                         context,
                         AfterConfirming_DeleteReservation,
-                        $"Is this the reservation you want to cancel?\n\n---{reservationDescription}",
+                        $"Is this the reservation you want to cancel? (yes/no)\n\n---{reservationDescription}",
                         attempts: 3,
-                        retry: "Sorry, I don't understand your response. Do you want to cancel the reservation shown above?",
+                        retry: "Sorry, I don't understand your response. Do you want to cancel the reservation shown above? (yes/no)",
                         promptStyle: PromptStyle.None);
 
                     break;
@@ -824,7 +877,7 @@ namespace BoatTracker.Bot
             //
             if (!context.UserData.TryGetValue(UserState.PropertyName, out userState))
             {
-                userState = new UserState { BotAccountKey = Guid.NewGuid().ToString().Trim('{', '}') };
+                userState = new UserState { BotAccountKey = Guid.NewGuid().ToString().ToLower().Substring(26, 10) };
                 context.UserData.SetValue(UserState.PropertyName, userState);
             }
 
@@ -855,8 +908,8 @@ namespace BoatTracker.Bot
             else
             {
                 await context.PostAsync(
-                    "It looks like you haven't registered your Bot account with BookedScheduler yet. " +
-                    "To connect your Skype account to BookedScheduler, please go to your BookedScheduler " +
+                    "It looks like you haven't registered your BoatTracker Bot account with BookedScheduler yet. " +
+                    $"To connect your {this.currentChannelInfo.DisplayName} account to BookedScheduler, please go to your BookedScheduler " +
                     $"profile and set your '{this.currentChannelInfo.BotAccountKeyDisplayName}' to {userState.BotAccountKey}");
 
                 context.Wait(MessageReceived);
