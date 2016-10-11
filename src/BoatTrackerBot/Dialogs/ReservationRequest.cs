@@ -19,6 +19,10 @@ namespace BoatTracker.Bot
 
         public long? PartnerUserId { get; set; }
 
+        public DateTime? OriginalStartDate { get; set; }
+
+        public DateTime? OriginalStartTime { get; set; }
+
         public UserState UserState { get; set; }
 
         public bool CheckInAfterCreation { get; set; }
@@ -31,10 +35,12 @@ namespace BoatTracker.Bot
 
         [Prompt("What day do you want to reserve it?")]
         [Template(TemplateUsage.StatusFormat, "Start date: {:d}")]
+        [Template(TemplateUsage.NavigationFormat, "Start Date({:d})")]
         public DateTime? StartDate { get; set; }
 
         [Prompt("What time do you want to start?")]
         [Template(TemplateUsage.StatusFormat, "Start time: {:t}")]
+        [Template(TemplateUsage.NavigationFormat, "Start Time({:t})")]
         public DateTime? StartTime { get; set; }
 
         [Prompt("How long do you want to use the boat?")]
@@ -229,6 +235,16 @@ namespace BoatTracker.Bot
                 });
             }
 
+            //
+            // If the date was changed during the FormDialog, then we can no longer attempt
+            // a checkin, even if that was the original intent. This recovers from some
+            // cases where the original intent was misunderstood.
+            //
+            if (state.StartDate != state.OriginalStartDate)
+            {
+                state.CheckInAfterCreation = false;
+            }
+
             return Task.FromResult(new ValidateResult
             {
                 IsValid = true,
@@ -272,6 +288,16 @@ namespace BoatTracker.Bot
                     Value = null,
                     Feedback = $"Reservations can't be made later than {(DateTime.MinValue + StartUpperBound).ToShortTimeString()}"
                 });
+            }
+
+            //
+            // If the time was changed during the FormDialog, then we can no longer attempt
+            // a checkin, even if that was the original intent. This recovers from some
+            // cases where the original intent was misunderstood.
+            //
+            if (state.StartTime != state.OriginalStartTime)
+            {
+                state.CheckInAfterCreation = false;
             }
 
             return Task.FromResult(new ValidateResult
@@ -343,13 +369,13 @@ namespace BoatTracker.Bot
             {
                 return Task.FromResult(
                     new PromptAttribute(
-                        $"You want to reserve the {state.BoatName} on {state.StartDate.Value.ToLongDateString()} at {state.StartTime.Value.ToShortTimeString()} for {state.Duration}. Is that right?"));
+                        $"You want to reserve the {state.BoatName} on {state.StartDate.Value.ToLongDateString()} at {state.StartTime.Value.ToShortTimeString()} for {state.Duration}. Is that right? (yes/no)"));
             }
             else
             {
                 return Task.FromResult(
                     new PromptAttribute(
-                        $"You want to reserve the {state.BoatName} with {state.PartnerName} on {state.StartDate.Value.ToLongDateString()} at {state.StartTime.Value.ToShortTimeString()} for {state.Duration}. Is that right?"));
+                        $"You want to reserve the {state.BoatName} with {state.PartnerName} on {state.StartDate.Value.ToLongDateString()} at {state.StartTime.Value.ToShortTimeString()} for {state.Duration}. Is that right? (yes/no)"));
             }
         }
     }

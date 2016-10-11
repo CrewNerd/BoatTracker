@@ -1,0 +1,204 @@
+#**************************************************************
+#general commands
+#**************************************************************
+function getset
+readername getset
+readertype get
+readerversion get
+dspversion get
+readernumber getset
+baudrate getset
+uptime get
+username getset
+maxantenna get
+antennasequence getset
+antennastatus get
+rfattenuation getset
+rflevel getset
+rfmodulation getset
+reboot do
+factorysettings do
+info get
+save do
+quit do
+mydata getset
+
+#**************************************************************
+#network commands
+#**************************************************************
+macaddress get
+dhcp getset
+dhcptimeout getset
+ipaddress getset
+hostname getset
+upgradeaddress getset
+networkupgrade getset
+gateway getset
+netmask getset
+dns getset
+networktimeout getset
+commandport getset
+commandportlocal getset
+heartbeataddress getset
+heartbeatport getset
+heartbeattime getset
+heartbeatcount getset
+heartbeatnow do
+wwwport getset
+acceptconnections getset
+ping do
+
+#**************************************************************
+#time commands
+#**************************************************************
+timeserver getset
+time getset
+timezone getset
+
+#**************************************************************
+#taglist commands
+#**************************************************************
+persisttime getset
+taglistformat getset
+taglistantennacombine getset
+taglistcustomformat getset
+taglistmillis getset
+streamheader getset
+tagstreammode getset
+tagstreamaddress getset
+tagstreamkeepalivetime getset
+tagstreamformat getset
+tagstreamcustomformat getset
+t do
+taglist get
+acquire do
+tag get
+clear do
+
+#**************************************************************
+#acquire commands
+#**************************************************************
+acquiremode getset
+tagtype getset
+acqmask getset
+acqg2cycles getset
+acqg2count getset
+acqg2q getset
+acqg2qmax getset
+acqg2select getset
+acqg2session getset
+acqg2mask getset
+acqg2maskaction getset
+acqg2accesspwd getset
+acqg2tagdata getset
+acqg2target getset
+speedfilter getset
+rssifilter getset
+
+#**************************************************************
+#i/o commands
+#**************************************************************
+externalinput getset
+externaloutput getset
+invertexternalinput getset
+invertexternaloutput getset
+initexternaloutput getset
+iotype getset
+iolistformat getset
+iolistcustomformat getset
+iostreammode getset
+iostreamaddress getset
+iostreamkeepalivetime getset
+iostreamformat getset
+iostreamcustomformat getset
+
+#*************************************************************
+#automode commands
+#**************************************************************
+automode getset
+autowaitoutput getset
+autoworkoutput getset
+autotrueoutput getset
+autofalseoutput getset
+autostarttrigger getset
+autostoptrigger getset
+autostoptimer getset
+autostartpause getset
+autostoppause getset
+autotruepause getset
+autofalsepause getset
+autoaction getset
+automodetriggernow do
+automodereset do
+
+#**************************************************************
+#notify commands
+#**************************************************************
+notifyformat getset
+notifyheader getset
+notifyaddress getset
+notifytime getset
+notifytrigger getset
+notifykeepalivetime getset
+mailserver getset
+mailfrom getset
+notifymode getset
+notifyretrycount getset
+notifyretrypause getset
+notifyqueuelimit getset
+notifyinclude getset
+notifynow do
+
+#**************************************************************
+#program commands
+#**************************************************************
+progdataunit getset
+progprotocol getset
+progantenna getset
+progepcdata getset
+progepcdatainc getset
+progg2killpwd getset
+progg2accesspwd getset
+proguserdata getset
+proguserdatainc getset
+progg2locktype getset
+progattempts getset
+progsuccessformat getset
+progalienimagemap getset
+progalienimagensi getset
+
+programepc doset
+programuser doset
+programaccesspwd doset
+programkillpwd doset
+programandlockepc doset
+programandlockuser doset
+programalienimage doset
+
+erase do
+g2write doset
+g2read doset
+g2erase doset
+
+lockepc doset
+lockuser doset
+lockkillpwd doset
+lockaccesspwd doset
+unlockepc doset
+unlockuser doset
+unlockkillpwd doset
+unlockaccesspwd doset
+
+lockuserblocks doset
+hidealienuserblocks doset
+
+#**************************************************************
+#experimental commands
+#**************************************************************
+automodetype getset
+autoseektimer getset
+autoseekpause getset
+autoseekrflevel getset
+lbt getset
+lbtlimit getset
+lbtvalue get
