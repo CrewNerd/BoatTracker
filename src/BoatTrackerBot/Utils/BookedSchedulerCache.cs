@@ -50,7 +50,8 @@ namespace BoatTracker.Bot.Utils
 
         public class BookedSchedulerCacheEntry
         {
-            private static readonly TimeSpan CacheTimeout = TimeSpan.FromHours(8);
+            private static readonly TimeSpan CacheTimeout = TimeSpan.FromHours(4);
+            private static readonly TimeSpan CacheRetryTime = TimeSpan.FromMinutes(10);
             private static readonly TimeSpan EventLifetime = TimeSpan.FromSeconds(15);
 
             private string clubId;
@@ -61,9 +62,11 @@ namespace BoatTracker.Bot.Utils
 
             private Dictionary<long, JToken> groupMap;
 
+#if UNUSED
             private JArray schedules;
+#endif
 
-            private DateTime timestamp;
+            private DateTime refreshTime;
 
             private JToken botUser;
 
@@ -121,11 +124,13 @@ namespace BoatTracker.Bot.Utils
                 return null;
             }
 
+#if UNUSED
             public async Task<JArray> GetSchedulesAsync()
             {
                 await this.EnsureCacheIsCurrentAsync();
                 return this.schedules;
             }
+#endif
 
             public async Task<JToken> GetBotUserAsync()
             {
@@ -144,9 +149,9 @@ namespace BoatTracker.Bot.Utils
                 return this.botUser;
             }
 
-#endregion
+            #endregion
 
-#region Event handling methods
+            #region Event handling methods
 
             /// <summary>
             /// It will be common to get two events for the same boat close together since we
@@ -201,9 +206,9 @@ namespace BoatTracker.Bot.Utils
                 return isRedundant;
             }
 
-#endregion
+            #endregion
 
-#region Public utility methods
+            #region Public utility methods
 
             /// <summary>
             /// Return a boat resource given its id.
@@ -247,13 +252,13 @@ namespace BoatTracker.Bot.Utils
                 return resource;
             }
 
-#endregion
+            #endregion
 
-#region Cache management
+            #region Cache management
 
             private async Task EnsureCacheIsCurrentAsync()
             {
-                if (this.timestamp + CacheTimeout < DateTime.Now)
+                if (DateTime.Now > this.refreshTime)
                 {
                     await this.RefreshCacheAsync();
                 }
@@ -263,48 +268,68 @@ namespace BoatTracker.Bot.Utils
 
             private async Task RefreshCacheAsync()
             {
-                //
-                // If there's a refresh in progress on another thread, we return and let
-                // the caller proceed with date that's soon to be replaced. The priority
-                // is to ensure that two threads aren't updating the cache at once.
-                //
-                if (Interlocked.CompareExchange(ref this.RefreshInProgress, 1, 0) != 0)
+                try
                 {
-                    return;
+                    //
+                    // If there's a refresh in progress on another thread, we return and let
+                    // the caller proceed with date that's soon to be replaced. The priority
+                    // is to ensure that two threads aren't updating the cache at once.
+                    //
+                    if (Interlocked.CompareExchange(ref this.RefreshInProgress, 1, 0) != 0)
+                    {
+                        return;
+                    }
+
+                    var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.clubId];
+
+                    BookedSchedulerClient client = new BookedSchedulerLoggingClient(this.clubId);
+
+                    await client.SignIn(clubInfo.UserName, clubInfo.Password);
+
+                    var newResources = await client.GetResourcesAsync();
+                    var users = await client.GetUsersAsync();
+                    var newUserMap = new Dictionary<long, JToken>();
+
+                    foreach (var u in users)
+                    {
+                        var fullUser = await client.GetUserAsync(u.Value<string>("id"));
+                        newUserMap.Add(fullUser.Id(), fullUser);
+                    }
+
+                    var groups = await client.GetGroupsAsync();
+                    var newGroupMap = new Dictionary<long, JToken>();
+
+                    foreach (var g in groups)
+                    {
+                        var fullGroup = await client.GetGroupAsync(g.Value<string>("id"));
+                        newGroupMap.Add(fullGroup.Id(), fullGroup);
+                    }
+
+#if UNUSED
+                    var newSchedules = await client.GetSchedulesAsync();
+                    this.schedules = newSchedules;
+#endif
+
+                    this.resources = newResources;
+                    this.userMap = newUserMap;
+                    this.groupMap = newGroupMap;
+
+                    // Schedule the next cache refresh
+                    this.refreshTime = DateTime.Now + CacheTimeout;
                 }
-
-                var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.clubId];
-
-                BookedSchedulerClient client = new BookedSchedulerLoggingClient(this.clubId);
-
-                await client.SignIn(clubInfo.UserName, clubInfo.Password);
-
-                this.resources = await client.GetResourcesAsync();
-                var users = await client.GetUsersAsync();
-                this.userMap = new Dictionary<long, JToken>();
-
-                foreach (var u in users)
+                catch (Exception)
                 {
-                    var fullUser = await client.GetUserAsync(u.Value<string>("id"));
-                    this.userMap.Add(fullUser.Id(), fullUser);
+                    // If there were any errors, leave the stale data in place and schedule another
+                    // refresh fairly soon.
+                    this.refreshTime = DateTime.Now + CacheRetryTime;
                 }
-
-                var groups = await client.GetGroupsAsync();
-                this.groupMap = new Dictionary<long, JToken>();
-
-                foreach (var g in groups)
+                finally
                 {
-                    var fullGroup = await client.GetGroupAsync(g.Value<string>("id"));
-                    this.groupMap.Add(fullGroup.Id(), fullGroup);
+                    this.RefreshInProgress = 0;
                 }
-
-                this.schedules = await client.GetSchedulesAsync();
-
-                this.timestamp = DateTime.Now;
-                this.RefreshInProgress = 0;
             }
 
-#endregion
+            #endregion
         }
     }
 }
