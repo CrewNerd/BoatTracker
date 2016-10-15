@@ -12,3 +12,8 @@
 /src/Common/BookedScheduler/bin/Release
 /src/Common/BookedScheduler/obj/Release
 /src/BoatTrackerBot/ClubConfiguration.json
+/src/BoatTrackerWebJob/bin
+/src/BoatTrackerWebJob/obj
+/src/Common/BoatTrackerBot.Configuration/bin
+/src/Common/BoatTrackerBot.Configuration/obj
+/src/BoatTrackerBot/ClubConfiguration.json~
