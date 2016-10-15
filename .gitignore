@@ -12,6 +12,17 @@
 /src/Common/BookedScheduler/bin/Release
 /src/Common/BookedScheduler/obj/Release
 /src/BoatTrackerBot/ClubConfiguration.json
+/src/BoatTrackerWebJob/bin/Debug
+/src/BoatTrackerWebJob/obj/Debug
+/src/BoatTrackerWebJob/BoatTrackerWebJob.csproj.user
+/src/BoatTrackerWebJob/Properties/PublishProfiles/BoatTrackerBot - Web Deploy.pubxml.user
+/src/Common/BoatTrackerBot.Configuration/bin/Debug
+/src/Common/BoatTrackerBot.Configuration/obj/Debug
+/src/BoatTrackerWebJob/bin/Release
+/src/BoatTrackerWebJob/obj/Release
+/src/Common/BoatTrackerBot.Configuration/bin/Release
+/src/Common/BoatTrackerBot.Configuration/obj/Release
+/src/BoatTrackerWebJob/Properties/PublishProfiles/BoatTrackerBot-prod - Web Deploy.pubxml.user
 /src/BoatTrackerWebJob/bin
 /src/BoatTrackerWebJob/obj
 /src/Common/BoatTrackerBot.Configuration/bin

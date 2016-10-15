@@ -65,8 +65,7 @@ namespace BoatTracker.Bot.Utils
             bool showIndex,
             bool useMarkdown)
         {
-            DateTime startDate = DateTime.Parse(reservation.StartDate());
-            startDate = userState.ConvertToLocalTime(startDate);
+            var startDate = userState.ConvertToLocalTime(reservation.StartDate());
             var duration = reservation.Value<string>("duration");
 
             var boatName = await BookedSchedulerCache
@@ -80,25 +79,60 @@ namespace BoatTracker.Bot.Utils
                 owner = $" {reservation.Value<string>("firstName")} {reservation.Value<string>("lastName")}";
             }
 
+            string partnerName = string.Empty;
+
+            //
+            // Getting the participant list is messy. When it's empty, it looks like an empty
+            // array. When there are participants, it looks like an object with each key/value
+            // pair consisting of the user id and the full user name. This is probably a bug so
+            // we also try to handle the case that we expected (array of integer user id's).
+            //
+            if (reservation["participants"] is JArray)
+            {
+                var participants = (JArray)reservation["participants"];
+
+                if (participants.Count > 0)
+                {
+                    var partnerRef = participants[0];
+                    var partnerId = partnerRef.Value<long>("userId");
+                    var partnerUser = await BookedSchedulerCache.Instance[userState.ClubId].GetUserAsync(partnerId);
+                    partnerName = $" w/ {partnerUser.FullName()}";
+                }
+            }
+            else if (reservation["participants"] is JObject)
+            {
+                var participants = (JObject)reservation["participants"];
+
+                foreach (var kv in participants)
+                {
+                    var partnerId = long.Parse(kv.Key);
+                    var partnerUser = await BookedSchedulerCache.Instance[userState.ClubId].GetUserAsync(partnerId);
+                    partnerName = $" w/ {partnerUser.FullName()}";
+                    break;
+                }
+            }
+
             if (useMarkdown)
             {
                 return string.Format(
-                    "{0}**{1} {2}** {3} *({4})*{5}",
+                    "{0}**{1} {2}** {3}{4} *({5})*{6}",
                     showIndex ? $"**{index}**:  " : string.Empty,
                     showDate ? startDate.ToLocalTime().ToString("d") : string.Empty,
                     startDate.ToLocalTime().ToString("t"),
                     boatName,
+                    partnerName,
                     duration,
                     owner);
             }
             else
             {
                 return string.Format(
-                    "{0}{1} {2} {3} ({4}) {5}",
+                    "{0}{1} {2} {3}{4} ({5}) {6}",
                     showIndex ? $"{index}:  " : string.Empty,
                     showDate ? startDate.ToLocalTime().ToString("d") : string.Empty,
                     startDate.ToLocalTime().ToString("t"),
                     boatName,
+                    partnerName,
                     duration,
                     owner);
             }
@@ -106,8 +140,7 @@ namespace BoatTracker.Bot.Utils
 
         public static async Task<string> SummarizeReservationAsync(this UserState userState, JToken reservation)
         {
-            DateTime startDate = DateTime.Parse(reservation.StartDate());
-            startDate = userState.ConvertToLocalTime(startDate);
+            var startDate = userState.ConvertToLocalTime(reservation.StartDate());
 
             var boatName = await BookedSchedulerCache
                 .Instance[userState.ClubId]
@@ -125,16 +158,25 @@ namespace BoatTracker.Bot.Utils
 
         #region Resources
 
-        public static async Task<bool> HasPermissionForResourceAsync(this UserState userState, JToken resource)
+        /// <summary>
+        /// Check to see whether a user has permission to use a boat. By default, we check the
+        /// user in the given UserState. But if a partnerUserId is provided, we check their
+        /// permission instead.
+        /// </summary>
+        /// <param name="userState">The state for the calling user</param>
+        /// <param name="resource">The resource that they want to access</param>
+        /// <param name="partnerUserId">If given, check permission for this user.</param>
+        /// <returns>Task that completes with true if the user has permission for the resource.</returns>
+        public static async Task<bool> HasPermissionForResourceAsync(this UserState userState, JToken resource, long? partnerUserId = null)
         {
             var cache = BookedSchedulerCache.Instance[userState.ClubId];
-            var user = await cache.GetUserAsync(userState.UserId);
+            var user = await cache.GetUserAsync(partnerUserId ?? userState.UserId);
             var resourceId = resource.ResourceId();
 
             // See if the user is granted permission to the resource directly.
             var okByUser = user
                 .Value<JArray>("permissions")
-                .Any(r => r.Value<long>("id") == resourceId);
+                .Any(r => r.Id() == resourceId);
 
             if (okByUser)
             {
@@ -144,7 +186,7 @@ namespace BoatTracker.Bot.Utils
             // See if any of the user's group memberships grant permission to the resource
             foreach (var group in user.Value<JArray>("groups"))
             {
-                var groupNode = await cache.GetGroupAsync(group.Value<long>("id"));
+                var groupNode = await cache.GetGroupAsync(group.Id());
 
                 var okByGroup = groupNode
                     .Value<JArray>("permissions")
@@ -260,11 +302,6 @@ namespace BoatTracker.Bot.Utils
             return GetBoatNames(boat).Any(name => PerfectMatchName(entityWords, name.ToLower().Split(' ')));
         }
 
-        private static bool PerfectMatchName(IList<string> entityWords, string[] boatNameWords)
-        {
-            return entityWords.Count == boatNameWords.Count() && boatNameWords.All(word => entityWords.Contains(word));
-        }
-
         private static bool OverMatchBoat(IList<string> entityWords, JToken boat)
         {
             //
@@ -272,11 +309,6 @@ namespace BoatTracker.Bot.Utils
             // This could happen if LUIS classifies "extra" words as being part of the boat name.
             //
             return GetBoatNames(boat).Any(name => OverMatchName(entityWords, name.ToLower().Split(' ')));
-        }
-
-        private static bool OverMatchName(IList<string> entityWords, string[] boatNameWords)
-        {
-            return entityWords.Count > boatNameWords.Count() && boatNameWords.All(word => entityWords.Contains(word));
         }
 
         private static bool UnderMatchBoat(IList<string> entityWords, JToken boat)
@@ -289,13 +321,10 @@ namespace BoatTracker.Bot.Utils
             return GetBoatNames(boat).Any(name => UnderMatchName(entityWords, name.ToLower().Split(' ')));
         }
 
-        private static bool UnderMatchName(IList<string> entityWords, string[] boatNameWords)
+        private static IEnumerable<string> GetBoatNames(JToken boat)
         {
-            return entityWords.Count < boatNameWords.Count() && entityWords.All(word => boatNameWords.Contains(word));
-        }
+            yield return boat.Name();
 
-        private static IList<string> GetBoatNames(JToken boat)
-        {
             // Start with the set of alternate names (if any) for the boat
             var boatNames = (boat
                 .Value<JArray>("customAttributes")
@@ -303,16 +332,167 @@ namespace BoatTracker.Bot.Utils
                 .First()
                 .Value<string>("value") ?? string.Empty)
                 .Split(',')
-                .Where(s => !string.IsNullOrEmpty(s))
-                .ToList();
+                .Where(s => !string.IsNullOrEmpty(s));
 
-            // And add its preferred name
-            boatNames.Add(boat.Name());
-
-            return boatNames;
+            foreach (var boatname in boatNames)
+            {
+                yield return boatname;
+            }
         }
 
-#endregion
+        #endregion
+
+        #region Users
+
+        /// <summary>
+        /// Look for a matching user given a user-entered name string.
+        /// </summary>
+        /// <param name="userState">The user context</param>
+        /// <param name="name">The user name as typed by the user</param>
+        /// <returns>The JToken for the matching user, or null if no good match was found.</returns>
+        public static Task<JToken> FindBestUserMatchAsync(this UserState userState, string name)
+        {
+            return FindBestUserMatchAsync(
+                userState,
+                new LuisResult
+                {
+                    Entities = new List<EntityRecommendation>()
+                    {
+                        new EntityRecommendation
+                        {
+                            Type = LuisResultExtensions.EntityRowerName,
+                            Entity = name
+                        }
+                    }
+                });
+        }
+
+        /// <summary>
+        /// Look for an acceptable match between the 'userName' entities found by LUIS and
+        /// the known set of user names for the user's club. Consider the first name, last
+        /// name, and username for each user.
+        /// </summary>
+        /// <param name="userState">The user context</param>
+        /// <param name="entities">The entities discovered by LUIS</param>
+        /// <returns>The JToken for the matching user, or null if no good match was found.</returns>
+        public static async Task<JToken> FindBestUserMatchAsync(this UserState userState, LuisResult result)
+        {
+            var entities = result.Entities;
+            var entityWords = entities
+                .Where(e => e.Type == LuisResultExtensions.EntityRowerName)
+                .SelectMany(e => e.Entity.ToLower().Split(' '))
+                .ToList();
+
+            if (entityWords.Count == 0)
+            {
+                return null;
+            }
+
+            var users = await BookedSchedulerCache.Instance[userState.ClubId].GetUsersAsync();
+
+            var user = users.FirstOrDefault((b) => PerfectMatchUser(entityWords, b));
+
+            if (user != null)
+            {
+                return user;
+            }
+
+            //
+            // Next, check to see if a subset of the entities completely spans the user name words.
+            // This could happen if LUIS classifies "extra" words as being part of the user name.
+            //
+            user = users.FirstOrDefault((b) => OverMatchUser(entityWords, b));
+
+            if (user != null)
+            {
+                return user;
+            }
+
+            //
+            // Next, check for cases where the entities all match a subset of the user name words.
+            // This could happen if LUIS failed to classify some words as being part of the user
+            // name OR if the user provides only a portion of a longer name.
+            //
+            var underMatches = users.Where((b) => UnderMatchUser(entityWords, b));
+
+            // TODO: If one partial match is superior to all others, we should allow it.
+
+            if (underMatches.Count() > 1)
+            {
+                return null; // The name partially matches multiple users so return a failure.
+            }
+
+            return underMatches.FirstOrDefault();
+        }
+
+        public static async Task<string> FindBestUserNameAsync(this UserState userState, LuisResult result)
+        {
+            var user = await userState.FindBestUserMatchAsync(result);
+
+            if (user != null)
+            {
+                return $"{user.Value<string>("firstName")} {user.Value<string>("lastName")}";
+            }
+
+            return null;
+        }
+
+        private static bool PerfectMatchUser(IList<string> entityWords, JToken user)
+        {
+            //
+            // Check for a perfect match with any of the user names
+            //
+            return GetUserNames(user).Any(name => PerfectMatchName(entityWords, name.ToLower().Split(' ')));
+        }
+
+        private static bool OverMatchUser(IList<string> entityWords, JToken user)
+        {
+            //
+            // Check to see if a subset of the entities completely spans the user name words.
+            // This could happen if LUIS classifies "extra" words as being part of the user name.
+            //
+            return GetUserNames(user).Any(name => OverMatchName(entityWords, name.ToLower().Split(' ')));
+        }
+
+        private static bool UnderMatchUser(IList<string> entityWords, JToken user)
+        {
+            //
+            // Check for cases where the entities all match a subset of the user name words.
+            // This could happen if LUIS failed to classify some words as being part of the user
+            // name OR if the user provides only a portion of a longer name.
+            //
+            return GetUserNames(user).Any(name => UnderMatchName(entityWords, name.ToLower().Split(' ')));
+        }
+
+        private static IEnumerable<string> GetUserNames(JToken user)
+        {
+            yield return user.Value<string>("firstName");
+
+            yield return user.Value<string>("lastName");
+
+            yield return user.Value<string>("username");
+        }
+
+        #endregion
+
+        #region Matching Helpers
+
+        private static bool PerfectMatchName(IList<string> entityWords, string[] userNameWords)
+        {
+            return entityWords.Count == userNameWords.Count() && userNameWords.All(word => entityWords.Contains(word));
+        }
+
+        private static bool UnderMatchName(IList<string> entityWords, string[] userNameWords)
+        {
+            return entityWords.Count < userNameWords.Count() && entityWords.All(word => userNameWords.Contains(word));
+        }
+
+        private static bool OverMatchName(IList<string> entityWords, string[] userNameWords)
+        {
+            return entityWords.Count > userNameWords.Count() && userNameWords.All(word => entityWords.Contains(word));
+        }
+
+        #endregion
 
         #region Timezones
 

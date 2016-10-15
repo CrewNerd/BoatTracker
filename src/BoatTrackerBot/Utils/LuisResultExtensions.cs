@@ -14,6 +14,7 @@ namespace BoatTracker.Bot.Utils
     public static class LuisResultExtensions
     {
         public const string EntityBoatName = "boatName";
+        public const string EntityRowerName = "rowerName";
         private const string EntityStart = "DateTime::startDate";
         private const string EntityDuration = "DateTime::duration";
         private const string EntityBuiltinDate = "builtin.datetime.date";
@@ -29,6 +30,17 @@ namespace BoatTracker.Bot.Utils
         {
             var nameEntities = result.Entities.Where(e => e.Type == EntityBoatName).Select(e => e.Entity);
             return string.Join(" ", nameEntities);
+        }
+
+        public static bool ContainsUserNameEntity(this LuisResult result)
+        {
+            return result.Entities.Any(e => e.Type == EntityRowerName);
+        }
+
+        public static string UserName(this LuisResult result)
+        {
+            var userEntities = result.Entities.Where(e => e.Type == EntityRowerName).Select(e => e.Entity);
+            return string.Join(" ", userEntities);
         }
 
         public static DateTime? FindStartDate(this LuisResult result, UserState userState)

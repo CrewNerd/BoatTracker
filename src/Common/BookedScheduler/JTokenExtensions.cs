@@ -41,42 +41,73 @@ namespace BoatTracker.BookedScheduler
             return isPrivate;
         }
 
+        public static int MaxParticipants(this JToken jtoken)
+        {
+            return jtoken.Value<int>("maxParticipants");
+        }
+
         #endregion
 
         #region Reservation helpers
 
-        public static string StartDate(this JToken jtoken)
+        public static DateTime StartDate(this JToken jtoken)
         {
-            return jtoken.Value<string>("startDate");
-        }
+            // NOTE: Look for either startDateTime or startDate to work around a BookedScheduler problem
+            DateTime? dateTime = jtoken.Value<DateTime?>("startDateTime");
 
-        public static DateTime StartDateTime(this JToken jtoken)
-        {
-            DateTime startDate;
-
-            if (!DateTime.TryParse(jtoken.StartDate(), out startDate))
+            if (!dateTime.HasValue)
             {
-                throw new FormatException("Invalid reservation start date");
+                dateTime = jtoken.Value<DateTime?>("startDate");
             }
 
-            return startDate;
-        }
-
-        public static string EndDate(this JToken jtoken)
-        {
-            return jtoken.Value<string>("endDate");
-        }
-
-        public static DateTime EndDateTime(this JToken jtoken)
-        {
-            DateTime endDate;
-
-            if (!DateTime.TryParse(jtoken.EndDate(), out endDate))
+            if (!dateTime.HasValue)
             {
-                throw new FormatException("Invalid reservation end date");
+                throw new ArgumentNullException("Missing date/time");
             }
 
-            return endDate;
+            return dateTime.Value;
+        }
+
+        public static DateTime EndDate(this JToken jtoken)
+        {
+            // NOTE: Look for either startDateTime or startDate to work around a BookedScheduler problem
+            DateTime? dateTime = jtoken.Value<DateTime?>("endDateTime");
+
+            if (!dateTime.HasValue)
+            {
+                dateTime = jtoken.Value<DateTime?>("endDate");
+            }
+
+            if (!dateTime.HasValue)
+            {
+                throw new ArgumentNullException("Missing date/time");
+            }
+
+            return dateTime.Value;
+        }
+
+        public static DateTime? CheckInDate(this JToken jtoken)
+        {
+            DateTime? checkInDate = null;
+
+            if (!string.IsNullOrEmpty(jtoken.Value<string>("checkInDate")))
+            {
+                checkInDate = jtoken.Value<DateTime>("checkInDate");
+            }
+
+            return checkInDate;
+        }
+
+        public static DateTime? CheckOutDate(this JToken jtoken)
+        {
+            DateTime? checkOutDate = null;
+
+            if (!string.IsNullOrEmpty(jtoken.Value<string>("checkOutDate")))
+            {
+                checkOutDate = jtoken.Value<DateTime>("checkOutDate");
+            }
+
+            return checkOutDate;
         }
 
         public static string ReferenceNumber(this JToken jtoken)
@@ -88,9 +119,19 @@ namespace BoatTracker.BookedScheduler
 
         #region User helpers
 
+        public static long Id(this JToken jtoken)
+        {
+            return jtoken.Value<long>("id");
+        }
+
         public static string UserName(this JToken jtoken)
         {
             return jtoken.Value<string>("username");
+        }
+
+        public static string FullName(this JToken jtoken)
+        {
+            return $"{jtoken.Value<string>("firstName")} {jtoken.Value<string>("lastName")}";
         }
 
         public static string MakerChannelKey(this JToken jtoken)

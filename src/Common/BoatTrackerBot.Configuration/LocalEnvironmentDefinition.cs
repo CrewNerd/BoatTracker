@@ -15,13 +15,14 @@ namespace BoatTracker.Bot.Configuration
                 ["foo"] = new ClubInfo
                 {
                     Id = "foo",
-                    Name = "Foo Bar",
-                    Url = new Uri("https://foo.bookedscheduler.com/Web/Services/index.php/"),
+                    Name = "Site Name",
+                    Url = new Uri("http://yoursite.bookedscheduler.com/Web/Services/index.php/"),
                     UserName = "boattrackerbot",
-                    Password = "foo",
+                    Password = "password",
+                    DailyReportRecipients = "",
                     DoorNames = new [] { "Main door", "Side door" },
-                    EarliestUseHour = 5,
-                    LatestUseHour = 23,
+                    EarliestUseHour = 5f,
+                    LatestUseHour = 23.5f,
                     MinimumDurationHours = 0.5f,
                     MaximumDurationHours = 4f,
                     RfidPassword = "abcdefgh"
@@ -39,6 +40,15 @@ namespace BoatTracker.Bot.Configuration
         }
 
         public override string LuisSubscriptionKey
+        {
+            get
+            {
+                // Leaving this empty for security reasons... fill it in by hand when debugging locally
+                return "";
+            }
+        }
+
+        public override string SendGridApiKey
         {
             get
             {

@@ -375,7 +375,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public virtual async Task CreateReservationAsync(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null)
+        public virtual async Task<JToken> CreateReservationAsync(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null, long? secondUserId = null)
         {
             using (var client = this.GetHttpClient())
             {
@@ -394,6 +394,12 @@ namespace BoatTracker.BookedScheduler
                 }
 
                 sb.Append($"\"userId\": {userId}, ");
+
+                if (secondUserId.HasValue)
+                {
+                    sb.Append($"\"participants\": [{secondUserId.Value}], ");
+                }
+
                 sb.Append($"\"resourceId\": {boat.ResourceId()}, ");
                 sb.Append($"\"startDateTime\": \"{start.ToString("s")}{start.ToString("zzz")}\", ");
                 var end = start + duration;
@@ -406,6 +412,8 @@ namespace BoatTracker.BookedScheduler
                 var httpResponse = await client.PostAsync($"Reservations/", new StringContent(requestBody));
 
                 await this.CheckResponseAsync(httpResponse);
+
+                return JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
             }
         }
 
@@ -441,16 +449,24 @@ namespace BoatTracker.BookedScheduler
                 {
                     string errors = string.Empty;
 
-                    var resp = JToken.Parse(await response.Content.ReadAsStringAsync());
-
-                    foreach (var error in resp["errors"])
+                    try
                     {
-                        errors += error.Value<string>() + " ";
+                        var resp = JToken.Parse(await response.Content.ReadAsStringAsync());
+
+                        foreach (var error in resp["errors"])
+                        {
+                            errors += error.Value<string>() + " ";
+                        }
+
+                        if (!string.IsNullOrEmpty(errors))
+                        {
+                            message = errors;
+                        }
                     }
-
-                    if (!string.IsNullOrEmpty(errors))
+                    catch (Exception)
                     {
-                        message = errors;
+                        // If the response doesn't parse as valid JSON, then fall through
+                        // and return our fallback message.
                     }
                 }
 

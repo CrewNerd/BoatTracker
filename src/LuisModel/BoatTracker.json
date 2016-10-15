@@ -5,25 +5,25 @@
   "culture": "en-us",
   "intents": [
     {
+      "name": "CancelReservation"
+    },
+    {
       "name": "CheckBoatAvailability"
-    },
-    {
-      "name": "Checkout"
-    },
-    {
-      "name": "None"
     },
     {
       "name": "CheckReservations"
     },
     {
-      "name": "CancelReservation"
-    },
-    {
       "name": "CreateReservation"
     },
     {
-      "name": "Checkin"
+      "name": "None"
+    },
+    {
+      "name": "Return"
+    },
+    {
+      "name": "TakeOut"
     }
   ],
   "entities": [
@@ -43,17 +43,6 @@
     "datetime"
   ],
   "actions": [
-    {
-      "actionName": "Checkin",
-      "intentName": "Checkin",
-      "actionParameters": [
-        {
-          "parameterName": "boatName",
-          "entityName": "boatName",
-          "required": false
-        }
-      ]
-    },
     {
       "actionName": "CreateReservation",
       "intentName": "CreateReservation",
@@ -106,22 +95,6 @@
           "required": false
         }
       ]
-    },
-    {
-      "actionName": "Checkout",
-      "intentName": "Checkout",
-      "actionParameters": [
-        {
-          "parameterName": "boatName",
-          "entityName": "boatName",
-          "required": false
-        },
-        {
-          "parameterName": "duration",
-          "entityName": "DateTime::duration",
-          "required": false
-        }
-      ]
     }
   ],
   "model_features": [
@@ -135,6 +108,12 @@
       "name": "available",
       "mode": true,
       "words": "free,available,used",
+      "activated": true
+    },
+    {
+      "name": "activity verbs",
+      "mode": true,
+      "words": "rowing,paddling",
       "activated": true
     }
   ],
@@ -168,7 +147,7 @@
     },
     {
       "text": "check out the little thunder for 2 hours",
-      "intent": "Checkout",
+      "intent": "TakeOut",
       "entities": [
         {
           "entity": "boatName",
@@ -215,6 +194,11 @@
         {
           "entity": "DateTime::startDate",
           "startPos": 5,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 8,
           "endPos": 8
         },
         {
@@ -261,11 +245,6 @@
         },
         {
           "entity": "DateTime::startDate",
-          "startPos": 6,
-          "endPos": 6
-        },
-        {
-          "entity": "DateTime::startDate",
           "startPos": 7,
           "endPos": 7
         }
@@ -278,7 +257,7 @@
     },
     {
       "text": "checkout the schad",
-      "intent": "Checkout",
+      "intent": "TakeOut",
       "entities": [
         {
           "entity": "boatName",
@@ -289,7 +268,7 @@
     },
     {
       "text": "check out the pennywise for 2 hours",
-      "intent": "Checkout",
+      "intent": "TakeOut",
       "entities": [
         {
           "entity": "boatName",
@@ -353,7 +332,7 @@
     },
     {
       "text": "checking in with the little thunder",
-      "intent": "Checkin",
+      "intent": "Return",
       "entities": [
         {
           "entity": "boatName",
@@ -428,6 +407,4712 @@
           "entity": "DateTime::startDate",
           "startPos": 4,
           "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "reserve the schad friday at 8am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 3,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the schad%on%monday at 9am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the relentless next monday at 8am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "reserve the relentless next monday at 8am for 3 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the schad%on%monday at�m",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "checking out the defiant for 3 hours",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime",
+          "startPos": 5,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "is the relentless being used on friday?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "checking out the defiant for two hours",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 5,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "checking in",
+      "intent": "Return",
+      "entities": []
+    },
+    {
+      "text": "cancel my reservation for the quad",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "is tony your leader?",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "hi boat tracker",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "are there any singles available tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "when is the relentless available?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "are you an evil machine here to take over the world?",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "is the flyer free on friday?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the flyer for 8am on monday",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "check out the foo",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "yes, i would!",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "is the little thunder available right now?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "reserve the schad",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "i would like to reserve the schad on 8/2/16",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "this is a test",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "check out the schad",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "is the schad available tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "is the recovery free tomorrow morning?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "reserve the smooth recovery at 8am tomorrow for one hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "check out",
+      "intent": "TakeOut",
+      "entities": []
+    },
+    {
+      "text": "reserve the little thunder for tomorrow for one hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "reserve a boat tomorrow at 8am for one hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder for tomorrow",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder for tomorrow at 8am for two hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "check in",
+      "intent": "Return",
+      "entities": []
+    },
+    {
+      "text": "check in the uninvited",
+      "intent": "Return",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "reserve the pennywise for 5am wednesday morning for 90 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "check in pennywise",
+      "intent": "Return",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "show me my reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "reserve the flyer for tuesday morning at 6am for 3 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "check out the mahalo",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservation for the flyer",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "what can i say?",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "is the badger available on the 4th?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "is the badger available on friday?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "check on upcoming reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "check out a boat",
+      "intent": "TakeOut",
+      "entities": []
+    },
+    {
+      "text": "check in the little thunder",
+      "intent": "Return",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "make a reservation",
+      "intent": "CreateReservation",
+      "entities": []
+    },
+    {
+      "text": "check in the badger",
+      "intent": "Return",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "find my reservation for the little thunder",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "boatName",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "show my reservations for thursday",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "show my reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "check my reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "test",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "show my reservation for the little thunder",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "boatName",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation for the relentless on the 16th?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "show my reservation on the 17th",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation for the badger?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 7,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "show my next reservation for the badger",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation on the 18th?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "show my reservations for the little thunder",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "boatName",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "check out the labela",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "show my reservation for the beserker",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "check out the little thunder",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "is the labella available on thursday?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "check all reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "check my reservation for the schad",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "check out the bezerker",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation for the little thunder on the 16th?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "boatName",
+          "startPos": 8,
+          "endPos": 8
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 11,
+          "endPos": 11
+        }
+      ]
+    },
+    {
+      "text": "find my reservation for the beserker",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "<quote author=\"crewnerd\" authorname=\"tony andrews\" conversation=\"28:ec7ae408-fbad-48db-8a74-e98cdef9b7e3\" guid=\"xaecb2ed7789d2118dfce1505bd26307c29d7d703d70c7f9e9823d724e30afa1d\" timestamp=\"1470699086\"><legacyquote>[4:31:26 pm] tony andrews: </legacyquote>do i have a reservation for the relentless on the 16th?<legacyquote> &lt;&lt;&lt; </legacyquote></quote>",
+      "intent": "None",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 64,
+          "endPos": 64
+        }
+      ]
+    },
+    {
+      "text": "show my reservation on the 25th",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "when is my reservation for the little thunder?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "boatName",
+          "startPos": 7,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation on friday?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "show my reservations on friday",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "check my reservation for the labella",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation on august 25th?",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "show my reservation for the berserker",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation for the labella",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 7,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation for the berserker?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 7,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation on the 26th?",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "check my reservation for the beserker on august 24th",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "did i reserve the berserker?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 4,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "check my reservation for the berserker on august 30th",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "is the labella available on 8/25/16?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "testing",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "is the labella available on friday?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservation for the berserker",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "is the la bella available on 8/25/16?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation on 8/25/16?",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "is the labella available on saturday?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "help",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "show my reservations on 8/25",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "cancel my reservation for the relentless",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation on 8/25?",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "is the labella available?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation on 8/25",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "is the labella available tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "foo",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "huh?",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "is the berserker free on sunday?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "is the bella available on thursday?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservation for the la bella",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "boatName",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservation for the beserker",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "x",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "reserve the la bella",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "reserve the la bella for 5am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservation for the berzerker",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the labella on monday at 9am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "reserve the la bella for monday at 5am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on monday at 5am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on monday",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "quit",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "reserve the la bella on tuesday at 5am for 3 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on tuesday at 6am for 150 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on monday at 5am for 90 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on monday at 5am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on monday at 6am for 20 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the la bella on monday at 8am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the la bella on monday at 5am for 90 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the la bella on monday at 6am for 20 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on monday at 5am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the la bella on monday at 6am for 16 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the la bella on monday at 5am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the la bella on monday at 6am for 18 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "book the la bella for tuesday morning at 5am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "#!clearuserdata",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "is the little thunder available tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder tomorrow morning",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder tomorrow",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "what are my reservations?",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "is the maholo free tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "#!cachereset",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "i want to use the shadowfax on thursday",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "#!resetcache",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "do i have any reservations on thursday?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "reserve the mahalo",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "what do i have reserved?",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "is the mahalo free tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "is the relentless free tomorrow",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "show me my next 3 reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "is the mahalo available tomorrow",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "list all of my reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "cancel my reservation for tomorrow",
+      "intent": "CancelReservation",
+      "entities": []
+    },
+    {
+      "text": "cancel my reservation on 8/30/2016",
+      "intent": "CancelReservation",
+      "entities": []
+    },
+    {
+      "text": "do i have anything booked for friday?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservation for wednesday",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "reserve the flandrews 2x on monday at 9am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes 2x for monday at 5:30am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 11,
+          "endPos": 11
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 12,
+          "endPos": 12
+        }
+      ]
+    },
+    {
+      "text": "show all of my reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "what is available tomorrow",
+      "intent": "CheckBoatAvailability",
+      "entities": []
+    },
+    {
+      "text": "is the flandrews 2x available tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "reserve the flandrews double on saturday at 8am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the flandrews double for saturday at 8am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the shad tomorrow at 5:30am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "#!help",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "do i have any reservations tomorrow?",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "is the flandrews available tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "is the flandrews 1x available tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "#!foo",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "what is availaable tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": []
+    },
+    {
+      "text": "#!testbuttons",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "microsoft.bot.connector.cardaction",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "i want to use the shad for 3 hours sunday morning at 9am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 12,
+          "endPos": 12
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservations",
+      "intent": "CancelReservation",
+      "entities": []
+    },
+    {
+      "text": "reserve the la bell on monday at 2pm for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the labella tomorrow at 5am for 20 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "#!cancelreservation 57c50d5670c40186335200",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "bar",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "is the labella available on monday?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the la bella on monday at 5am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "#!cancelreservation 57c51479df63c801308325",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "i want to use the little thunder for 2 hours tuesday at 11am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 10,
+          "endPos": 10
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 12,
+          "endPos": 12
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes next wednesday for 2.5 hours at 2pm",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 11,
+          "endPos": 11
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 6,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "what is free on 9/5?",
+      "intent": "CheckBoatAvailability",
+      "entities": []
+    },
+    {
+      "text": "what is free on 9/5/2016?",
+      "intent": "CheckBoatAvailability",
+      "entities": []
+    },
+    {
+      "text": "what reservations have i made",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "what is free on 9/16",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "show reservations on 9/5",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "show reservations for the la bella",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 4,
+          "endPos": 4
+        },
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "when are my reservations?",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "list all reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "what is free on 9/1",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "list reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "what is free on 9/16?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "cancel a reservation",
+      "intent": "CancelReservation",
+      "entities": []
+    },
+    {
+      "text": "is the labella being used on 9/5?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "is the shad free on 9/4?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "#!cancelreservation 57c7383dd4c24574838924",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "cancel my reservations for the labella",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "is the schad free tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "what do i have reserved on thursday?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "is the sykes available on monday?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder for wednesday at 5am for 3 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "#!cancelreservation 57c8bd796b89a461032491",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "what about 9/8?",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "reserve the little thunder on saturday at 9am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservation for the shad",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "is the little thunder available on 9/8?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "is the labella available on wednesday",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservations today",
+      "intent": "CancelReservation",
+      "entities": []
+    },
+    {
+      "text": "reserve the mahalo on thursday for 90 minutes at 3pm",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 6,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "is the sykes available today?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "reserve the labella on friday at 7am for 3 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "is the little thunder available on 9/7?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "does this look like garbage?",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "reserve the labella on sunday at 3pm for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservation for the labella",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservation",
+      "intent": "CancelReservation",
+      "entities": []
+    },
+    {
+      "text": "y",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "reserve the labella on friday at 5am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on tuesday at 6am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "is the labella free on friday",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on tuesday at 9am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "is the little thunder free on 9/19?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "do i have any reservations?",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "#!cancelreservation 57d9fb2e003ad033975770",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "is the labella available on 9/11?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes on saturday at 7am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the labella on monday at 2pm for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "#!cancelreservation 57d9fba5c4dc6591624711",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "reserve the mahalo on wednesday",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes on tuesday",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "reserve the labella on wednesday at 9am for 90 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "is the labella free on saturday",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes on monday at 8am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "#!cancelreservation 57d6f1b92804b091373966",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "what's free on 9/14?",
+      "intent": "CheckBoatAvailability",
+      "entities": []
+    },
+    {
+      "text": "reserve the little thunder on tuesday at 9am for 3 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "show reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "is the labella available tomorrow",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "do i have a reservation for the sykes?",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 7,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "cancel my reservation for the mahalo",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on sunday at 7am for 3 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "#!cancelreservation 57cee85eada23152729346",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "show reservations for the labella",
+      "intent": "CheckReservations",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 4,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "reserve the labella next wednesday at 11am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "what is available on sunday",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on 9/20",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "is the little thunder free on tuesday",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder next tuesday at 5am for 90 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reservations",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "show",
+      "intent": "CheckReservations",
+      "entities": []
+    },
+    {
+      "text": "reserve the mahalo on tuesday at 6am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "?",
+      "intent": "None",
+      "entities": []
+    },
+    {
+      "text": "reserve the sykes today at 2:30 for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the labella tuesday at 7am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 3,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "is the labella free on wednesday",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on thursday at 2pm for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder tomorrow morning at 5am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "is the sykes available tomorrow",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "is the sykes available on 9/22",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "what's available tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": []
+    },
+    {
+      "text": "take out the little thunder for 2 hours",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "return the little thunder",
+      "intent": "Return",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "returning the labella",
+      "intent": "Return",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "taking out the labella",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "i'm taking out the labella for 90 minutes",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 6,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "i'm going to row the labella for 2 hours",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "rowing the labella for an hour",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "reserve the labella on wednesday at 5am for 90 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the labella on monday at noon for 3 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes for tomorrow at 7am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the mahalo on wednesday at 5am for 90 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "return the sykes",
+      "intent": "Return",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "take out the little thunder",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "take out the sykes",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on wednesday at 5am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "return my boat",
+      "intent": "Return",
+      "entities": []
+    },
+    {
+      "text": "returning now",
+      "intent": "Return",
+      "entities": []
+    },
+    {
+      "text": "i'm done rowing",
+      "intent": "Return",
+      "entities": []
+    },
+    {
+      "text": "reserve the sykes at 9:30am today for 30 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "return the labella",
+      "intent": "Return",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes at 9:15am today for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "what is available tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": []
+    },
+    {
+      "text": "reserve the labella at 10:30am today for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "is the foo available tomorrow",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes on saturday at 5am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder tomorrow at 5am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the altig tomorrow at 9am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "is the altig available tomorrow",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "reserve the altig tomorrow at 5am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the altig tomorrow at 11am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes tomorrow morning at 6am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "cancel the reservation for the sykes",
+      "intent": "CancelReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 5,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the altig for tomorrow at 10am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the altig tomorrow at 8am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes on sunday at 7am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "is the little thunder available today",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "reserve the mahalo at 11:30am today for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 10,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "reserve the altig tomorrow at 10am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the altig tomorrow at 9am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the altig for two hours tomorrow at 5am",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 8,
+          "endPos": 8
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 4,
+          "endPos": 5
+        }
+      ]
+    },
+    {
+      "text": "reserve the altig tomorrow at 4pm for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the altig for tomorrow at 9am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the foo tomorrow at 9am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "is the foo available tomorrow?",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "reserve the la bella for tomorrow from 8-10",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 7,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "reserve the altig tomorrow at 2pm for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the foo for tomorrow at 9am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes tomorrow at 5am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder at 8:30 for 30 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "what is available on monday",
+      "intent": "CheckBoatAvailability",
+      "entities": [
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder today at 8:30pm for 30 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder at 8:30pm today for 30 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes today at 3pm for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the mahalo wednesday at 6am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "take out the labella for 30 minutes",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "take out the little thunder for 30 minutes",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 4
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes monday at 2pm for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "i'm done",
+      "intent": "Return",
+      "entities": []
+    },
+    {
+      "text": "reserve the berserker at 10pm today for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 4
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 7,
+          "endPos": 8
+        }
+      ]
+    },
+    {
+      "text": "reserve the sykes today at 9:30pm for 30 minutes",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        }
+      ]
+    },
+    {
+      "text": "returning the burgundy",
+      "intent": "Return",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "take out the burgundy for 30 minutes",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "returning the fluid",
+      "intent": "Return",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "reserve the labella tomorrow",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "done rowing",
+      "intent": "Return",
+      "entities": []
+    },
+    {
+      "text": "all done",
+      "intent": "Return",
+      "entities": []
+    },
+    {
+      "text": "take out the burgundy for 45 minutes",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "take out the labella",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "take out the berserker",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "reserve the labella at 10:30pm today for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 4,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "take out the mahalo for 30 minutes",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "returning",
+      "intent": "Return",
+      "entities": []
+    },
+    {
+      "text": "reserve the little thunder tomorrow at 5am for 2 hours",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 6,
+          "endPos": 6
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 8,
+          "endPos": 8
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 9
+        }
+      ]
+    },
+    {
+      "text": "take out the fluid for 45 minutes",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "take out the sykes for 75 minutes",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    },
+    {
+      "text": "take out the sykes for 1 hour",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 5,
+          "endPos": 6
+        }
+      ]
+    },
+    {
+      "text": "return the berserker",
+      "intent": "Return",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "reserve the little thunder on thursday at 5am for 1 hour",
+      "intent": "CreateReservation",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 3
+        },
+        {
+          "entity": "DateTime::startDate",
+          "startPos": 5,
+          "endPos": 7
+        },
+        {
+          "entity": "DateTime::duration",
+          "startPos": 9,
+          "endPos": 10
+        }
+      ]
+    },
+    {
+      "text": "take out mahalo for 30 minutes",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "take out the altig for 30 minutes",
+      "intent": "TakeOut",
+      "entities": [
+        {
+          "entity": "boatName",
+          "startPos": 3,
+          "endPos": 3
         }
       ]
     }
