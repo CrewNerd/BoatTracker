@@ -2,6 +2,10 @@
 @using BoatTracker.Bot.Utils
 @model BoatTracker.Bot.Models.ClubStatus
 
+@section metatags {
+    <meta http-equiv="refresh" content="@(Model.PageRefreshTime)">
+}
+
 @{
     ViewBag.Title = Model.ClubInfo.Name + "Club Status";
 

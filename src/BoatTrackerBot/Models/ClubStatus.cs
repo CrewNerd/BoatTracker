@@ -49,6 +49,29 @@ namespace BoatTracker.Bot.Models
             }
         }
 
+        private bool UseFasterPageRefresh
+        {
+            get
+            {
+                var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.ClubId];
+
+                var localTime = this.BotUserState.LocalTime();
+
+                // Refresh more frequently during business hours (or within 30 minutes of business hours)
+                return
+                    localTime.TimeOfDay.TotalHours + 0.5 >= (clubInfo.EarliestUseHour ?? 5) &&
+                    localTime.TimeOfDay.TotalHours - 0.5< (clubInfo.LatestUseHour ?? 21);
+            }
+        }
+
+        public string PageRefreshTime
+        {
+            get
+            {
+                return this.UseFasterPageRefresh ? "60" : "600";
+            }
+        }
+
         public IEnumerable<JToken> UpcomingReservations
         {
             get
@@ -62,6 +85,7 @@ namespace BoatTracker.Bot.Models
                         return
                             r.CheckInDate() == null &&
                             endDateTime > DateTime.UtcNow &&
+                            DateTime.UtcNow < startDateTime + TimeSpan.FromMinutes(15) &&
                             startDateTime < DateTime.UtcNow + TimeSpan.FromHours(18);
                     });
             }
