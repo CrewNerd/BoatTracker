@@ -1,9 +1,14 @@
 ﻿@using BoatTracker.BookedScheduler
+@using BoatTracker.Bot.Configuration
 @using BoatTracker.Bot.Utils
+
 @model BoatTracker.Bot.Models.ClubStatus
 
 @section metatags {
-    <meta http-equiv="refresh" content="@(Model.PageRefreshTime)">
+    @if (EnvironmentDefinition.Instance.IsProduction)
+    {
+        <meta http-equiv="refresh" content="@(Model.PageRefreshTime)">
+    }
 }
 
 @{
@@ -14,7 +19,7 @@
     var overdue = Model.OverdueReservations;
 }
 
-<h2>@(Model.ClubInfo.Name) - Current Status</h2>
+<h2>@(Model.ClubInfo.Name)</h2>
 
 <table class="table table-striped table-bordered">
     <thead>

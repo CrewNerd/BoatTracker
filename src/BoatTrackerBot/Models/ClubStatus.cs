@@ -23,16 +23,17 @@ namespace BoatTracker.Bot.Models
         {
             var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.ClubId];
 
+            // We only need the timezone for the user.
+            this.BotUserState = await BookedSchedulerCache.Instance[this.ClubId].GetBotUserStateAsync();
+
             var client = new BookedSchedulerClient(clubInfo.Url);
             await client.SignIn(clubInfo.UserName, clubInfo.Password);
             var reservations = await client.GetReservationsAsync(
-                start: DateTime.UtcNow.Date,
-                end: DateTime.UtcNow.Date + TimeSpan.FromDays(1));
+                start: this.BotUserState.ConvertToLocalTime(DateTime.UtcNow).Date,
+                end: this.BotUserState.ConvertToLocalTime(DateTime.UtcNow).Date + TimeSpan.FromDays(1));
 
             this.Reservations = reservations;
 
-            // We only need the timezone for the user.
-            this.BotUserState = await BookedSchedulerCache.Instance[this.ClubId].GetBotUserStateAsync();
         }
 
         public string ClubId { get; private set; }
