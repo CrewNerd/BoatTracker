@@ -19,23 +19,6 @@ namespace BoatTracker.Bot.Models
             this.ClubId = clubId;
         }
 
-        public async Task LoadDataAsync()
-        {
-            var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.ClubId];
-
-            // We only need the timezone for the user.
-            this.BotUserState = await BookedSchedulerCache.Instance[this.ClubId].GetBotUserStateAsync();
-
-            var client = new BookedSchedulerClient(clubInfo.Url);
-            await client.SignIn(clubInfo.UserName, clubInfo.Password);
-            var reservations = await client.GetReservationsAsync(
-                start: this.BotUserState.ConvertToLocalTime(DateTime.UtcNow).Date,
-                end: this.BotUserState.ConvertToLocalTime(DateTime.UtcNow).Date + TimeSpan.FromDays(1));
-
-            this.Reservations = reservations;
-
-        }
-
         public string ClubId { get; private set; }
 
         public JArray Reservations { get; private set; }
@@ -120,6 +103,58 @@ namespace BoatTracker.Bot.Models
                         return DateTime.UtcNow > endDateTime;
                     });
             }
+        }
+
+        /// <summary>
+        /// Loads the reservations to be displayed, and optionally performs a checkin or checkout
+        /// if the corresponding reservation reference id is provided. The checkin/checkout comes
+        /// first so we retrieve the reservation list AFTER those changes are applied.
+        /// </summary>
+        /// <param name="checkin">Optional reference id of a reservation to check in</param>
+        /// <param name="checkout">Optional reference id of a reservation to check out</param>
+        /// <returns>Task returning an error message (or null) from the checkin or checkout</returns>
+        public async Task<string> LoadDataAsync(string checkin, string checkout)
+        {
+            var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.ClubId];
+
+            // We only need the timezone for the user.
+            this.BotUserState = await BookedSchedulerCache.Instance[this.ClubId].GetBotUserStateAsync();
+
+            var client = new BookedSchedulerClient(clubInfo.Url);
+            await client.SignIn(clubInfo.UserName, clubInfo.Password);
+
+            string message = null;
+
+            if (!string.IsNullOrEmpty(checkin))
+            {
+                try
+                {
+                    await client.CheckInReservationAsync(checkin);
+                }
+                catch (Exception ex)
+                {
+                    message = $"Checkin failed: {ex.Message}";
+                }
+            }
+            else if (!string.IsNullOrEmpty(checkout))
+            {
+                try
+                {
+                    await client.CheckOutReservationAsync(checkout);
+                }
+                catch (Exception ex)
+                {
+                    message = $"Checkout failed: {ex.Message}";
+                }
+            }
+
+            var reservations = await client.GetReservationsAsync(
+                start: this.BotUserState.ConvertToLocalTime(DateTime.UtcNow).Date,
+                end: this.BotUserState.ConvertToLocalTime(DateTime.UtcNow).Date + TimeSpan.FromDays(1));
+
+            this.Reservations = reservations;
+
+            return message;
         }
     }
 }

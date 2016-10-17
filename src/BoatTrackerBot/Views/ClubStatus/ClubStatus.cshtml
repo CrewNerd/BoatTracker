@@ -21,6 +21,14 @@
 
 <h2>@(Model.ClubInfo.Name)</h2>
 
+@if (!string.IsNullOrEmpty(ViewBag.Message))
+{
+    <div class="alert alert-danger alert-dismissable fade in">
+        <a href="#" class="close" data-dismiss="alert">&times;</a>
+        <strong>Warning!</strong> @(ViewBag.Message)
+    </div>
+}
+
 <table class="table table-striped table-bordered">
     <thead>
         <tr>
@@ -57,11 +65,15 @@
                 }
                 @if (disabled)
                 {
-                    <td align="center"><button type="button" class="btn btn-info" disabled>Check In</button></td>
+                    <td align="center">
+                        <button type="button" class="btn btn-info" disabled>Check In</button>
+                    </td>
                 }
                 else
                 {
-                    <td align="center"><button type="button" class="btn btn-info">Check In</button></td>
+                    <td align="center">
+                        <button type="button" class="btn btn-info" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&checkin=@(r.ReferenceNumber())'">Check In</button>
+                    </td>
                 }
             </tr>
         }
@@ -96,7 +108,9 @@
                 <td>@(Model.BotUserState.ConvertToLocalTime(r.EndDate()).ToShortTimeString())</td>
                 <td>@(r.Value<string>("resourceName"))</td>
                 <td>@(r.ParticipantNames())</td>
-                <td align="center"><button type="button" class="btn btn-success">Check Out</button></td>
+                <td align="center">
+                    <button type="button" class="btn btn-success" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&checkout=@(r.ReferenceNumber())'">Check Out</button>
+                </td>
             </tr>
         }
     </tbody>
@@ -130,7 +144,9 @@
                 <td>@(Model.BotUserState.ConvertToLocalTime(r.EndDate()).ToShortTimeString())</td>
                 <td>@(r.Value<string>("resourceName"))</td>
                 <td>@(r.ParticipantNames())</td>
-                <td align="center"><button type="button" class="btn btn-warning">Check Out</button></td>
+                <td align="center">
+                    <button type="button" class="btn btn-warning" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&checkout=@(r.ReferenceNumber())'">Check Out</button>
+                </td>
             </tr>
         }
     </tbody>
