@@ -4,11 +4,10 @@
 
 @model BoatTracker.Bot.Models.ClubStatus
 
-@section metatags {
-    @if (EnvironmentDefinition.Instance.IsProduction)
-    {
-        <meta http-equiv="refresh" content="@(Model.PageRefreshTime)">
-    }
+@section scripts {
+    <script>
+        setTimeout(function(){ location.href = 'clubstatus?clubid=@(Model.ClubId)'; }, @(Model.PageRefreshTime) * 1000);
+    </script>
 }
 
 @{

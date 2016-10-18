@@ -52,7 +52,19 @@ namespace BoatTracker.Bot.Models
         {
             get
             {
-                return this.UseFasterPageRefresh ? "60" : "600";
+                TimeSpan refreshTime;
+
+                if (EnvironmentDefinition.Instance.IsProduction)
+                {
+                    refreshTime = TimeSpan.FromMinutes(this.UseFasterPageRefresh ? 1 : 10);
+                }
+                else
+                {
+                    // Use a long refresh time to facilitate debugging
+                    refreshTime = TimeSpan.FromHours(1);
+                }
+
+                return refreshTime.TotalSeconds.ToString();
             }
         }
 
