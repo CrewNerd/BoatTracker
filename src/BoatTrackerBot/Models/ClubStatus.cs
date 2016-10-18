@@ -72,17 +72,19 @@ namespace BoatTracker.Bot.Models
         {
             get
             {
+                var localTime = this.BotUserState.LocalTime();
+
                 return this.Reservations
                     .Where(r =>
                     {
-                        var startDateTime = r.Value<DateTime>("startDate");
-                        var endDateTime = r.Value<DateTime>("endDate");
+                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("startDate"));
+                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("endDate"));
 
                         return
-                            r.CheckInDate() == null &&
-                            endDateTime > DateTime.UtcNow &&
-                            DateTime.UtcNow < startDateTime + TimeSpan.FromMinutes(15) &&
-                            startDateTime < DateTime.UtcNow + TimeSpan.FromHours(18);
+                            localTime.Date == startDateTime.Date &&                     // current day
+                            r.CheckInDate() == null &&                                  // not checked in
+                            localTime < startDateTime + TimeSpan.FromMinutes(15) &&     // not expired
+                            startDateTime < localTime + TimeSpan.FromHours(4);          // < 4 hours in future
                     });
             }
         }
@@ -91,13 +93,18 @@ namespace BoatTracker.Bot.Models
         {
             get
             {
+                var localTime = this.BotUserState.LocalTime();
+
                 return this.Reservations
                     .Where(r => !string.IsNullOrEmpty(r.Value<string>("checkInDate")) && string.IsNullOrEmpty(r.Value<string>("checkOutDate")))
                     .Where(r =>
                     {
-                        var endDateTime = r.Value<DateTime>("endDate");
+                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("startDate"));
+                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("endDate"));
 
-                        return DateTime.UtcNow < endDateTime;
+                        return
+                            startDateTime.Date == localTime.Date &&     // current day
+                            localTime < endDateTime;                    // not yet overdue
                     });
             }
         }
@@ -106,13 +113,18 @@ namespace BoatTracker.Bot.Models
         {
             get
             {
+                var localTime = this.BotUserState.LocalTime();
+
                 return this.Reservations
                     .Where(r => !string.IsNullOrEmpty(r.Value<string>("checkInDate")) && string.IsNullOrEmpty(r.Value<string>("checkOutDate")))
                     .Where(r =>
                     {
-                        var endDateTime = r.Value<DateTime>("endDate");
+                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("startDate"));
+                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("endDate"));
 
-                        return DateTime.UtcNow > endDateTime;
+                        return
+                            startDateTime.Date == localTime.Date &&     // current day
+                            localTime > endDateTime;                    // overdue
                     });
             }
         }
@@ -160,9 +172,10 @@ namespace BoatTracker.Bot.Models
                 }
             }
 
+            // TOOD: figure out how to narrow this down
             var reservations = await client.GetReservationsAsync(
-                start: this.BotUserState.ConvertToLocalTime(DateTime.UtcNow).Date,
-                end: this.BotUserState.ConvertToLocalTime(DateTime.UtcNow).Date + TimeSpan.FromDays(1));
+                start: DateTime.UtcNow - TimeSpan.FromDays(1),
+                end: DateTime.UtcNow + TimeSpan.FromDays(1));
 
             this.Reservations = reservations;
 
