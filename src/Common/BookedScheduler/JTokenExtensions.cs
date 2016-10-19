@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 using Newtonsoft.Json.Linq;
 
@@ -113,6 +114,28 @@ namespace BoatTracker.BookedScheduler
         public static string ReferenceNumber(this JToken jtoken)
         {
             return jtoken.Value<string>("referenceNumber");
+        }
+
+        public static string ParticipantNames(this JToken jtoken)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.Append(jtoken.Value<string>("firstName"));
+            sb.Append(" ");
+            sb.Append(jtoken.Value<string>("lastName"));
+
+            if (jtoken["participants"] is JObject)
+            {
+                var participants = (JObject)jtoken["participants"];
+
+                foreach (var kv in participants)
+                {
+                    sb.Append(", ");
+                    sb.Append(kv.Value);
+                }
+            }
+
+            return sb.ToString();
         }
 
         #endregion

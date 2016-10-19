@@ -149,6 +149,17 @@ namespace BoatTracker.Bot.Utils
                 return this.botUser;
             }
 
+            public async Task<UserState> GetBotUserStateAsync()
+            {
+                var botUser = await this.GetBotUserAsync();
+
+                return new UserState
+                {
+                    ClubId = this.clubId,
+                    Timezone = botUser.Value<string>("timezone")
+                };
+            }
+
             #endregion
 
             #region Event handling methods

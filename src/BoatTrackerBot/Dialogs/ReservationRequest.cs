@@ -28,22 +28,28 @@ namespace BoatTracker.Bot
         public bool CheckInAfterCreation { get; set; }
 
         [Prompt("What boat do you want to reserve?")]
+        [Template(TemplateUsage.StatusFormat, "Boat name: {}")]
+        [Template(TemplateUsage.NavigationFormat, "Boat Name ({})")]
         public string BoatName { get; set; }
 
         [Prompt("Who are you rowing with?")]
+        [Template(TemplateUsage.StatusFormat, "Partner name: {}")]
+        [Template(TemplateUsage.NavigationFormat, "Partner Name ({})")]
         public string PartnerName { get; set; }
 
         [Prompt("What day do you want to reserve it?")]
         [Template(TemplateUsage.StatusFormat, "Start date: {:d}")]
-        [Template(TemplateUsage.NavigationFormat, "Start Date({:d})")]
+        [Template(TemplateUsage.NavigationFormat, "Start Date ({:d})")]
         public DateTime? StartDate { get; set; }
 
         [Prompt("What time do you want to start?")]
         [Template(TemplateUsage.StatusFormat, "Start time: {:t}")]
-        [Template(TemplateUsage.NavigationFormat, "Start Time({:t})")]
+        [Template(TemplateUsage.NavigationFormat, "Start Time ({:t})")]
         public DateTime? StartTime { get; set; }
 
         [Prompt("How long do you want to use the boat?")]
+        [Template(TemplateUsage.StatusFormat, "Duration: {}")]
+        [Template(TemplateUsage.NavigationFormat, "Duration ({})")]
         public string Duration
         {
             get

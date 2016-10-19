@@ -1,0 +1,155 @@
+﻿@using BoatTracker.BookedScheduler
+@using BoatTracker.Bot.Configuration
+@using BoatTracker.Bot.Utils
+
+@model BoatTracker.Bot.Models.ClubStatus
+
+@section scripts {
+    <script>
+        setTimeout(function(){ location.href = 'clubstatus?clubid=@(Model.ClubId)'; }, @(Model.PageRefreshTime) * 1000);
+    </script>
+}
+
+@{
+    ViewBag.Title = Model.ClubInfo.Name + " Fleet Status";
+
+    var upcoming = Model.UpcomingReservations;
+    var onTheWater = Model.OnTheWaterReservations;
+    var overdue = Model.OverdueReservations;
+}
+
+<h2>@(Model.ClubInfo.Name)</h2>
+
+@if (!string.IsNullOrEmpty(ViewBag.Message))
+{
+    <div class="alert alert-danger alert-dismissable fade in">
+        <a href="#" class="close" data-dismiss="alert">&times;</a>
+        <strong>Warning!</strong> @(ViewBag.Message)
+    </div>
+}
+
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th colspan="5" valign="bottom">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h2 class="panel-title">Upcoming reservations (@(upcoming.Count() > 0 ? upcoming.Count().ToString() : "None"))</h2>
+                    </div>
+                </div>
+            </th>
+        </tr>
+        @if (upcoming.Count() > 0)
+        {
+            <tr>
+                <th>Start time</th>
+                <th>End time</th>
+                <th>Boat</th>
+                <th>Rower(s)</th>
+                <th></th>
+            </tr>
+        }
+    </thead>
+    <tbody>
+        @foreach (var r in upcoming)
+        {
+            <tr>
+                <td>@(Model.BotUserState.ConvertToLocalTime(r.StartDate()).ToShortTimeString())</td>
+                <td>@(Model.BotUserState.ConvertToLocalTime(r.EndDate()).ToShortTimeString())</td>
+                <td>@(r.Value<string>("resourceName"))</td>
+                <td>@(r.ParticipantNames())</td>
+
+                @{
+                    var disabled = DateTime.UtcNow + TimeSpan.FromMinutes(5) < r.StartDate();
+                }
+                @if (disabled)
+                {
+                    <td align="center">
+                        <button type="button" class="btn btn-info" disabled>Check In</button>
+                    </td>
+                }
+                else
+                {
+                    <td align="center">
+                        <button type="button" class="btn btn-info" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&checkin=@(r.ReferenceNumber())'">Check In</button>
+                    </td>
+                }
+            </tr>
+        }
+    <tbody>
+
+    <thead>
+        <tr>
+            <th colspan="5" valign="bottom">
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        <h2 class="panel-title">On the water (@(onTheWater.Count() > 0 ? onTheWater.Count().ToString() : "None"))</h2>
+                    </div>
+                </div>
+            </th>
+        </tr>
+        @if (onTheWater.Count() > 0)
+        {
+            <tr>
+                <th>Check-in time</th>
+                <th>End time</th>
+                <th>Boat</th>
+                <th>Rower(s)</th>
+                <th></th>
+            </tr>
+        }
+    </thead>
+    <tbody>
+        @foreach (var r in onTheWater)
+        {
+            <tr>
+                <td>@(Model.BotUserState.ConvertToLocalTime(r.CheckInDate().Value).ToShortTimeString())</td>
+                <td>@(Model.BotUserState.ConvertToLocalTime(r.EndDate()).ToShortTimeString())</td>
+                <td>@(r.Value<string>("resourceName"))</td>
+                <td>@(r.ParticipantNames())</td>
+                <td align="center">
+                    <button type="button" class="btn btn-success" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&checkout=@(r.ReferenceNumber())'">Check Out</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+
+    <thead>
+        <tr>
+            <th colspan="5" valign="bottom">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h2 class="panel-title">Overdue (@(overdue.Count() > 0 ? overdue.Count().ToString() : "None"))</h2>
+                    </div>
+                </div>
+            </th>
+        </tr>
+        @if (overdue.Count() > 0)
+        {
+            <tr>
+                <th>Check-in time</th>
+                <th>End time</th>
+                <th>Boat</th>
+                <th>Rower(s)</th>
+                <th></th>
+            </tr>
+        }
+    </thead>
+    <tbody>
+        @foreach (var r in overdue)
+        {
+            <tr>
+                <td>@(Model.BotUserState.ConvertToLocalTime(r.CheckInDate().Value).ToShortTimeString())</td>
+                <td>@(Model.BotUserState.ConvertToLocalTime(r.EndDate()).ToShortTimeString())</td>
+                <td>@(r.Value<string>("resourceName"))</td>
+                <td>@(r.ParticipantNames())</td>
+                <td align="center">
+                    <button type="button" class="btn btn-warning" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&checkout=@(r.ReferenceNumber())'">Check Out</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4>Updated: @(Model.BotUserState.ConvertToLocalTime(DateTime.UtcNow).ToShortTimeString())</h4>
+
