@@ -160,17 +160,31 @@ namespace BoatTracker.Bot.Utils
             return null;
         }
 
+        /// <summary>
+        /// Find the best duration entity in the LuisResult. To support phrases like
+        /// '1 hour and 30 minutes' where there might be multiple durations, we want to
+        /// look for the one that seems most complete, which will most likely be the
+        /// one with the longest duration.
+        /// </summary>
+        /// <param name="result">The LuisResult to scan for a duration</param>
+        /// <returns>The 'best' duration found, converted to a TimeSpan</returns>
         public static TimeSpan? FindDuration(this LuisResult result)
         {
-            EntityRecommendation builtinDuration = null;
-            result.TryFindEntity(EntityBuiltinDuration, out builtinDuration);
-
-            if (builtinDuration != null && builtinDuration.Resolution.ContainsKey("duration"))
+            TimeSpan? maxDuration = null;
+            foreach (var entity in result.Entities)
             {
-                return System.Xml.XmlConvert.ToTimeSpan(builtinDuration.Resolution["duration"]);
+                if (entity.Type == EntityBuiltinDuration && entity.Resolution.ContainsKey("duration"))
+                {
+                    var duration = System.Xml.XmlConvert.ToTimeSpan(entity.Resolution["duration"]);
+
+                    if (maxDuration == null || duration > maxDuration.Value)
+                    {
+                        maxDuration = duration;
+                    }
+                }
             }
 
-            return null;
+            return maxDuration;
         }
     }
 }
