@@ -14,5 +14,13 @@ namespace BoatTracker.Bot.Configuration
                 return true;
             }
         }
+
+        public override string Name
+        {
+            get
+            {
+                return "PROD";
+            }
+        }
     }
 }

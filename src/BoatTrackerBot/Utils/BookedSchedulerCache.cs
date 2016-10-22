@@ -24,7 +24,7 @@ namespace BoatTracker.Bot.Utils
 
         private BookedSchedulerCache()
         {
-            this.ResetCache();
+            this.entries = new ConcurrentDictionary<string, BookedSchedulerCacheEntry>();
         }
 
         private ConcurrentDictionary<string, BookedSchedulerCacheEntry> entries;
@@ -48,9 +48,39 @@ namespace BoatTracker.Bot.Utils
             this.entries = new ConcurrentDictionary<string, BookedSchedulerCacheEntry>();
         }
 
+        public async Task RefreshCacheAsync(string clubId = null)
+        {
+            var env = EnvironmentDefinition.Instance;
+
+            if (clubId != null && !env.MapClubIdToClubInfo.ContainsKey(clubId))
+            {
+                throw new ArgumentException($"Unknown club id: {clubId}");
+            }
+
+            IEnumerable<string> clubIds;
+
+            if (clubId != null)
+            {
+                clubIds = new string[] { clubId };
+            }
+            else
+            {
+                clubIds = env.MapClubIdToClubInfo.Keys;
+            }
+
+            foreach (var id in clubIds)
+            {
+                var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[id];
+
+                var entry = this[id];
+
+                await entry.RefreshCacheAsync();
+            }
+        }
+
         public class BookedSchedulerCacheEntry
         {
-            private static readonly TimeSpan CacheTimeout = TimeSpan.FromHours(4);
+            private static readonly TimeSpan CacheTimeout = TimeSpan.FromHours(8);
             private static readonly TimeSpan CacheRetryTime = TimeSpan.FromMinutes(10);
             private static readonly TimeSpan EventLifetime = TimeSpan.FromSeconds(15);
 
@@ -277,7 +307,7 @@ namespace BoatTracker.Bot.Utils
 
             private long RefreshInProgress = 0;
 
-            private async Task RefreshCacheAsync()
+            public async Task RefreshCacheAsync()
             {
                 try
                 {

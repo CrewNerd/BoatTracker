@@ -19,6 +19,7 @@ namespace BoatTracker.Bot.Configuration
                     Url = new Uri("http://yoursite.bookedscheduler.com/Web/Services/index.php/"),
                     UserName = "boattrackerbot",
                     Password = "password",
+                    DailyReportGmtHour = 7,
                     DailyReportRecipients = "",
                     DoorNames = new [] { "Main door", "Side door" },
                     EarliestUseHour = 5f,
@@ -57,11 +58,28 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        public override string ServiceHost
+        {
+            get
+            {
+                // Leaving this empty for security reasons... fill it in by hand when debugging locally
+                return "";
+            }
+        }
+
         public override bool IsLocal
         {
             get
             {
                 return true;
+            }
+        }
+
+        public override string Name
+        {
+            get
+            {
+                return "LOCAL";
             }
         }
     }
