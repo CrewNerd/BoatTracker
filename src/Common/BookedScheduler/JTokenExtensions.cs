@@ -36,10 +36,10 @@ namespace BoatTracker.BookedScheduler
             var isPrivate = jtoken
                 .Value<JArray>("customAttributes")
                 .Where(x => x.Value<string>("label").StartsWith("Private"))
-                .Select(t => t.Value<bool>("value"))
+                .Select(t => t.Value<string>("value"))
                 .FirstOrDefault();
 
-            return isPrivate;
+            return isPrivate != null && isPrivate != "0";
         }
 
         public static int MaxParticipants(this JToken jtoken)
@@ -136,6 +136,11 @@ namespace BoatTracker.BookedScheduler
             }
 
             return sb.ToString();
+        }
+
+        public static string ResourceName(this JToken jtoken)
+        {
+            return jtoken.Value<string>("resourceName");
         }
 
         #endregion

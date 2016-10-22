@@ -118,7 +118,7 @@ namespace BoatTracker.Bot
                         var boat = boatTask.Result;
                         return boat.MaxParticipants() > 1;
                     }),
-                    validate: ValidateUserName)
+                    validate: ValidatePartnerName)
                 .Field(nameof(StartDate), validate: ValidateStartDate)
                 .Field(nameof(StartTime), validate: ValidateStartTime)
                 .Field(nameof(Duration), validate: ValidateDuration)
@@ -176,7 +176,7 @@ namespace BoatTracker.Bot
             }
         }
 
-        private static async Task<ValidateResult> ValidateUserName(ReservationRequest state, object value)
+        private static async Task<ValidateResult> ValidatePartnerName(ReservationRequest state, object value)
         {
             var partnerUserName = (string)value;
             var partnerUser = await state.UserState.FindBestUserMatchAsync(partnerUserName);
@@ -186,7 +186,11 @@ namespace BoatTracker.Bot
 
             if (partnerUser != null)
             {
-                if (await state.UserState.HasPermissionForResourceAsync(boat, partnerUserId))
+                //
+                // Private boats are a special case. The boat owner can invite anyone they wish to row
+                // with them. But for club boats, both rowers must have permission.
+                //
+                if (boat.IsPrivate() || await state.UserState.HasPermissionForResourceAsync(boat, partnerUserId))
                 {
                     state.PartnerUserId = partnerUserId;
                     return new ValidateResult
