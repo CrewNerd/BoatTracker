@@ -138,6 +138,11 @@ namespace BoatTracker.BookedScheduler
             return sb.ToString();
         }
 
+        public static string ResourceName(this JToken jtoken)
+        {
+            return jtoken.Value<string>("resourceName");
+        }
+
         #endregion
 
         #region User helpers
