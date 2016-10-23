@@ -106,8 +106,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
-    <Compile Include="Functions.cs" />
+    <Compile Include="DailyReport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RefreshCaches.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

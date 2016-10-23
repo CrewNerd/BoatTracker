@@ -20,6 +20,8 @@ namespace BoatTracker.Bot.Configuration
         private const string LuisModelIdKey = "LuisModelId";
         private const string LuisSubscriptionKeyKey = "LuisSubscriptionKey";
         private const string SendGridApiKeyKey = "SendGridApiKey";
+        private const string SecurityKeyKey = "SecurityKey";
+        private const string ServiceHostKey = "ServiceHost";
 
         static EnvironmentDefinition()
         {
@@ -61,11 +63,29 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        public virtual string SecurityKey
+        {
+            get
+            {
+                return CloudConfigurationManager.GetSetting(SecurityKeyKey);
+            }
+        }
+
+        public virtual string ServiceHost
+        {
+            get
+            {
+                return CloudConfigurationManager.GetSetting(ServiceHostKey);
+            }
+        }
+
         public virtual bool IsLocal { get { return false; } }
 
         public virtual bool IsDevelopment { get { return false; } }
 
         public virtual bool IsProduction { get { return false; } }
+
+        public abstract string Name { get; }
 
         /// <summary>
         /// Gets a mapping from club id to its ClubInfo object.

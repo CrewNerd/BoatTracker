@@ -41,6 +41,12 @@ namespace BoatTracker.Bot.Configuration
         public string Password { get; set; }
 
         /// <summary>
+        /// Gets or sets the hour (GMT) when the report should be generated.
+        /// </summary>
+        [JsonProperty("dailyReportGmtHour")]
+        public int DailyReportGmtHour { get; set; }
+
+        /// <summary>
         /// Gets or sets the email address from which the daily report is sent.
         /// </summary>
         [JsonProperty("dailyReportSender")]

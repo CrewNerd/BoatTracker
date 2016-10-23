@@ -17,51 +17,49 @@ using BoatTracker.Bot.Configuration;
 
 namespace BoatTrackerWebJob
 {
-    public class Functions
+    public class DailyReport
     {
         [NoAutomaticTrigger]
-        public static void RunPolicyChecks([Blob("container/policychecklog.txt")] TextWriter log)
+        public static void SendDailyReport([Blob("container/dailyreport.txt")] TextWriter log)
         {
-            if (EnvironmentDefinition.Instance.IsDevelopment)
-            {
-                log.WriteLine($"DEV: Policy check WebJob starting at {DateTime.UtcNow.ToString()}");
-            }
-            else if (EnvironmentDefinition.Instance.IsProduction)
-            {
-                log.WriteLine($"PROD: Policy check WebJob starting at {DateTime.UtcNow.ToString()}");
-            }
-            else
-            {
-                log.WriteLine($"LOCAL: Policy check WebJob starting at {DateTime.UtcNow.ToString()}");
-            }
+            var env = EnvironmentDefinition.Instance;
 
-            foreach (var clubId in EnvironmentDefinition.Instance.MapClubIdToClubInfo.Keys)
-            {
-                log.WriteLine($"Starting policy checks for club: {clubId}");
+            log.WriteLine($"{env.Name}: Daily Report WebJob starting at {DateTime.UtcNow.ToString()}");
 
-                try
+            DateTime utcNow = DateTime.UtcNow;
+
+            foreach (var clubId in env.MapClubIdToClubInfo.Keys)
+            {
+                var clubInfo = env.MapClubIdToClubInfo[clubId];
+
+                if (clubInfo.DailyReportGmtHour == utcNow.Hour)
                 {
-                    Task t = Task.Run(() => CheckAllPolicies(clubId, log));
-                    t.Wait();
-                }
-                catch (Exception ex)
-                {
-                    log.WriteLine($"CheckAllPolicies failed: {ex.Message}");
-                    log.WriteLine($"CheckAllPolicies failed: {ex.StackTrace}");
-                    if (ex.InnerException != null)
+                    log.WriteLine($"Starting daily report for club: {clubId}");
+
+                    try
                     {
-                        log.WriteLine($"CheckAllPolicies failed: inner exception = {ex.InnerException.Message}");
-                        log.WriteLine($"CheckAllPolicies failed: inner exception = {ex.InnerException.StackTrace}");
+                        Task t = Task.Run(() => RunDailyReport(clubId, log));
+                        t.Wait();
                     }
-                }
+                    catch (Exception ex)
+                    {
+                        log.WriteLine($"RunDailyReport failed: {ex.Message}");
+                        log.WriteLine($"RunDailyReport failed: {ex.StackTrace}");
+                        if (ex.InnerException != null)
+                        {
+                            log.WriteLine($"RunDailyReport failed: inner exception = {ex.InnerException.Message}");
+                            log.WriteLine($"RunDailyReport failed: inner exception = {ex.InnerException.StackTrace}");
+                        }
+                    }
 
-                log.WriteLine($"Finished policy checks for club: {clubId}");
+                    log.WriteLine($"Finished daily report for club: {clubId}");
+                }
             }
 
-            log.WriteLine($"Policy checks complete at {DateTime.UtcNow.ToString()}");
+            log.WriteLine($"Daily Report WebJob complete at {DateTime.UtcNow.ToString()}");
         }
 
-        private static async Task CheckAllPolicies(string clubId, TextWriter log)
+        private static async Task RunDailyReport(string clubId, TextWriter log)
         {
             var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[clubId];
 

@@ -98,7 +98,7 @@ namespace BoatTracker.Bot
             {
                 await context.PostAsync(
                     "clearuserdata - clear all data for the calling user\n\n" +
-                    "resetcache - clear the cache of BookedScheduler data");
+                    "refreshcache [club id] - refresh the cache of BookedScheduler data");
             };
 
             if (msg == "clearuserdata")
@@ -107,10 +107,13 @@ namespace BoatTracker.Bot
                 await context.FlushAsync(CancellationToken.None);
                 await context.PostAsync("User data cleared");
             }
-            else if (msg == "resetcache")
+            else if (msg.StartsWith("refreshcache"))
             {
-                BookedSchedulerCache.Instance.ResetCache();
-                await context.PostAsync("Cache reset complete");
+                var args = msg.Split(' ');
+                var clubId = args.Length > 1 ? args[1] : null;
+
+                await BookedSchedulerCache.Instance.RefreshCacheAsync(clubId);
+                await context.PostAsync("Cache refresh complete");
             }
             else if (msg.StartsWith("CancelReservation "))
             {

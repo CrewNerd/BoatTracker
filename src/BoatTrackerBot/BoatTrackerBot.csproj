@@ -230,6 +230,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Configuration\EnvironmentDefinitionExtensions.cs" />
     <Compile Include="Controllers\ClubStatusController.cs" />
+    <Compile Include="Controllers\ControlApiController.cs" />
     <Compile Include="DataObjects\RfidEvent.cs" />
     <Compile Include="DataObjects\RfidEvents.cs" />
     <Compile Include="DataObjects\UserState.cs" />
