@@ -885,14 +885,12 @@ namespace BoatTracker.Bot
             //
             if (!context.UserData.TryGetValue(UserState.PropertyName, out userState))
             {
-                // TODO: go back to using the full guid here.
-                userState = new UserState { BotAccountKey = Guid.NewGuid().ToString().ToLower().Substring(26, 10) };
+                userState = new UserState { BotAccountKey = Guid.NewGuid().ToString("D") };
                 context.UserData.SetValue(UserState.PropertyName, userState);
             }
 
-            // Check that the user state is complete and has been refreshed in the last 2 days
-            if (userState.UserId != 0 && !string.IsNullOrEmpty(userState.ClubId)
-                && userState.Timestamp != null && userState.Timestamp + TimeSpan.FromDays(2) > DateTime.UtcNow)
+            // Check that the user state is complete
+            if (userState.UserId != 0 && !string.IsNullOrEmpty(userState.ClubId))
             {
                 // The user is fully registered and their data is reasonably current
                 this.currentUserState = userState;
@@ -900,6 +898,7 @@ namespace BoatTracker.Bot
             }
 
             // The user isn't registered, so start the signin form to get the information we need to do that.
+            this.TrackIntent(context, "SignIn");
             var signInForm = new FormDialog<SignInForm>(new SignInForm(), SignInForm.BuildForm, FormOptions.PromptInStart);
             context.Call(signInForm, SignInComplete);
             return false;
@@ -949,20 +948,20 @@ namespace BoatTracker.Bot
             {
                 // Update the user's profile
                 var updateResult = await BookedSchedulerCache.Instance[signInForm.ClubInitials].UpdateUserAsync(user);
-                await context.PostAsync("Okay, your account is now initialized and you can begin using the BoatTracker Bot to create and manage your reservations.");
+                await context.PostAsync(
+                    "Okay, your account is now initialized and you can begin using the BoatTracker " +
+                    "Bot to create and manage your reservations. Type ? at any time to see what you can say.");
 
                 // Now finish populating the user state and persist it.
                 userState.ClubId = signInForm.ClubInitials;
                 userState.UserId = user.Id();
-                userState.Timezone = user.Value<string>("timezone");
-                userState.Timestamp = DateTime.UtcNow;
 
                 context.UserData.SetValue(UserState.PropertyName, userState);
                 this.currentUserState = userState;
             }
             catch (Exception ex)
             {
-                await context.PostAsync($"I'm sorry, but I wasn't able to connect your {channelInfo.DisplayName} account to the reservation system. Please try again later. ({ex.Message})");
+                await context.PostAsync($"I'm sorry... I verified your identity but I wasn't able to connect your {channelInfo.DisplayName} account to the reservation system. Please try again later. ({ex.Message})");
             }
 
             context.Wait(MessageReceived);
@@ -972,7 +971,7 @@ namespace BoatTracker.Bot
         {
             this.TelemetryClient.TrackEvent(intent, new Dictionary<string, string>
             {
-                ["ClubId"] = this.currentUserState.ClubId,
+                ["ClubId"] = this.currentUserState != null ? this.currentUserState.ClubId : "Unknown",
                 ["Channel"] = context.GetChannel()
             });
         }

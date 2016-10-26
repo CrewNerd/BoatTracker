@@ -16,9 +16,6 @@ namespace BoatTracker.Bot
     [Serializable]
     public class SignInForm
     {
-        [NonSerialized]
-        private JToken matchedUser;
-
         [Prompt("What are the initials of your rowing or paddling club?")]
         [Template(TemplateUsage.StatusFormat, "Club initials: {}")]
         [Template(TemplateUsage.NavigationFormat, "Club Initials ({})")]
@@ -37,10 +34,20 @@ namespace BoatTracker.Bot
         public static IForm<SignInForm> BuildForm()
         {
             return new FormBuilder<SignInForm>()
+                .Message(GenerateIntroMessage)
                 .Field(nameof(ClubInitials), validate: ValidateClubInitials)
                 .Field(nameof(UserName), validate: ValidateUserName)
                 .Field(nameof(Password), validate: ValidatePassword)
                 .Build();
+        }
+
+        private static Task<PromptAttribute> GenerateIntroMessage(SignInForm state)
+        {
+            return Task.FromResult(
+                new PromptAttribute(
+                    "Welcome to the BoatTracker Bot! Since this is the first time we've chatted, I'll need " +
+                    "to confirm your identity by asking for your club's initials and your login credentials " +
+                    "for the reservation system. We only have to go through this step once."));
         }
 
         private static Task<ValidateResult> ValidateClubInitials(SignInForm state, object value)

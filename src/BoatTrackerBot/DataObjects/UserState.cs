@@ -13,10 +13,6 @@ namespace BoatTracker.Bot.DataObjects
 
         public string BotAccountKey { get; set; }
 
-        public string Timezone { get; set; }
-
-        public DateTime Timestamp { get; set; }
-
         public bool HelpMessageShown { get; set; }
     }
 }

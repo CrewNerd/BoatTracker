@@ -146,6 +146,7 @@ namespace BoatTracker.BookedScheduler
             {
                 // Work around an inconsistency in the BookedScheduler API
                 user["userName"] = user["username"];
+                ((JObject)user).Remove("username");
 
                 var body = new StringContent(user.ToString());
                 var httpResponse = await client.PostAsync($"Users/{user.Id()}", body);
