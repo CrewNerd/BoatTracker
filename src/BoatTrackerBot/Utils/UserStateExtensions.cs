@@ -508,8 +508,11 @@ namespace BoatTracker.Bot.Utils
 
         public static TimeSpan LocalOffsetForDate(this UserState userState, DateTime date)
         {
+            var user = BookedSchedulerCache.Instance[userState.ClubId].GetUserAsync(userState.UserId).Result;
+            var userTimezone = user.Value<string>("timezone");
+
             var mappings = TzdbDateTimeZoneSource.Default.WindowsMapping.MapZones;
-            var mappedTz = mappings.FirstOrDefault(x => x.TzdbIds.Any(z => z.Equals(userState.Timezone, StringComparison.OrdinalIgnoreCase)));
+            var mappedTz = mappings.FirstOrDefault(x => x.TzdbIds.Any(z => z.Equals(userTimezone, StringComparison.OrdinalIgnoreCase)));
 
             if (mappedTz == null)
             {

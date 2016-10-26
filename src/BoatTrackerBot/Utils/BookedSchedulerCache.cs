@@ -186,7 +186,7 @@ namespace BoatTracker.Bot.Utils
                 return new UserState
                 {
                     ClubId = this.clubId,
-                    Timezone = botUser.Value<string>("timezone")
+                    UserId = botUser.Id()
                 };
             }
 

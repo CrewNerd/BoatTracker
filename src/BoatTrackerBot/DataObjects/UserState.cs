@@ -11,12 +11,14 @@ namespace BoatTracker.Bot.DataObjects
 
         public long UserId { get; set; }
 
-        public string BotAccountKey { get; set; }
-
-        public string Timezone { get; set; }
-
-        public DateTime Timestamp { get; set; }
-
         public bool HelpMessageShown { get; set; }
+
+        public bool IsComplete
+        {
+            get
+            {
+                return (this.UserId != 0 && !string.IsNullOrEmpty(this.ClubId));
+            }
+        }
     }
 }
