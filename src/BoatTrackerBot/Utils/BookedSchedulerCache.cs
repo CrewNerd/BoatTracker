@@ -135,17 +135,6 @@ namespace BoatTracker.Bot.Utils
                 return null;
             }
 
-            public async Task<JToken> UpdateUserAsync(JToken user)
-            {
-                var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.clubId];
-
-                BookedSchedulerClient client = new BookedSchedulerLoggingClient(this.clubId);
-
-                await client.SignIn(clubInfo.UserName, clubInfo.Password);
-
-                return await client.UpdateUserAsync(user);
-            }
-
             public async Task<IEnumerable<JToken>> GetGroupsAsync()
             {
                 await this.EnsureCacheIsCurrentAsync();

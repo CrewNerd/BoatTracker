@@ -860,17 +860,13 @@ namespace BoatTracker.Bot
             context.Wait(MessageReceived);
         }
 
-#endregion
+        #endregion
 
-#region Misc Helpers
+        #region Misc Helpers
 
         /// <summary>
-        /// Checks to see if the user has connected their channel and BookedScheduler accounts. If so, then
-        /// the currentUserState and currentChannelInfo members are initialized and we return true. If the
-        /// accounts are not yet connected, we return false and no further action of any significance should
-        /// be performed. Intent handlers (and other callbacks) should invoke this method first and bail out
-        /// if we return false. If we return false, we also post instructions to the user for making the
-        /// connection.
+        /// Checks to see if the user has signed into the bot previously. If so, set the currentUserState
+        /// and return success. Otherwise, kick off the sign-in process.
         /// </summary>
         /// <param name="context">The caller's dialog context</param>
         /// <returns>True if the user accounts are connected, false otherwise.</returns>
@@ -881,23 +877,20 @@ namespace BoatTracker.Bot
             UserState userState = null;
 
             //
-            // If we haven't seen the user before, establish their BotAccountKey and store it.
+            // Make sure we have state for the user that contains everything we need.
             //
-            if (!context.UserData.TryGetValue(UserState.PropertyName, out userState))
+            if (context.UserData.TryGetValue(UserState.PropertyName, out userState))
             {
-                userState = new UserState { BotAccountKey = Guid.NewGuid().ToString("D") };
-                context.UserData.SetValue(UserState.PropertyName, userState);
-            }
-
-            // Check that the user state is complete
-            if (userState.UserId != 0 && !string.IsNullOrEmpty(userState.ClubId))
-            {
-                // The user is fully registered and their data is reasonably current
-                this.currentUserState = userState;
-                return true;
+                if (userState.IsComplete)
+                {
+                    // The user is fully registered
+                    this.currentUserState = userState;
+                    return true;
+                }
             }
 
             // The user isn't registered, so start the signin form to get the information we need to do that.
+            // The current intent is aborted in favor of the sign-in flow.
             this.TrackIntent(context, "SignIn");
             var signInForm = new FormDialog<SignInForm>(new SignInForm(), SignInForm.BuildForm, FormOptions.PromptInStart);
             context.Call(signInForm, SignInComplete);
@@ -933,31 +926,22 @@ namespace BoatTracker.Bot
             }
 
             var channelInfo = EnvironmentDefinition.Instance.GetChannelInfo(context.GetChannel());
-            string botAccountKeyDisplayName = channelInfo.BotAccountKeyDisplayName;
-
-            var accountIdAttr = user["customAttributes"]
-                .Where(attr => attr.Value<string>("label") == botAccountKeyDisplayName)
-                .First();
-
-            UserState userState;
-            context.UserData.TryGetValue(UserState.PropertyName, out userState);
-
-            accountIdAttr["Value"] = userState.BotAccountKey;
 
             try
             {
-                // Update the user's profile
-                var updateResult = await BookedSchedulerCache.Instance[signInForm.ClubInitials].UpdateUserAsync(user);
-                await context.PostAsync(
-                    "Okay, your account is now initialized and you can begin using the BoatTracker " +
-                    "Bot to create and manage your reservations. Type ? at any time to see what you can say.");
-
                 // Now finish populating the user state and persist it.
-                userState.ClubId = signInForm.ClubInitials;
-                userState.UserId = user.Id();
+                UserState userState = new UserState
+                {
+                    ClubId = signInForm.ClubInitials,
+                    UserId = user.Id()
+                };
 
                 context.UserData.SetValue(UserState.PropertyName, userState);
                 this.currentUserState = userState;
+
+                await context.PostAsync(
+                    "Okay, your account is now initialized and you can begin using the BoatTracker " +
+                    "Bot to create and manage your reservations. Type ? at any time to see what you can say.");
             }
             catch (Exception ex)
             {
@@ -1026,6 +1010,6 @@ namespace BoatTracker.Bot
             return count > 1 ? "s" : string.Empty;
         }
 
-#endregion
+        #endregion
     }
 }

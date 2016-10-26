@@ -140,23 +140,6 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public virtual async Task<JToken> UpdateUserAsync(JToken user)
-        {
-            using (var client = this.GetHttpClient())
-            {
-                // Work around an inconsistency in the BookedScheduler API
-                user["userName"] = user["username"];
-                ((JObject)user).Remove("username");
-
-                var body = new StringContent(user.ToString());
-                var httpResponse = await client.PostAsync($"Users/{user.Id()}", body);
-
-                await this.CheckResponseAsync(httpResponse);
-
-                return JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
-            }
-        }
-
         #endregion
 
         #region Resources
