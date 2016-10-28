@@ -162,6 +162,11 @@ namespace BoatTracker.BookedScheduler
             return $"{jtoken.Value<string>("firstName")} {jtoken.Value<string>("lastName")}";
         }
 
+        public static string EmailAddress(this JToken jtoken)
+        {
+            return jtoken.Value<string>("emailaddress");
+        }
+
         public static string MakerChannelKey(this JToken jtoken)
         {
             var jTokenChannelKey = jtoken

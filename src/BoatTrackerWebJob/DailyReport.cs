@@ -70,65 +70,57 @@ namespace BoatTrackerWebJob
             // Get all reservations for the last day
             var reservations = await client.GetReservationsAsync(start: DateTime.UtcNow - TimeSpan.FromDays(1), end: DateTime.UtcNow);
 
+            var compliant = new List<string>();
             var abandoned = new List<string>();
             var noCheckOut = new List<string>();
             var unknownParticipants = new List<string>();
 
             foreach (var reservation in reservations)
             {
-                // Get the "full" reservation to make sure the participants list is given as an array
-                var fullReservation = await client.GetReservationAsync(reservation.ReferenceNumber());
-
                 DateTime? checkInDate = reservation.CheckInDate();
                 DateTime? checkOutDate = reservation.CheckOutDate();
 
                 var user = await client.GetUserAsync(reservation.Value<string>("userId"));
                 var boatName = reservation.Value<string>("resourceName");
 
-                var boat = await client.GetResourceAsync(reservation.Value<string>("resourceId"));
-                var localStartTime = ConvertToLocalTime(user, reservation.StartDate());
+                var localStartTime = ConvertToLocalTime(user, reservation.StartDate()).ToShortTimeString();
+                var localEndTime = ConvertToLocalTime(user, reservation.EndDate()).ToShortTimeString();
+
+                string basicInfo = $"{user.FullName()} ({user.EmailAddress()}) - '{boatName}' @ {localStartTime} - {localEndTime}";
 
                 if (checkInDate.HasValue)
                 {
-                    if (!checkOutDate.HasValue)
+                    var localCheckInTime = ConvertToLocalTime(user, checkInDate.Value).ToShortTimeString();
+
+                    if (checkOutDate.HasValue)
                     {
-                        noCheckOut.Add(string.Format(
-                            "{0} {1} ({2}) - '{3}' @ {4}",
-                            user.Value<string>("firstName"),
-                            user.Value<string>("lastName"),
-                            user.Value<string>("emailAddress"),
-                            boatName,
-                            localStartTime.ToShortTimeString()
-                            ));
+                        var localCheckOutTime = ConvertToLocalTime(user, checkOutDate.Value).ToShortTimeString();
+
+                        compliant.Add($"{basicInfo} (actual: {localCheckInTime} - {localCheckOutTime})");
+                    }
+                    else
+                    {
+                        noCheckOut.Add($"{basicInfo} (actual: {localCheckInTime} - ??)");
                     }
                 }
                 else
                 {
-                    abandoned.Add(string.Format(
-                        "{0} {1} ({2}) - '{3}' @ {4}",
-                        user.Value<string>("firstName"),
-                        user.Value<string>("lastName"),
-                        user.Value<string>("emailAddress"),
-                        boatName,
-                        localStartTime.ToShortTimeString()
-                        ));
+                    abandoned.Add(basicInfo);
                 }
 
+                // Get the "full" reservation to make sure the participants list is given as an array
+                var fullReservation = await client.GetReservationAsync(reservation.ReferenceNumber());
+
                 var participants = (JArray)fullReservation["participants"];
+                var boat = await client.GetResourceAsync(reservation.Value<string>("resourceId"));
 
                 //
-                // Check that all of the participants were recorded
+                // See if the number of recorded participants is less than the boat capacity. We always
+                // have to add one for the reservation owner.
                 //
                 if (participants.Count + 1 < boat.MaxParticipants())
                 {
-                    unknownParticipants.Add(string.Format(
-                        "{0} {1} ({2}) - '{3}' @ {4}",
-                        user.Value<string>("firstName"),
-                        user.Value<string>("lastName"),
-                        user.Value<string>("emailAddress"),
-                        boatName,
-                        localStartTime.ToShortTimeString()
-                        ));
+                    unknownParticipants.Add(basicInfo);
                 }
 
                 // TODO: Check for guest-related violations.
@@ -138,6 +130,22 @@ namespace BoatTrackerWebJob
 
             sbMessage.AppendLine($"<h2>BoatTracker Daily Report for: {clubInfo.Name}</h2>");
             sbMessage.AppendLine($"<p>Total reservations: {reservations.Count}</p>");
+
+            if (compliant.Count > 0)
+            {
+                sbMessage.AppendLine($"<p>Compliant reservations ({compliant.Count}):<br/>");
+                foreach (var s in compliant)
+                {
+                    sbMessage.AppendLine(s);
+                    sbMessage.AppendLine("<br/>");
+                }
+
+                sbMessage.AppendLine("</p>");
+            }
+            else
+            {
+                sbMessage.AppendLine("<p>No compliant reservations.</p>");
+            }
 
             if (abandoned.Count > 0)
             {
