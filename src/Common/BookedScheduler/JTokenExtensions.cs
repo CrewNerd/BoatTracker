@@ -116,13 +116,14 @@ namespace BoatTracker.BookedScheduler
             return jtoken.Value<string>("referenceNumber");
         }
 
-        public static string ParticipantNames(this JToken jtoken)
+        public static string ParticipantNames(this JToken jtoken, bool includeOwner = true)
         {
-            StringBuilder sb = new StringBuilder();
+            var participantNames = new List<string>();
 
-            sb.Append(jtoken.Value<string>("firstName"));
-            sb.Append(" ");
-            sb.Append(jtoken.Value<string>("lastName"));
+            if (includeOwner)
+            {
+                participantNames.Add($"{jtoken.Value<string>("firstName")} {jtoken.Value<string>("lastName")}");
+            }
 
             if (jtoken["participants"] is JObject)
             {
@@ -130,12 +131,23 @@ namespace BoatTracker.BookedScheduler
 
                 foreach (var kv in participants)
                 {
-                    sb.Append(", ");
-                    sb.Append(kv.Value);
+                    participantNames.Add(kv.Value.ToString());
                 }
             }
 
-            return sb.ToString();
+            var invitedGuests = jtoken["invitedGuests"] as JArray;
+            if (invitedGuests != null)
+            {
+                participantNames.AddRange(invitedGuests.Select(t => t.Value<string>()).ToList());
+            }
+
+            var participatingGuests = jtoken["participatingGuests"] as JArray;
+            if (participatingGuests != null)
+            {
+                participantNames.AddRange(participatingGuests.Select(t => t.Value<string>()).ToList());
+            }
+
+            return string.Join(", ", participantNames);
         }
 
         public static string ResourceName(this JToken jtoken)
@@ -154,7 +166,7 @@ namespace BoatTracker.BookedScheduler
 
         public static string UserName(this JToken jtoken)
         {
-            return jtoken.Value<string>("username");
+            return jtoken.Value<string>("userName");
         }
 
         public static string FullName(this JToken jtoken)

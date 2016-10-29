@@ -94,6 +94,13 @@ namespace BoatTracker.Bot.Configuration
         [JsonProperty("maximumDurationHours")]
         public float? MaximumDurationHours { get; set; }
 
+        /// <summary>
+        /// Gets or sets the early checkin window size, in minutes. Must match the configuration
+        /// of the BookedScheduler site.
+        /// </summary>
+        [JsonProperty("earlyCheckinWindowInMinutes")]
+        public int? EarlyCheckinWindowInMinutes { get; set; }
+
         #region Helpers
 
         [JsonIgnore]

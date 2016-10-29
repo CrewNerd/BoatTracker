@@ -470,7 +470,7 @@ namespace BoatTracker.Bot.Utils
 
             yield return user.Value<string>("lastName");
 
-            yield return user.Value<string>("username");
+            yield return user.Value<string>("userName");
         }
 
         #endregion
