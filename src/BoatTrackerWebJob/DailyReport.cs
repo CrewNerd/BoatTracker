@@ -74,6 +74,7 @@ namespace BoatTrackerWebJob
             var abandoned = new List<string>();
             var noCheckOut = new List<string>();
             var unknownParticipants = new List<string>();
+            var withGuest = new List<string>();
 
             foreach (var reservation in reservations)
             {
@@ -108,22 +109,58 @@ namespace BoatTrackerWebJob
                     abandoned.Add(basicInfo);
                 }
 
+                var invitedGuests = reservation["invitedGuests"] as JArray ?? new JArray();
+                var participatingGuests = reservation["participatingGuests"] as JArray ?? new JArray();
+
                 // Get the "full" reservation to make sure the participants list is given as an array
                 var fullReservation = await client.GetReservationAsync(reservation.ReferenceNumber());
-
                 var participants = (JArray)fullReservation["participants"];
+
                 var boat = await client.GetResourceAsync(reservation.Value<string>("resourceId"));
 
                 //
                 // See if the number of recorded participants is less than the boat capacity. We always
                 // have to add one for the reservation owner.
                 //
-                if (participants.Count + 1 < boat.MaxParticipants())
+                if (participants.Count + invitedGuests.Count + participatingGuests.Count + 1 < boat.MaxParticipants())
                 {
                     unknownParticipants.Add(basicInfo);
                 }
 
-                // TODO: Check for guest-related violations.
+                // Check for reservations involving a guest rower
+                if (invitedGuests.Count > 0 || participatingGuests.Count > 0)
+                {
+                    var guestEmail = invitedGuests.Count > 0 ? invitedGuests[0].Value<string>() : participatingGuests[0].Value<string>();
+                    withGuest.Add($"{basicInfo} with {guestEmail}");
+                }
+            }
+
+            // Get all reservations for the next two days
+            var upcomingReservations = await client.GetReservationsAsync(start: DateTime.UtcNow, end: DateTime.UtcNow + TimeSpan.FromDays(2));
+            var upcomingWithGuest = new List<string>();
+
+            foreach (var reservation in upcomingReservations)
+            {
+                var invitedGuests = reservation["invitedGuests"] as JArray ?? new JArray();
+                var participatingGuests = reservation["participatingGuests"] as JArray ?? new JArray();
+
+                if (invitedGuests.Count > 0 || participatingGuests.Count > 0)
+                {
+                    DateTime? checkInDate = reservation.CheckInDate();
+                    DateTime? checkOutDate = reservation.CheckOutDate();
+
+                    var user = await client.GetUserAsync(reservation.Value<string>("userId"));
+                    var boatName = reservation.Value<string>("resourceName");
+
+                    var localStartDate = ConvertToLocalTime(user, reservation.StartDate()).ToShortDateString();
+                    var localStartTime = ConvertToLocalTime(user, reservation.StartDate()).ToShortTimeString();
+                    var localEndTime = ConvertToLocalTime(user, reservation.EndDate()).ToShortTimeString();
+
+                    string basicInfo = $"{user.FullName()} ({user.EmailAddress()}) - '{boatName}' @ {localStartDate} {localStartTime} - {localEndTime}";
+
+                    var guestEmail = invitedGuests.Count > 0 ? invitedGuests[0].Value<string>() : participatingGuests[0].Value<string>();
+                    upcomingWithGuest.Add($"{basicInfo} with {guestEmail}");
+                }
             }
 
             var sbMessage = new StringBuilder();
@@ -194,6 +231,38 @@ namespace BoatTrackerWebJob
             else
             {
                 sbMessage.AppendLine("<p>No incomplete rosters.</p>");
+            }
+
+            if (withGuest.Count > 0)
+            {
+                sbMessage.AppendLine($"<p>Guest rowers ({withGuest.Count}):<br/>");
+                foreach (var s in withGuest)
+                {
+                    sbMessage.AppendLine(s);
+                    sbMessage.AppendLine("<br/>");
+                }
+
+                sbMessage.AppendLine("</p>");
+            }
+            else
+            {
+                sbMessage.AppendLine("<p>No guest rowers.</p>");
+            }
+
+            if (upcomingWithGuest.Count > 0)
+            {
+                sbMessage.AppendLine($"<p>Upcoming guest rowers ({upcomingWithGuest.Count}):<br/>");
+                foreach (var s in upcomingWithGuest)
+                {
+                    sbMessage.AppendLine(s);
+                    sbMessage.AppendLine("<br/>");
+                }
+
+                sbMessage.AppendLine("</p>");
+            }
+            else
+            {
+                sbMessage.AppendLine("<p>No upcoming guest rowers.</p>");
             }
 
             log.Write(sbMessage.ToString());

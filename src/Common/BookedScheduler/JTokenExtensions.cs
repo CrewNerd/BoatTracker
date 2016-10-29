@@ -164,7 +164,7 @@ namespace BoatTracker.BookedScheduler
 
         public static string EmailAddress(this JToken jtoken)
         {
-            return jtoken.Value<string>("emailaddress");
+            return jtoken.Value<string>("emailAddress");
         }
 
         public static string MakerChannelKey(this JToken jtoken)
