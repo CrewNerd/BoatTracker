@@ -163,6 +163,8 @@ namespace BoatTrackerWebJob
                 }
             }
 
+            await client.SignOut();
+
             var sbMessage = new StringBuilder();
 
             sbMessage.AppendLine($"<h2>BoatTracker Daily Report for: {clubInfo.Name}</h2>");

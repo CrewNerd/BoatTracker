@@ -129,29 +129,29 @@ namespace BoatTracker.Bot
         private static async Task<ValidateResult> ValidateBoatName(ReservationRequest state, object value)
         {
             var boatName = (string)value;
-            var boat = await state.UserState.FindBestResourceMatchAsync(boatName);
+            var boatMatch = await state.UserState.FindBestResourceMatchAsync(boatName);
 
-            if (boat != null)
+            if (boatMatch.Item1 != null)
             {
-                if (await state.UserState.HasPermissionForResourceAsync(boat))
+                if (await state.UserState.HasPermissionForResourceAsync(boatMatch.Item1))
                 {
                     bool partnerRemoved = false;
 
                     //
                     // If the user selects a single, make sure we clear any partner that they mentioned.
                     //
-                    if (boat.MaxParticipants() == 1 && !string.IsNullOrEmpty(state.PartnerName))
+                    if (boatMatch.Item1.MaxParticipants() == 1 && !string.IsNullOrEmpty(state.PartnerName))
                     {
                         partnerRemoved = true;
                         state.PartnerUserId = null;
                         state.PartnerName = null;
                     }
 
-                    state.BoatId = boat.ResourceId();
+                    state.BoatId = boatMatch.Item1.ResourceId();
                     return new ValidateResult
                     {
                         IsValid = true,
-                        Value = boat.Name(),
+                        Value = boatMatch.Item1.Name(),
                         Feedback = partnerRemoved ? "The boat you selected only holds a single person, so I removed the partner you mentioned before." : null
                     };
                 }
@@ -171,7 +171,7 @@ namespace BoatTracker.Bot
                 {
                     IsValid = false,
                     Value = null,
-                    Feedback = "Sorry, but I don't recognize that boat name"
+                    Feedback = boatMatch.Item2
                 };
             }
         }
@@ -179,13 +179,14 @@ namespace BoatTracker.Bot
         private static async Task<ValidateResult> ValidatePartnerName(ReservationRequest state, object value)
         {
             var partnerUserName = (string)value;
-            var partnerUser = await state.UserState.FindBestUserMatchAsync(partnerUserName);
-            var partnerUserId = partnerUser.Id();
+            var partnerUserMatch = await state.UserState.FindBestUserMatchAsync(partnerUserName);
 
             var boat = await BookedSchedulerCache.Instance[state.UserState.ClubId].GetResourceFromIdAsync(state.BoatId);
 
-            if (partnerUser != null)
+            if (partnerUserMatch.Item1 != null)
             {
+                var partnerUserId = partnerUserMatch.Item1.Id();
+
                 //
                 // Private boats are a special case. The boat owner can invite anyone they wish to row
                 // with them. But for club boats, both rowers must have permission.
@@ -196,7 +197,7 @@ namespace BoatTracker.Bot
                     return new ValidateResult
                     {
                         IsValid = true,
-                        Value = partnerUser.FullName()
+                        Value = partnerUserMatch.Item1.FullName()
                     };
                 }
                 else
@@ -215,7 +216,7 @@ namespace BoatTracker.Bot
                 {
                     IsValid = false,
                     Value = null,
-                    Feedback = $"Sorry, but I don't recognize that name or there's more than one user named '{partnerUserName}'"
+                    Feedback = partnerUserMatch.Item2
                 };
             }
         }

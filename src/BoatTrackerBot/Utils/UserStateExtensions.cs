@@ -206,7 +206,7 @@ namespace BoatTracker.Bot.Utils
         /// <param name="userState">The user context</param>
         /// <param name="name">The boat name as typed by the user</param>
         /// <returns>The JToken for the matching boat resource, or null if no good match was found.</returns>
-        public static Task<JToken> FindBestResourceMatchAsync(this UserState userState, string name)
+        public static Task<Tuple<JToken, string>> FindBestResourceMatchAsync(this UserState userState, string name)
         {
             return FindBestResourceMatchAsync(
                 userState,
@@ -231,7 +231,7 @@ namespace BoatTracker.Bot.Utils
         /// <param name="userState">The user context</param>
         /// <param name="entities">The entities discovered by LUIS</param>
         /// <returns>The JToken for the matching boat resource, or null if no good match was found.</returns>
-        public static async Task<JToken> FindBestResourceMatchAsync(this UserState userState, LuisResult result)
+        public static async Task<Tuple<JToken, string>> FindBestResourceMatchAsync(this UserState userState, LuisResult result)
         {
             var entities = result.Entities;
             var entityWords = entities
@@ -241,27 +241,37 @@ namespace BoatTracker.Bot.Utils
 
             if (entityWords.Count == 0)
             {
-                return null;
+                return new Tuple<JToken, string>(null, "I'm sorry, but I didn't see anything that looked like a boat name.");
             }
 
             var resources = await BookedSchedulerCache.Instance[userState.ClubId].GetResourcesAsync();
 
+            // If the boats are named sensibly, there should be only one perfect match.
             var boat = resources.FirstOrDefault((b) => PerfectMatchBoat(entityWords, b));
 
             if (boat != null)
             {
-                return boat;
+                return new Tuple<JToken, string>(boat, null);
             }
 
             //
             // Next, check to see if a subset of the entities completely spans the boat name words.
             // This could happen if LUIS classifies "extra" words as being part of the boat name.
             //
-            boat = resources.FirstOrDefault((b) => OverMatchBoat(entityWords, b));
+            var overMatches = resources.Where((b) => OverMatchBoat(entityWords, b));
 
-            if (boat != null)
+            switch (overMatches.Count())
             {
-                return boat;
+                case 0:
+                    break;  // fall through and check for "under-matches"
+
+                case 1:
+                    return new Tuple<JToken, string>(overMatches.First(), null);
+
+                default:
+                    // Mutiple matches - ask for clarification.
+                    var boatNames = overMatches.Select(b => $"'{b.Name()}'");
+                    return new Tuple<JToken, string>(null, $"I think you meant one of these boats ({string.Join(", ", boatNames)}). Can you be more specific?");
             }
 
             //
@@ -273,24 +283,19 @@ namespace BoatTracker.Bot.Utils
 
             // TODO: If one partial match is superior to all others, we should allow it.
 
-            if (underMatches.Count() > 1)
+            switch (underMatches.Count())
             {
-                return null; // The name partially matches multiple boats so return a failure.
+                case 0:
+                    return new Tuple<JToken, string>(null, $"I'm sorry, but I didn't find any good matches for '{result.BoatName()}' in your club's boat list.");
+
+                case 1:
+                    return new Tuple<JToken, string>(underMatches.First(), null);
+
+                default:
+                    // Mutiple matches - ask for clarification.
+                    var boatNames = underMatches.Select(b => $"'{b.Name()}'");
+                    return new Tuple<JToken, string>(null, $"I think you meant one of these boats ({string.Join(", ", boatNames)}). Can you be more specific?");
             }
-
-            return underMatches.FirstOrDefault();
-        }
-
-        public static async Task<string> FindBestResourceNameAsync(this UserState userState, LuisResult result)
-        {
-            var resource = await userState.FindBestResourceMatchAsync(result);
-
-            if (resource != null)
-            {
-                return resource.Name();
-            }
-
-            return null;
         }
 
         private static bool PerfectMatchBoat(IList<string> entityWords, JToken boat)
@@ -339,9 +344,9 @@ namespace BoatTracker.Bot.Utils
             }
         }
 
-        #endregion
+#endregion
 
-        #region Users
+#region Users
 
         /// <summary>
         /// Look for a matching user given a user-entered name string.
@@ -349,7 +354,7 @@ namespace BoatTracker.Bot.Utils
         /// <param name="userState">The user context</param>
         /// <param name="name">The user name as typed by the user</param>
         /// <returns>The JToken for the matching user, or null if no good match was found.</returns>
-        public static Task<JToken> FindBestUserMatchAsync(this UserState userState, string name)
+        public static Task<Tuple<JToken, string>> FindBestUserMatchAsync(this UserState userState, string name)
         {
             return FindBestUserMatchAsync(
                 userState,
@@ -374,7 +379,7 @@ namespace BoatTracker.Bot.Utils
         /// <param name="userState">The user context</param>
         /// <param name="entities">The entities discovered by LUIS</param>
         /// <returns>The JToken for the matching user, or null if no good match was found.</returns>
-        public static async Task<JToken> FindBestUserMatchAsync(this UserState userState, LuisResult result)
+        public static async Task<Tuple<JToken, string>> FindBestUserMatchAsync(this UserState userState, LuisResult result)
         {
             var entities = result.Entities;
             var entityWords = entities
@@ -384,27 +389,37 @@ namespace BoatTracker.Bot.Utils
 
             if (entityWords.Count == 0)
             {
-                return null;
+                return new Tuple<JToken, string>(null, "I'm sorry, but I didn't see anything that looked like a user name.");
             }
 
             var users = await BookedSchedulerCache.Instance[userState.ClubId].GetUsersAsync();
 
+            // If the boats are named sensibly, there should be only one perfect match.
             var user = users.FirstOrDefault((b) => PerfectMatchUser(entityWords, b));
 
             if (user != null)
             {
-                return user;
+                return new Tuple<JToken, string>(user, null);
             }
 
             //
             // Next, check to see if a subset of the entities completely spans the user name words.
             // This could happen if LUIS classifies "extra" words as being part of the user name.
             //
-            user = users.FirstOrDefault((b) => OverMatchUser(entityWords, b));
+            var overMatches = users.Where((b) => OverMatchUser(entityWords, b));
 
-            if (user != null)
+            switch (overMatches.Count())
             {
-                return user;
+                case 0:
+                    break;  // fall through and check for "under-matches"
+
+                case 1:
+                    return new Tuple<JToken, string>(overMatches.First(), null);
+
+                default:
+                    // Mutiple matches - ask for clarification.
+                    var userNames = overMatches.Select(u => $"'{u.FullName()}'");
+                    return new Tuple<JToken, string>(null, $"I think you meant one of these users ({string.Join(", ", userNames)}). Can you be more specific?");
             }
 
             //
@@ -416,24 +431,19 @@ namespace BoatTracker.Bot.Utils
 
             // TODO: If one partial match is superior to all others, we should allow it.
 
-            if (underMatches.Count() > 1)
+            switch (underMatches.Count())
             {
-                return null; // The name partially matches multiple users so return a failure.
+                case 0:
+                    return new Tuple<JToken, string>(null, $"I'm sorry, but I didn't find any good matches for '{result.UserName()}' in your club's member list.");
+
+                case 1:
+                    return new Tuple<JToken, string>(underMatches.First(), null);
+
+                default:
+                    // Mutiple matches - ask for clarification.
+                    var userNames = underMatches.Select(u => $"'{u.FullName()}'");
+                    return new Tuple<JToken, string>(null, $"I think you meant one of these users ({string.Join(", ", userNames)}). Can you be more specific?");
             }
-
-            return underMatches.FirstOrDefault();
-        }
-
-        public static async Task<string> FindBestUserNameAsync(this UserState userState, LuisResult result)
-        {
-            var user = await userState.FindBestUserMatchAsync(result);
-
-            if (user != null)
-            {
-                return user.FullName();
-            }
-
-            return null;
         }
 
         private static bool PerfectMatchUser(IList<string> entityWords, JToken user)
@@ -465,14 +475,14 @@ namespace BoatTracker.Bot.Utils
 
         private static IEnumerable<string> GetUserNames(JToken user)
         {
-            yield return user.FirstName();
-            yield return user.LastName();
+            // NOTE: The username should never be any user's first or last name!
+            yield return $"{user.FirstName()} {user.LastName()}";
             yield return user.UserName();
         }
 
-        #endregion
+#endregion
 
-        #region Matching Helpers
+#region Matching Helpers
 
         private static bool PerfectMatchName(IList<string> entityWords, string[] userNameWords)
         {
@@ -489,9 +499,9 @@ namespace BoatTracker.Bot.Utils
             return entityWords.Count > userNameWords.Count() && userNameWords.All(word => entityWords.Contains(word));
         }
 
-        #endregion
+#endregion
 
-        #region Timezones
+#region Timezones
 
         public static DateTime LocalTime(this UserState userState)
         {
@@ -522,6 +532,6 @@ namespace BoatTracker.Bot.Utils
             return offset;
         }
 
-        #endregion
+#endregion
     }
 }

@@ -110,7 +110,7 @@ namespace BoatTracker.Bot
             string password = (string)value;
             var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[state.ClubInitials];
 
-            var client = new BookedSchedulerClient(clubInfo.Url);
+            var client = new BookedSchedulerLoggingClient(clubInfo.Id);
 
             try
             {
@@ -124,6 +124,20 @@ namespace BoatTracker.Bot
                     Value = null,
                     Feedback = $"I'm sorry but your password is incorrect. Please try again."
                 };
+            }
+            finally
+            {
+                if (client != null && client.IsSignedIn)
+                {
+                    try
+                    {
+                        await client.SignOut();
+                    }
+                    catch (Exception)
+                    {
+                        // best effort only
+                    }
+                }
             }
 
             return new ValidateResult
