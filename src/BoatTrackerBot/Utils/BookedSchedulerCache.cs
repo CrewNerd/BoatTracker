@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,23 +30,55 @@ namespace BoatTracker.Bot.Utils
 
         private ConcurrentDictionary<string, BookedSchedulerCacheEntry> entries;
 
+        /// <summary>
+        /// Iterate over all of the configured clubs, initializing the cache for each one. We use
+        /// very generous retries and timeouts because this is done at app startup on a non-production
+        /// deployment slot, where we can afford to wait. We must have the cache populated before the
+        /// service is exposed to clients.
+        /// </summary>
+        public void Initialize()
+        {
+            Trace.TraceInformation("Starting BookedSchedulerCache initialization");
+
+            foreach (var clubId in EnvironmentDefinition.Instance.MapClubIdToClubInfo.Keys)
+            {
+                Trace.TraceInformation("Starting BookedSchedulerCache initialization for '{0}'", clubId);
+
+                this.entries.TryAdd(clubId, new BookedSchedulerCacheEntry(clubId));
+
+                for (int retries = 10; retries > 0; retries--)
+                {
+                    try
+                    {
+                        Task t = this.entries[clubId].RefreshCacheAsync(failSilently: false);
+                        t.Wait(TimeSpan.FromMinutes(5));
+
+                        Trace.TraceInformation("Finished BookedSchedulerCache initialization for '{0}'", clubId);
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        Trace.TraceInformation("BookedSchedulerCache initialization for '{0}' failed - {1}", clubId, ex.Message);
+                    }
+                }
+            }
+
+            Trace.TraceInformation("Finished BookedSchedulerCache initialization");
+        }
+
         public BookedSchedulerCacheEntry this[string clubId]
         {
             get
             {
                 if (!entries.ContainsKey(clubId))
                 {
+                    // This should never happen now that we load the cache on startup.
                     var newEntry = new BookedSchedulerCacheEntry(clubId);
                     this.entries.TryAdd(clubId, newEntry);
                 }
 
                 return this.entries[clubId];
             }
-        }
-
-        public void ResetCache()
-        {
-            this.entries = new ConcurrentDictionary<string, BookedSchedulerCacheEntry>();
         }
 
         public async Task RefreshCacheAsync(string clubId = null)
@@ -74,7 +107,7 @@ namespace BoatTracker.Bot.Utils
 
                 var entry = this[id];
 
-                await entry.RefreshCacheAsync();
+                await entry.RefreshCacheAsync(failSilently: false);
             }
         }
 
@@ -307,7 +340,7 @@ namespace BoatTracker.Bot.Utils
 
             private long RefreshInProgress = 0;
 
-            public async Task RefreshCacheAsync()
+            public async Task RefreshCacheAsync(bool failSilently = true)
             {
                 BookedSchedulerClient client = null;
 
@@ -362,9 +395,20 @@ namespace BoatTracker.Bot.Utils
                 }
                 catch (Exception)
                 {
-                    // If there were any errors, leave the stale data in place and schedule another
-                    // refresh fairly soon.
-                    this.refreshTime = DateTime.Now + CacheRetryTime;
+                    //
+                    // During normal operation, we fail silently since we have existing (but stale) data
+                    // that we can continue to use. During initialization, we must rethrow so we can retry.
+                    //
+                    if (failSilently)
+                    {
+                        // If there were any errors, leave the stale data in place and schedule another
+                        // refresh fairly soon.
+                        this.refreshTime = DateTime.Now + CacheRetryTime;
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
                 finally
                 {

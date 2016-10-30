@@ -1,12 +1,13 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 
-using BoatTracker.Bot.Utils;
 using BoatTracker.Bot.Configuration;
+using BoatTracker.Bot.Utils;
 
 namespace BoatTracker.Bot.Controllers
 {
@@ -29,10 +30,20 @@ namespace BoatTracker.Bot.Controllers
                 if (!string.IsNullOrEmpty(clubId) && !EnvironmentDefinition.Instance.MapClubIdToClubInfo.ContainsKey(clubId))
                 {
                     // Unknown club id
+                    Trace.TraceError($"Webjob attempted cache refresh for unknown club '{clubId}'");
                     return new HttpResponseMessage(HttpStatusCode.BadRequest);
                 }
 
-                await BookedSchedulerCache.Instance.RefreshCacheAsync(clubId);
+                try
+                {
+                    Trace.TraceInformation($"Webjob starting cache refresh for club '{clubId}'");
+                    await BookedSchedulerCache.Instance.RefreshCacheAsync(clubId);
+                    Trace.TraceInformation($"Webjob finished cache refresh for club '{clubId}'");
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError($"Webjob cache refresh for club '{clubId}' failed: {ex.Message}");
+                }
             }
             else
             {
