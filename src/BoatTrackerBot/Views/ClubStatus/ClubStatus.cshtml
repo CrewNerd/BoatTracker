@@ -60,7 +60,7 @@
                 <td>@(r.ParticipantNames())</td>
 
                 @{
-                    var disabled = DateTime.UtcNow + TimeSpan.FromMinutes(5) < r.StartDate();
+                    var disabled = DateTime.UtcNow + TimeSpan.FromMinutes(Model.ClubInfo.EarlyCheckinWindowInMinutes ?? 5) < r.StartDate();
                 }
                 @if (disabled)
                 {

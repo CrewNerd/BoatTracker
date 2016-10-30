@@ -114,8 +114,6 @@ namespace BoatTracker.BookedScheduler
 
         public virtual async Task<JArray> GetUsersAsync()
         {
-            // TODO: support queries
-
             using (var client = this.GetHttpClient())
             {
                 var httpResponse = await client.GetAsync("Users/");
@@ -128,7 +126,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public virtual async Task<JToken> GetUserAsync(string userId)
+        public virtual async Task<JToken> GetUserAsync(long userId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -146,8 +144,6 @@ namespace BoatTracker.BookedScheduler
 
         public virtual async Task<JArray> GetResourcesAsync()
         {
-            // TODO: support queries
-
             using (var client = this.GetHttpClient())
             {
                 var httpResponse = await client.GetAsync("Resources/");
@@ -160,7 +156,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public virtual async Task<JToken> GetResourceAsync(string resourceId)
+        public virtual async Task<JToken> GetResourceAsync(long resourceId)
         {
             using (var client = this.GetHttpClient())
             {
@@ -178,8 +174,6 @@ namespace BoatTracker.BookedScheduler
 
         public virtual async Task<JArray> GetGroupsAsync()
         {
-            // TODO: support queries
-
             using (var client = this.GetHttpClient())
             {
                 var httpResponse = await client.GetAsync("Groups/");
@@ -192,7 +186,7 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public virtual async Task<JToken> GetGroupAsync(string groupId)
+        public virtual async Task<JToken> GetGroupAsync(long groupId)
         {
             using (var client = this.GetHttpClient())
             {

@@ -239,7 +239,9 @@ namespace BoatTracker.Bot
                     else
                     {
                         // TODO: Consider shortening this message after the user has seen it a few times.
-                        await context.PostAsync("Okay, you're all set! When it's time for your reservation, just say 'rowing' to sign in. You can sign in up to 5 minutes before your reservation time.");
+                        await context.PostAsync(
+                            "Okay, you're all set! When it's time for your reservation, just say 'rowing' to sign in. " +
+                            $"You can sign in up to {this.currentUserState.ClubInfo().EarlyCheckinWindowInMinutes ?? 5} minutes before your reservation time.");
                     }
                 }
                 catch (Exception ex)

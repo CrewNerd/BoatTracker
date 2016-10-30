@@ -84,7 +84,7 @@ namespace BoatTracker.Bot.Utils
             }
         }
 
-        public override Task<JToken> GetGroupAsync(string groupId)
+        public override Task<JToken> GetGroupAsync(long groupId)
         {
             this.StartCall();
 
@@ -224,7 +224,7 @@ namespace BoatTracker.Bot.Utils
             }
         }
 
-        public override Task<JToken> GetResourceAsync(string resourceId)
+        public override Task<JToken> GetResourceAsync(long resourceId)
         {
             this.StartCall();
 
@@ -324,7 +324,7 @@ namespace BoatTracker.Bot.Utils
             }
         }
 
-        public override Task<JToken> GetUserAsync(string userId)
+        public override Task<JToken> GetUserAsync(long userId)
         {
             this.StartCall();
 

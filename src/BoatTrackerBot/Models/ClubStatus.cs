@@ -77,8 +77,8 @@ namespace BoatTracker.Bot.Models
                 return this.Reservations
                     .Where(r =>
                     {
-                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("startDate"));
-                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("endDate"));
+                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.StartDate());
+                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.EndDate());
 
                         return
                             localTime.Date == startDateTime.Date &&                     // current day
@@ -96,11 +96,11 @@ namespace BoatTracker.Bot.Models
                 var localTime = this.BotUserState.LocalTime();
 
                 return this.Reservations
-                    .Where(r => !string.IsNullOrEmpty(r.Value<string>("checkInDate")) && string.IsNullOrEmpty(r.Value<string>("checkOutDate")))
+                    .Where(r => r.CheckInDate().HasValue && !r.CheckOutDate().HasValue)
                     .Where(r =>
                     {
-                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("startDate"));
-                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("endDate"));
+                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.StartDate());
+                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.EndDate());
 
                         return
                             startDateTime.Date == localTime.Date &&     // current day
@@ -116,11 +116,11 @@ namespace BoatTracker.Bot.Models
                 var localTime = this.BotUserState.LocalTime();
 
                 return this.Reservations
-                    .Where(r => !string.IsNullOrEmpty(r.Value<string>("checkInDate")) && string.IsNullOrEmpty(r.Value<string>("checkOutDate")))
+                    .Where(r => r.CheckInDate().HasValue && !r.CheckOutDate().HasValue)
                     .Where(r =>
                     {
-                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("startDate"));
-                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.Value<DateTime>("endDate"));
+                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.StartDate());
+                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.EndDate());
 
                         return
                             startDateTime.Date == localTime.Date &&     // current day

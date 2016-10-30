@@ -333,7 +333,7 @@ namespace BoatTracker.Bot.Utils
 
                     foreach (var u in users)
                     {
-                        var fullUser = await client.GetUserAsync(u.Value<string>("id"));
+                        var fullUser = await client.GetUserAsync(u.Id());
                         newUserMap.Add(fullUser.Id(), fullUser);
                     }
 
@@ -342,7 +342,7 @@ namespace BoatTracker.Bot.Utils
 
                     foreach (var g in groups)
                     {
-                        var fullGroup = await client.GetGroupAsync(g.Value<string>("id"));
+                        var fullGroup = await client.GetGroupAsync(g.Id());
                         newGroupMap.Add(fullGroup.Id(), fullGroup);
                     }
 

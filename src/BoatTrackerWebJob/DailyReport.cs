@@ -81,8 +81,8 @@ namespace BoatTrackerWebJob
                 DateTime? checkInDate = reservation.CheckInDate();
                 DateTime? checkOutDate = reservation.CheckOutDate();
 
-                var user = await client.GetUserAsync(reservation.Value<string>("userId"));
-                var boatName = reservation.Value<string>("resourceName");
+                var user = await client.GetUserAsync(reservation.UserId());
+                var boatName = reservation.ResourceName();
 
                 var localStartTime = ConvertToLocalTime(user, reservation.StartDate()).ToShortTimeString();
                 var localEndTime = ConvertToLocalTime(user, reservation.EndDate()).ToShortTimeString();
@@ -116,7 +116,7 @@ namespace BoatTrackerWebJob
                 var fullReservation = await client.GetReservationAsync(reservation.ReferenceNumber());
                 var participants = (JArray)fullReservation["participants"];
 
-                var boat = await client.GetResourceAsync(reservation.Value<string>("resourceId"));
+                var boat = await client.GetResourceAsync(reservation.ResourceId());
 
                 //
                 // See if the number of recorded participants is less than the boat capacity. We always
@@ -149,8 +149,8 @@ namespace BoatTrackerWebJob
                     DateTime? checkInDate = reservation.CheckInDate();
                     DateTime? checkOutDate = reservation.CheckOutDate();
 
-                    var user = await client.GetUserAsync(reservation.Value<string>("userId"));
-                    var boatName = reservation.Value<string>("resourceName");
+                    var user = await client.GetUserAsync(reservation.UserId());
+                    var boatName = reservation.ResourceName();
 
                     var localStartDate = ConvertToLocalTime(user, reservation.StartDate()).ToShortDateString();
                     var localStartTime = ConvertToLocalTime(user, reservation.StartDate()).ToShortTimeString();
@@ -320,7 +320,7 @@ namespace BoatTrackerWebJob
         private static TimeSpan LocalOffsetForDate(JToken user, DateTime date)
         {
             var mappings = TzdbDateTimeZoneSource.Default.WindowsMapping.MapZones;
-            var mappedTz = mappings.FirstOrDefault(x => x.TzdbIds.Any(z => z.Equals(user.Value<string>("timezone"), StringComparison.OrdinalIgnoreCase)));
+            var mappedTz = mappings.FirstOrDefault(x => x.TzdbIds.Any(z => z.Equals(user.Timezone(), StringComparison.OrdinalIgnoreCase)));
 
             if (mappedTz == null)
             {
