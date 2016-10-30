@@ -210,6 +210,8 @@
     <Content Include="Content\bootstrap.css.map" />
     <Content Include="Content\bootstrap-theme.min.css.map" />
     <Content Include="Content\bootstrap-theme.css.map" />
+    <None Include="Properties\PublishProfiles\BoatTrackerBot-dev - Web Deploy.pubxml" />
+    <None Include="Properties\PublishProfiles\BoatTrackerBot-stg - Web Deploy.pubxml" />
     <None Include="scripts\jquery-1.9.1.intellisense.js" />
     <Content Include="scripts\bootstrap.js" />
     <Content Include="scripts\bootstrap.min.js" />
@@ -264,7 +266,6 @@
     </Content>
     <None Include="Properties\PublishProfiles\BoatTrackerBot - Web Deploy.pubxml" />
     <Content Include="Service References\Application Insights\ConnectedService.json" />
-    <None Include="Properties\PublishProfiles\BoatTrackerBot-prod - Web Deploy.pubxml" />
     <Content Include="scripts\jquery-1.9.1.min.map" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\_ViewStart.cshtml" />

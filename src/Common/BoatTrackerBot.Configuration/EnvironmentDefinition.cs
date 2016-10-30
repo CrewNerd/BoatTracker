@@ -100,13 +100,11 @@ namespace BoatTracker.Bot.Configuration
         public ChannelInfo GetChannelInfo(string channel)
         {
             ChannelInfo channelInfo;
-            string devName = this.IsDevelopment ? " (dev)" : string.Empty;
 
             if (channel == "skype")
             {
                 channelInfo = new ChannelInfo(
                     "Skype",
-                    "Skype account key" + devName,
                     supportsButtons:true,
                     supportsMarkdown:true);
             }
@@ -114,7 +112,6 @@ namespace BoatTracker.Bot.Configuration
             {
                 channelInfo = new ChannelInfo(
                     "Facebook Messenger",
-                    "Facebook account key" + devName,
                     supportsButtons:false,
                     supportsMarkdown:false);
             }
@@ -122,7 +119,6 @@ namespace BoatTracker.Bot.Configuration
             {
                 channelInfo = new ChannelInfo(
                     "Text Message",
-                    "Text message account key" + devName,
                     supportsButtons:false,
                     supportsMarkdown:false);
             }
@@ -157,11 +153,12 @@ namespace BoatTracker.Bot.Configuration
 
                 switch (hostName.ToUpperInvariant())
                 {
-                    case "BOATTRACKERBOT":
+                    case "BOATTRACKERBOT-DEV":
                         environmentDefinition = new DevelopmentEnvironmentDefinition();
                         break;
 
-                    case "BOATTRACKERBOT-PROD":
+                    case "BOATTRACKERBOT-STG":
+                    case "BOATTRACKERBOT":
                         environmentDefinition = new ProductionEnvironmentDefinition();
                         break;
 
