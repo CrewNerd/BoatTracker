@@ -38,11 +38,13 @@ namespace BoatTracker.Bot.Utils
         /// </summary>
         public void Initialize()
         {
-            Trace.TraceInformation("Starting BookedSchedulerCache initialization");
+            var envName = EnvironmentDefinition.Instance.Name;
+
+            Trace.TraceInformation($"{envName} Starting BookedSchedulerCache initialization");
 
             foreach (var clubId in EnvironmentDefinition.Instance.MapClubIdToClubInfo.Keys)
             {
-                Trace.TraceInformation("Starting BookedSchedulerCache initialization for '{0}'", clubId);
+                Trace.TraceInformation($"{envName} Starting BookedSchedulerCache initialization for '{clubId}'");
 
                 this.entries.TryAdd(clubId, new BookedSchedulerCacheEntry(clubId));
 
@@ -53,17 +55,17 @@ namespace BoatTracker.Bot.Utils
                         Task t = this.entries[clubId].RefreshCacheAsync(failSilently: false);
                         t.Wait(TimeSpan.FromMinutes(5));
 
-                        Trace.TraceInformation("Finished BookedSchedulerCache initialization for '{0}'", clubId);
+                        Trace.TraceInformation($"{envName} Finished BookedSchedulerCache initialization for '{clubId}'");
                         break;
                     }
                     catch (Exception ex)
                     {
-                        Trace.TraceInformation("BookedSchedulerCache initialization for '{0}' failed - {1}", clubId, ex.Message);
+                        Trace.TraceInformation($"{envName} BookedSchedulerCache initialization for '{clubId}' failed - {ex.Message}");
                     }
                 }
             }
 
-            Trace.TraceInformation("Finished BookedSchedulerCache initialization");
+            Trace.TraceInformation($"{envName} Finished BookedSchedulerCache initialization");
         }
 
         public BookedSchedulerCacheEntry this[string clubId]

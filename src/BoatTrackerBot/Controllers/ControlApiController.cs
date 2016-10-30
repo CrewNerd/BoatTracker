@@ -27,22 +27,24 @@ namespace BoatTracker.Bot.Controllers
 
             if (operation.ToLower() == "refreshcache")
             {
+                var envName = EnvironmentDefinition.Instance.Name;
+
                 if (!string.IsNullOrEmpty(clubId) && !EnvironmentDefinition.Instance.MapClubIdToClubInfo.ContainsKey(clubId))
                 {
                     // Unknown club id
-                    Trace.TraceError($"Webjob attempted cache refresh for unknown club '{clubId}'");
+                    Trace.TraceError($"{envName} Webjob attempted cache refresh for unknown club '{clubId}'");
                     return new HttpResponseMessage(HttpStatusCode.BadRequest);
                 }
 
                 try
                 {
-                    Trace.TraceInformation($"Webjob starting cache refresh for club '{clubId}'");
+                    Trace.TraceInformation($"{envName} Webjob starting cache refresh for club '{clubId}'");
                     await BookedSchedulerCache.Instance.RefreshCacheAsync(clubId);
-                    Trace.TraceInformation($"Webjob finished cache refresh for club '{clubId}'");
+                    Trace.TraceInformation($"{envName} Webjob finished cache refresh for club '{clubId}'");
                 }
                 catch (Exception ex)
                 {
-                    Trace.TraceError($"Webjob cache refresh for club '{clubId}' failed: {ex.Message}");
+                    Trace.TraceError($"{envName} Webjob cache refresh for club '{clubId}' failed: {ex.Message}");
                 }
             }
             else
