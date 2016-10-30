@@ -76,7 +76,7 @@ namespace BoatTracker.Bot.Utils
 
             if (showOwner)
             {
-                owner = $" {reservation.Value<string>("firstName")} {reservation.Value<string>("lastName")}";
+                owner = $" {reservation.FirstName()} {reservation.LastName()}";
             }
 
             string partnerName = string.Empty;
@@ -94,8 +94,7 @@ namespace BoatTracker.Bot.Utils
                 if (participants.Count > 0)
                 {
                     var partnerRef = participants[0];
-                    var partnerId = partnerRef.Value<long>("userId");
-                    var partnerUser = await BookedSchedulerCache.Instance[userState.ClubId].GetUserAsync(partnerId);
+                    var partnerUser = await BookedSchedulerCache.Instance[userState.ClubId].GetUserAsync(partnerRef.UserId());
                     partnerName = $" w/ {partnerUser.FullName()}";
                 }
             }
@@ -431,7 +430,7 @@ namespace BoatTracker.Bot.Utils
 
             if (user != null)
             {
-                return $"{user.Value<string>("firstName")} {user.Value<string>("lastName")}";
+                return user.FullName();
             }
 
             return null;
@@ -466,11 +465,9 @@ namespace BoatTracker.Bot.Utils
 
         private static IEnumerable<string> GetUserNames(JToken user)
         {
-            yield return user.Value<string>("firstName");
-
-            yield return user.Value<string>("lastName");
-
-            yield return user.Value<string>("userName");
+            yield return user.FirstName();
+            yield return user.LastName();
+            yield return user.UserName();
         }
 
         #endregion
@@ -509,10 +506,9 @@ namespace BoatTracker.Bot.Utils
         public static TimeSpan LocalOffsetForDate(this UserState userState, DateTime date)
         {
             var user = BookedSchedulerCache.Instance[userState.ClubId].GetUserAsync(userState.UserId).Result;
-            var userTimezone = user.Value<string>("timezone");
 
             var mappings = TzdbDateTimeZoneSource.Default.WindowsMapping.MapZones;
-            var mappedTz = mappings.FirstOrDefault(x => x.TzdbIds.Any(z => z.Equals(userTimezone, StringComparison.OrdinalIgnoreCase)));
+            var mappedTz = mappings.FirstOrDefault(x => x.TzdbIds.Any(z => z.Equals(user.Timezone(), StringComparison.OrdinalIgnoreCase)));
 
             if (mappedTz == null)
             {

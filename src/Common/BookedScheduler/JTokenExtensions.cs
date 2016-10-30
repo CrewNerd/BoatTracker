@@ -155,6 +155,11 @@ namespace BoatTracker.BookedScheduler
             return jtoken.Value<string>("resourceName");
         }
 
+        public static long UserId(this JToken jtoken)
+        {
+            return jtoken.Value<long>("userId");
+        }
+
         #endregion
 
         #region User helpers
@@ -169,6 +174,16 @@ namespace BoatTracker.BookedScheduler
             return jtoken.Value<string>("userName");
         }
 
+        public static string FirstName(this JToken jtoken)
+        {
+            return jtoken.Value<string>("firstName");
+        }
+
+        public static string LastName(this JToken jtoken)
+        {
+            return jtoken.Value<string>("lastName");
+        }
+
         public static string FullName(this JToken jtoken)
         {
             return $"{jtoken.Value<string>("firstName")} {jtoken.Value<string>("lastName")}";
@@ -177,6 +192,11 @@ namespace BoatTracker.BookedScheduler
         public static string EmailAddress(this JToken jtoken)
         {
             return jtoken.Value<string>("emailAddress");
+        }
+
+        public static string Timezone(this JToken jtoken)
+        {
+            return jtoken.Value<string>("timezone");
         }
 
         public static string MakerChannelKey(this JToken jtoken)
