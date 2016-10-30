@@ -148,7 +148,7 @@ namespace BoatTracker.Bot.Models
 
             try
             {
-                client = new BookedSchedulerClient(clubInfo.Url);
+                client = new BookedSchedulerLoggingClient(this.ClubId);
                 await client.SignIn(clubInfo.UserName, clubInfo.Password);
 
                 string message = null;

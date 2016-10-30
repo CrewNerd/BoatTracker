@@ -110,7 +110,7 @@ namespace BoatTracker.Bot
             string password = (string)value;
             var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[state.ClubInitials];
 
-            var client = new BookedSchedulerClient(clubInfo.Url);
+            var client = new BookedSchedulerLoggingClient(clubInfo.Id);
 
             try
             {
