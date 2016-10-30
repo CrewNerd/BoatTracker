@@ -125,6 +125,20 @@ namespace BoatTracker.Bot
                     Feedback = $"I'm sorry but your password is incorrect. Please try again."
                 };
             }
+            finally
+            {
+                if (client != null && client.IsSignedIn)
+                {
+                    try
+                    {
+                        await client.SignOut();
+                    }
+                    catch (Exception)
+                    {
+                        // best effort only
+                    }
+                }
+            }
 
             return new ValidateResult
             {

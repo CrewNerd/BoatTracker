@@ -309,6 +309,8 @@ namespace BoatTracker.Bot.Utils
 
             public async Task RefreshCacheAsync()
             {
+                BookedSchedulerClient client = null;
+
                 try
                 {
                     //
@@ -323,7 +325,7 @@ namespace BoatTracker.Bot.Utils
 
                     var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.clubId];
 
-                    BookedSchedulerClient client = new BookedSchedulerLoggingClient(this.clubId);
+                    client = new BookedSchedulerLoggingClient(this.clubId);
 
                     await client.SignIn(clubInfo.UserName, clubInfo.Password);
 
@@ -367,6 +369,18 @@ namespace BoatTracker.Bot.Utils
                 finally
                 {
                     this.RefreshInProgress = 0;
+
+                    if (client != null && client.IsSignedIn)
+                    {
+                        try
+                        {
+                            await client.SignOut();
+                        }
+                        catch (Exception)
+                        {
+                            // best effort only
+                        }
+                    }
                 }
             }
 

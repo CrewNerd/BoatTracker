@@ -144,42 +144,61 @@ namespace BoatTracker.Bot.Models
             // We only need the timezone for the user.
             this.BotUserState = await BookedSchedulerCache.Instance[this.ClubId].GetBotUserStateAsync();
 
-            var client = new BookedSchedulerClient(clubInfo.Url);
-            await client.SignIn(clubInfo.UserName, clubInfo.Password);
+            BookedSchedulerClient client = null;
 
-            string message = null;
-
-            if (!string.IsNullOrEmpty(checkin))
+            try
             {
-                try
+                client = new BookedSchedulerClient(clubInfo.Url);
+                await client.SignIn(clubInfo.UserName, clubInfo.Password);
+
+                string message = null;
+
+                if (!string.IsNullOrEmpty(checkin))
                 {
-                    await client.CheckInReservationAsync(checkin);
+                    try
+                    {
+                        await client.CheckInReservationAsync(checkin);
+                    }
+                    catch (Exception ex)
+                    {
+                        message = $"Checkin failed: {ex.Message}";
+                    }
                 }
-                catch (Exception ex)
+                else if (!string.IsNullOrEmpty(checkout))
                 {
-                    message = $"Checkin failed: {ex.Message}";
+                    try
+                    {
+                        await client.CheckOutReservationAsync(checkout);
+                    }
+                    catch (Exception ex)
+                    {
+                        message = $"Checkout failed: {ex.Message}";
+                    }
+                }
+
+                // TOOD: figure out how to narrow this down
+                var reservations = await client.GetReservationsAsync(
+                    start: DateTime.UtcNow - TimeSpan.FromDays(1),
+                    end: DateTime.UtcNow + TimeSpan.FromDays(1));
+
+                this.Reservations = reservations;
+
+                return message;
+            }
+            finally
+            {
+                if (client != null && client.IsSignedIn)
+                {
+                    try
+                    {
+                        await client.SignOut();
+                    }
+                    catch (Exception)
+                    {
+                        // best effort only
+                    }
                 }
             }
-            else if (!string.IsNullOrEmpty(checkout))
-            {
-                try
-                {
-                    await client.CheckOutReservationAsync(checkout);
-                }
-                catch (Exception ex)
-                {
-                    message = $"Checkout failed: {ex.Message}";
-                }
-            }
-
-            // TOOD: figure out how to narrow this down
-            var reservations = await client.GetReservationsAsync(
-                start: DateTime.UtcNow - TimeSpan.FromDays(1),
-                end: DateTime.UtcNow + TimeSpan.FromDays(1));
-
-            this.Reservations = reservations;
-
-            return message;
         }
     }
 }
