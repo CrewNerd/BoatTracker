@@ -289,7 +289,7 @@ namespace BoatTracker.BookedScheduler
                         query += "&";
                     }
 
-                    query += $"startDateTime={XmlConvert.ToString(start.Value)}";
+                    query += $"startDateTime={XmlConvert.ToString(start.Value, XmlDateTimeSerializationMode.Utc)}";
                 }
 
                 if (end != null)
@@ -303,7 +303,7 @@ namespace BoatTracker.BookedScheduler
                         query += "&";
                     }
 
-                    query += $"endDateTime={XmlConvert.ToString(end.Value)}";
+                    query += $"endDateTime={XmlConvert.ToString(end.Value, XmlDateTimeSerializationMode.Utc)}";
                 }
 
                 query = Uri.EscapeUriString(query ?? string.Empty);

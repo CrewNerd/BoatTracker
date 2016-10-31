@@ -113,6 +113,10 @@
     <Compile Include="RefreshCaches.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\BoatTrackerBot\ApplicationInsights.config">
+      <Link>ApplicationInsights.config</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
