@@ -28,3 +28,5 @@
 /src/Common/BoatTrackerBot.Configuration/bin
 /src/Common/BoatTrackerBot.Configuration/obj
 /src/BoatTrackerBot/ClubConfiguration.json~
+/src/Common/BoatTrackerBot.BookedScheduler/bin/Debug
+/src/Common/BoatTrackerBot.BookedScheduler/obj/Debug

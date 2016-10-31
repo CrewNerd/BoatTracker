@@ -250,7 +250,6 @@
     <Compile Include="Models\ClubStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\BookedSchedulerCache.cs" />
-    <Compile Include="Utils\BookedSchedulerLoggingClient.cs" />
     <Compile Include="Utils\DateTimeExtensions.cs" />
     <Compile Include="Utils\IDialogContextExtensions.cs" />
     <Compile Include="Utils\LuisResultExtensions.cs" />
@@ -283,13 +282,13 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\BoatTrackerBot.BookedScheduler\BoatTrackerBot.BookedScheduler.csproj">
+      <Project>{46367a47-45df-4458-8af0-d57434a620eb}</Project>
+      <Name>BoatTrackerBot.BookedScheduler</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\BoatTrackerBot.Configuration\BoatTrackerBot.Configuration.csproj">
       <Project>{b8128eab-2087-451e-8391-94518456f1b2}</Project>
       <Name>BoatTrackerBot.Configuration</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Common\BookedScheduler\BookedScheduler.csproj">
-      <Project>{f84befcf-a54f-4b44-8541-0c5ee53d59be}</Project>
-      <Name>BookedScheduler</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

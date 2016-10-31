@@ -6,9 +6,8 @@ using Microsoft.ApplicationInsights;
 using Newtonsoft.Json.Linq;
 
 using BoatTracker.Bot.Configuration;
-using BoatTracker.BookedScheduler;
 
-namespace BoatTracker.Bot.Utils
+namespace BoatTracker.BookedScheduler
 {
     public class BookedSchedulerLoggingClient : BookedSchedulerClient
     {

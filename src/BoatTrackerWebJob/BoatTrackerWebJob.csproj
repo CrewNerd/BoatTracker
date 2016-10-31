@@ -113,6 +113,10 @@
     <Compile Include="RefreshCaches.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="..\BoatTrackerBot\ApplicationInsights.config">
+      <Link>ApplicationInsights.config</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
@@ -129,13 +133,13 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Common\BoatTrackerBot.BookedScheduler\BoatTrackerBot.BookedScheduler.csproj">
+      <Project>{46367a47-45df-4458-8af0-d57434a620eb}</Project>
+      <Name>BoatTrackerBot.BookedScheduler</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Common\BoatTrackerBot.Configuration\BoatTrackerBot.Configuration.csproj">
       <Project>{b8128eab-2087-451e-8391-94518456f1b2}</Project>
       <Name>BoatTrackerBot.Configuration</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Common\BookedScheduler\BookedScheduler.csproj">
-      <Project>{f84befcf-a54f-4b44-8541-0c5ee53d59be}</Project>
-      <Name>BookedScheduler</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
