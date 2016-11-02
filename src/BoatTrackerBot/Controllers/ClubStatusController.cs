@@ -10,18 +10,19 @@ namespace BoatTracker.Bot
 {
     public class ClubStatusController : Controller
     {
-        // GET: ClubStatus
         /// <summary>
         /// Gets the club status page. The clubid specifies the club to display. The checkin and
         /// checkout buttons direct here with the corresponding query parameter containing the
         /// reference id for the reservation of interest.
         /// </summary>
         /// <param name="clubId">Required parameter specifying the id of the club to show</param>
+        /// <param name="clubStatusSecret">If a club status secret is configured, it must be provided here</param>
         /// <param name="checkin">If present, the reference id of a reservation to check in</param>
         /// <param name="checkout">If present, the reference id of a reservation to check out</param>
         /// <returns>The club status page</returns>
         public async Task<ActionResult> Index(
             [FromUri] string clubId,
+            [FromUri] string clubStatusSecret = null,
             [FromUri] string checkin = null,
             [FromUri] string checkout = null)
         {
@@ -30,9 +31,18 @@ namespace BoatTracker.Bot
                 return this.HttpNotFound("Missing or unknown club id");
             }
 
-            // TODO: Add a simple security check here using a shared secret set up in the club configuration
-
             ClubStatus model = new ClubStatus(clubId);
+
+            //
+            // If the club is configured with a club status secret, we require the caller to provide it.
+            //
+            if (!string.IsNullOrEmpty(model.ClubInfo.ClubStatusSecret))
+            {
+                if (model.ClubInfo.ClubStatusSecret != clubStatusSecret)
+                {
+                    return new HttpUnauthorizedResult("Security key missing or invalid");
+                }
+            }
 
             // If the return value is non-null, it's an error message from the checkin or checkout
             // and we display it as an alert at the top of the page.

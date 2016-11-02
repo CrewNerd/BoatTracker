@@ -176,7 +176,7 @@ namespace BoatTracker.Bot.Models
                     }
                 }
 
-                // TOOD: figure out how to narrow this down
+                // TODO: figure out how to narrow this down
                 var reservations = await client.GetReservationsAsync(
                     start: DateTime.UtcNow - TimeSpan.FromDays(1),
                     end: DateTime.UtcNow + TimeSpan.FromDays(1));
@@ -184,6 +184,11 @@ namespace BoatTracker.Bot.Models
                 this.Reservations = reservations;
 
                 return message;
+            }
+            catch (Exception ex)
+            {
+                this.Reservations = new JArray();
+                return $"Unable to fetch reservations, currently. This page will automatically refresh in one minute. ({ex.Message})";
             }
             finally
             {
