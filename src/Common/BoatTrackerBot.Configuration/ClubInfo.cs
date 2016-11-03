@@ -101,6 +101,14 @@ namespace BoatTracker.Bot.Configuration
         [JsonProperty("earlyCheckinWindowInMinutes")]
         public int? EarlyCheckinWindowInMinutes { get; set; }
 
+        /// <summary>
+        /// Gets or sets the shared secret that must be included in the club status URL to prevent
+        /// malicious users from accessing the page and being able to check in or check out from
+        /// locations other than the boathouse kiosk.
+        /// </summary>
+        [JsonProperty("clubStatusSecret")]
+        public string ClubStatusSecret { get; set; }
+
         #region Helpers
 
         [JsonIgnore]

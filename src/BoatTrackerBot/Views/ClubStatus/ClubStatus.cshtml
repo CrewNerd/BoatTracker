@@ -5,7 +5,7 @@
 
 @section scripts {
     <script>
-        setTimeout(function(){ location.href = 'clubstatus?clubid=@(Model.ClubId)'; }, @(Model.PageRefreshTime) * 1000);
+        setTimeout(function(){ location.href = 'clubstatus?clubid=@(Model.ClubId)&@(Model.ClubInfo.ClubStatusSecret)'; }, @(Model.PageRefreshTime) * 1000);
     </script>
 }
 

@@ -141,6 +141,12 @@ namespace BoatTracker.Bot.Models
         {
             var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.ClubId];
 
+            if (!BookedSchedulerCache.Instance[this.ClubId].IsInitialized)
+            {
+                this.Reservations = new JArray();
+                return $"Please wait while the BoatTracker service initializes. This page will automatically refresh in one minute.";
+            }
+
             // We only need the timezone for the user.
             this.BotUserState = await BookedSchedulerCache.Instance[this.ClubId].GetBotUserStateAsync();
 
@@ -148,7 +154,7 @@ namespace BoatTracker.Bot.Models
 
             try
             {
-                client = new BookedSchedulerLoggingClient(this.ClubId);
+                client = new BookedSchedulerLoggingClient(this.ClubId, true);
                 await client.SignIn(clubInfo.UserName, clubInfo.Password);
 
                 string message = null;
@@ -176,7 +182,7 @@ namespace BoatTracker.Bot.Models
                     }
                 }
 
-                // TOOD: figure out how to narrow this down
+                // TODO: figure out how to narrow this down
                 var reservations = await client.GetReservationsAsync(
                     start: DateTime.UtcNow - TimeSpan.FromDays(1),
                     end: DateTime.UtcNow + TimeSpan.FromDays(1));
@@ -184,6 +190,11 @@ namespace BoatTracker.Bot.Models
                 this.Reservations = reservations;
 
                 return message;
+            }
+            catch (Exception ex)
+            {
+                this.Reservations = new JArray();
+                return $"Unable to fetch reservations, currently. This page will automatically refresh in one minute. ({ex.Message})";
             }
             finally
             {
