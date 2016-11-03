@@ -55,6 +55,8 @@ namespace BoatTracker.Bot.Utils
                         Task t = this.entries[clubId].RefreshCacheAsync(failSilently: false);
                         t.Wait(TimeSpan.FromMinutes(5));
 
+                        this.entries[clubId].IsInitialized = true;
+
                         Trace.TraceInformation($"{envName} Finished BookedSchedulerCache initialization for '{clubId}'");
                         break;
                     }
@@ -142,6 +144,8 @@ namespace BoatTracker.Bot.Utils
                 this.clubId = clubId;
                 this.mapResourceIdToLastEvent = new ConcurrentDictionary<long, RfidEvent>();
             }
+
+            public bool IsInitialized { get; set; }
 
             #region Cache accessor methods
 
@@ -344,7 +348,7 @@ namespace BoatTracker.Bot.Utils
 
             public async Task RefreshCacheAsync(bool failSilently = true)
             {
-                BookedSchedulerClient client = null;
+                BookedSchedulerLoggingClient client = null;
 
                 try
                 {
@@ -360,7 +364,7 @@ namespace BoatTracker.Bot.Utils
 
                     var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.clubId];
 
-                    client = new BookedSchedulerLoggingClient(this.clubId);
+                    client = new BookedSchedulerLoggingClient(this.clubId, false);
 
                     await client.SignIn(clubInfo.UserName, clubInfo.Password);
 

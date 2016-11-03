@@ -14,6 +14,7 @@ namespace BoatTracker.BookedScheduler
         private const string UserIdHeader = "X-Booked-UserId";
 
         private Uri baseUri;
+        private TimeSpan timeout;
 
         private bool isSignedIn;
 
@@ -23,7 +24,7 @@ namespace BoatTracker.BookedScheduler
         private string sessionToken;
         private DateTime sessionExpires;
 
-        public BookedSchedulerClient(Uri baseUri)
+        public BookedSchedulerClient(Uri baseUri, TimeSpan? timeout = null)
         {
             if (baseUri == null)
             {
@@ -31,11 +32,7 @@ namespace BoatTracker.BookedScheduler
             }
 
             this.baseUri = baseUri;
-        }
-
-        public BookedSchedulerClient(string service)
-            : this(new Uri(service))
-        {
+            this.timeout = timeout ?? TimeSpan.FromSeconds(30);
         }
 
         public long UserId { get { return this.userId; } }
@@ -419,6 +416,7 @@ namespace BoatTracker.BookedScheduler
         {
             HttpClient client = new HttpClient();
             client.BaseAddress = this.baseUri;
+            client.Timeout = this.timeout;
 
             if (this.isSignedIn)
             {

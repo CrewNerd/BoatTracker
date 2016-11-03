@@ -985,7 +985,7 @@ namespace BoatTracker.Bot
 
             if (this.cachedClient == null)
             {
-                this.cachedClient = new BookedSchedulerLoggingClient(this.currentUserState.ClubId);
+                this.cachedClient = new BookedSchedulerLoggingClient(this.currentUserState.ClubId, true);
             }
 
             if (!this.cachedClient.IsSignedIn || this.cachedClient.IsSessionExpired)

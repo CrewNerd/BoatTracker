@@ -63,7 +63,7 @@ namespace BoatTrackerWebJob
         {
             var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[clubId];
 
-            var client = new BookedSchedulerLoggingClient(clubId);
+            var client = new BookedSchedulerLoggingClient(clubId, false);
 
             await client.SignIn(clubInfo.UserName, clubInfo.Password);
 
