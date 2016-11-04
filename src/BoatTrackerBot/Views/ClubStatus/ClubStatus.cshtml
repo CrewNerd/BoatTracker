@@ -107,7 +107,7 @@
                 <td>@(r.Value<string>("resourceName"))</td>
                 <td>@(r.ParticipantNames())</td>
                 <td align="center">
-                    <button type="button" class="btn btn-success" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&checkout=@(r.ReferenceNumber())'">Check Out</button>
+                    <button type="button" class="btn btn-success" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&clubStatusSecret=@(Model.ClubInfo.ClubStatusSecret)&checkout=@(r.ReferenceNumber())'">Check Out</button>
                 </td>
             </tr>
         }
@@ -143,7 +143,7 @@
                 <td>@(r.Value<string>("resourceName"))</td>
                 <td>@(r.ParticipantNames())</td>
                 <td align="center">
-                    <button type="button" class="btn btn-warning" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&checkout=@(r.ReferenceNumber())'">Check Out</button>
+                    <button type="button" class="btn btn-warning" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&clubStatusSecret=@(Model.ClubInfo.ClubStatusSecret)&checkout=@(r.ReferenceNumber())'">Check Out</button>
                 </td>
             </tr>
         }
