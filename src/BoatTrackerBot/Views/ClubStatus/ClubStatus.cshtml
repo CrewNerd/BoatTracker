@@ -70,7 +70,7 @@
                 else
                 {
                     <td align="center">
-                        <button type="button" class="btn btn-info" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&checkin=@(r.ReferenceNumber())'">Check In</button>
+                        <button type="button" class="btn btn-info" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&clubStatusSecret=@(Model.ClubInfo.ClubStatusSecret)&checkin=@(r.ReferenceNumber())'">Check In</button>
                     </td>
                 }
             </tr>
