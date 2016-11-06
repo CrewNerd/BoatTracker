@@ -527,7 +527,7 @@ namespace BoatTracker.Bot.Utils
 
             var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(mappedTz.WindowsId);
 
-            TimeSpan offset = tzInfo.GetUtcOffset(date.Date);
+            TimeSpan offset = tzInfo.GetUtcOffset(date);
 
             return offset;
         }
