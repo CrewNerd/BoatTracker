@@ -44,7 +44,8 @@ namespace BoatTracker.BookedScheduler
 
         public static int MaxParticipants(this JToken jtoken)
         {
-            return jtoken.Value<int>("maxParticipants");
+            // Default to 1 if the administrator fails to set this property
+            return jtoken.Value<int?>("maxParticipants") ?? 1;
         }
 
         #endregion
