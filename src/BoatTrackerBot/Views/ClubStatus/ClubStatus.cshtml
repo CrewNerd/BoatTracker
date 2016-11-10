@@ -3,9 +3,13 @@
 
 @model BoatTracker.Bot.Models.ClubStatus
 
+@{ 
+    var refreshUrl = "clubstatus?clubid=" + Model.ClubId + "&clubStatusSecret=" + Model.ClubInfo.ClubStatusSecret;
+}
+
 @section scripts {
     <script>
-        setTimeout(function(){ location.href = 'clubstatus?clubid=@(Model.ClubId)&clubStatusSecret=@(Model.ClubInfo.ClubStatusSecret)'; }, @(Model.PageRefreshTime) * 1000);
+        setTimeout(function(){ location.href = '@(refreshUrl)'; }, @(Model.PageRefreshTime) * 1000);
     </script>
 }
 
@@ -70,7 +74,7 @@
                 else
                 {
                     <td align="center">
-                        <button type="button" class="btn btn-info" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&clubStatusSecret=@(Model.ClubInfo.ClubStatusSecret)&checkin=@(r.ReferenceNumber())'">Check In</button>
+                        <button type="button" class="btn btn-info" onclick="location.href='@(refreshUrl)&checkin=@(r.ReferenceNumber())'">Check In</button>
                     </td>
                 }
             </tr>
@@ -107,7 +111,7 @@
                 <td>@(r.Value<string>("resourceName"))</td>
                 <td>@(r.ParticipantNames())</td>
                 <td align="center">
-                    <button type="button" class="btn btn-success" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&clubStatusSecret=@(Model.ClubInfo.ClubStatusSecret)&checkout=@(r.ReferenceNumber())'">Check Out</button>
+                    <button type="button" class="btn btn-success" onclick="location.href='@(refreshUrl)&checkout=@(r.ReferenceNumber())'">Check Out</button>
                 </td>
             </tr>
         }
@@ -143,7 +147,7 @@
                 <td>@(r.Value<string>("resourceName"))</td>
                 <td>@(r.ParticipantNames())</td>
                 <td align="center">
-                    <button type="button" class="btn btn-warning" onclick="location.href='clubstatus?clubid=@(Model.ClubId)&clubStatusSecret=@(Model.ClubInfo.ClubStatusSecret)&checkout=@(r.ReferenceNumber())'">Check Out</button>
+                    <button type="button" class="btn btn-warning" onclick="location.href='@(refreshUrl)&checkout=@(r.ReferenceNumber())'">Check Out</button>
                 </td>
             </tr>
         }
