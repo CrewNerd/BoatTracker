@@ -366,7 +366,7 @@ namespace BoatTracker.Bot.Utils
 
                     client = new BookedSchedulerLoggingClient(this.clubId, false);
 
-                    await client.SignIn(clubInfo.UserName, clubInfo.Password);
+                    await client.SignInAsync(clubInfo.UserName, clubInfo.Password);
 
                     var newResources = await client.GetResourcesAsync();
                     var users = await client.GetUsersAsync();
@@ -424,7 +424,7 @@ namespace BoatTracker.Bot.Utils
                     {
                         try
                         {
-                            await client.SignOut();
+                            await client.SignOutAsync();
                         }
                         catch (Exception)
                         {

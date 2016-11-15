@@ -8,6 +8,10 @@ using Newtonsoft.Json.Linq;
 
 namespace BoatTracker.BookedScheduler
 {
+    /// <summary>
+    /// Client API wrapper for BookedScheduler. Logging and retries are implemented in separate
+    /// class that wraps this one.
+    /// </summary>
     public class BookedSchedulerClient
     {
         private const string SessionTokenHeader = "X-Booked-SessionToken";
@@ -20,10 +24,15 @@ namespace BoatTracker.BookedScheduler
 
         private string userName;
         private string password;
-        private long userId;
+        private long sessionUserId;
         private string sessionToken;
         private DateTime sessionExpires;
 
+        /// <summary>
+        /// Initializes a new instance of the BookedSchedulerClient class.
+        /// </summary>
+        /// <param name="baseUri">The base URI for the BS instance that we target</param>
+        /// <param name="timeout">The timeout for API calls (default is 30 seconds)</param>
         public BookedSchedulerClient(Uri baseUri, TimeSpan? timeout = null)
         {
             if (baseUri == null)
@@ -35,10 +44,14 @@ namespace BoatTracker.BookedScheduler
             this.timeout = timeout ?? TimeSpan.FromSeconds(30);
         }
 
-        public long UserId { get { return this.userId; } }
-
+        /// <summary>
+        /// Gets a value indicating whether we have successfully signed in.
+        /// </summary>
         public bool IsSignedIn { get { return this.isSignedIn; } }
 
+        /// <summary>
+        /// Gets a value indicating whether the session token has expired.
+        /// </summary>
         public bool IsSessionExpired
         {
             get
@@ -49,7 +62,13 @@ namespace BoatTracker.BookedScheduler
 
         #region Authentication
 
-        public virtual async Task SignIn(string userName, string password)
+        /// <summary>
+        /// Sign into BookedScheduler.
+        /// </summary>
+        /// <param name="userName">The user name to sign in with</param>
+        /// <param name="password">The login password</param>
+        /// <returns>A task that completes when login is successful.</returns>
+        public virtual async Task SignInAsync(string userName, string password)
         {
             using (var client = this.GetHttpClient())
             {
@@ -71,7 +90,7 @@ namespace BoatTracker.BookedScheduler
 
                     this.sessionToken = resp["sessionToken"].Value<string>();
                     this.sessionExpires = DateTime.Parse(resp["sessionExpires"].Value<string>());
-                    this.userId = resp["userId"].Value<long>();
+                    this.sessionUserId = resp["userId"].Value<long>();
 
                     this.isSignedIn = true;
                 }
@@ -82,13 +101,17 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public virtual async Task SignOut()
+        /// <summary>
+        /// Sign out from BookedScheduler.
+        /// </summary>
+        /// <returns>A task that completes when the signout finishes.</returns>
+        public virtual async Task SignOutAsync()
         {
             using (var client = this.GetHttpClient())
             {
                 var httpResponse = await client.PostAsync(
                     "Authentication/SignOut",
-                    new StringContent($"{{\"userId\":\"{this.userId}\", \"sessionToken\":\"{this.sessionToken}\" }}"));
+                    new StringContent($"{{\"userId\":\"{this.sessionUserId}\", \"sessionToken\":\"{this.sessionToken}\" }}"));
 
                 if (!httpResponse.IsSuccessStatusCode)
                 {
@@ -97,7 +120,7 @@ namespace BoatTracker.BookedScheduler
 
                 this.userName = null;
                 this.password = null;
-                this.userId = 0;
+                this.sessionUserId = 0;
                 this.sessionToken = null;
                 this.sessionToken = null;
 
@@ -109,6 +132,10 @@ namespace BoatTracker.BookedScheduler
 
         #region Users
 
+        /// <summary>
+        /// Get all BookedScheduler users.
+        /// </summary>
+        /// <returns>A task returning a JArray of users (JTokens)</returns>
         public virtual async Task<JArray> GetUsersAsync()
         {
             using (var client = this.GetHttpClient())
@@ -123,6 +150,12 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
+        /// <summary>
+        /// Get the BookedScheduler object for a specific user. This returns more data
+        /// for the user than GetUsersAsync.
+        /// </summary>
+        /// <param name="userId">The id of the user to retrieve</param>
+        /// <returns>A task containing the user data (JToken)</returns>
         public virtual async Task<JToken> GetUserAsync(long userId)
         {
             using (var client = this.GetHttpClient())
@@ -139,6 +172,10 @@ namespace BoatTracker.BookedScheduler
 
         #region Resources
 
+        /// <summary>
+        /// Gets all resources for the BookedScheduler instance.
+        /// </summary>
+        /// <returns>A JArray containing all resources (JTokens)</returns>
         public virtual async Task<JArray> GetResourcesAsync()
         {
             using (var client = this.GetHttpClient())
@@ -153,6 +190,11 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
+        /// <summary>
+        /// Gets a particular resource from BookedScheduler.
+        /// </summary>
+        /// <param name="resourceId">The id of the resource to retrieve.</param>
+        /// <returns>A task containing the resource data (JToken)</returns>
         public virtual async Task<JToken> GetResourceAsync(long resourceId)
         {
             using (var client = this.GetHttpClient())
@@ -169,6 +211,10 @@ namespace BoatTracker.BookedScheduler
 
         #region Groups
 
+        /// <summary>
+        /// Gets all groups from the BookedScheduler instance.
+        /// </summary>
+        /// <returns>A JArray containing the groups (JTokens)</returns>
         public virtual async Task<JArray> GetGroupsAsync()
         {
             using (var client = this.GetHttpClient())
@@ -183,6 +229,11 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
+        /// <summary>
+        /// Gets a particular group from the BookedScheduler instance.
+        /// </summary>
+        /// <param name="groupId">The id of the group to retrieve.</param>
+        /// <returns>A task containing the group data (JToken)</returns>
         public virtual async Task<JToken> GetGroupAsync(long groupId)
         {
             using (var client = this.GetHttpClient())
@@ -199,6 +250,10 @@ namespace BoatTracker.BookedScheduler
 
         #region Schedules
 
+        /// <summary>
+        /// Get the all schedules for the BookedScheduler instance.
+        /// </summary>
+        /// <returns>A JArray of schedules (JToken)</returns>
         public virtual async Task<JArray> GetSchedulesAsync()
         {
             using (var client = this.GetHttpClient())
@@ -213,6 +268,11 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
+        /// <summary>
+        /// Gets a particular schedule from the BookedScheduler instance.
+        /// </summary>
+        /// <param name="scheduleId">The id of the schedule to retrieve.</param>
+        /// <returns>A task containing the schedule data (JToken)</returns>
         public virtual async Task<JToken> GetScheduleAsync(string scheduleId)
         {
             using (var client = this.GetHttpClient())
@@ -225,6 +285,11 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
+        /// <summary>
+        /// Gets the schedule slots for a given schedule.
+        /// </summary>
+        /// <param name="scheduleId">The id of the schedule whose slots are being retrieved.</param>
+        /// <returns>A task containing the schedule slots (JToken)</returns>
         public virtual async Task<JToken> GetScheduleSlotsAsync(string scheduleId)
         {
             using (var client = this.GetHttpClient())
@@ -241,7 +306,19 @@ namespace BoatTracker.BookedScheduler
 
         #region Reservations
 
-        public virtual async Task<JArray> GetReservationsAsync(long? userId = null, long? resourceId = null, DateTime? start = null, DateTime? end = null)
+        /// <summary>
+        /// Gets reservations from the BookedScheduler instance based on a set of query parameters.
+        /// </summary>
+        /// <param name="userId">If not null, get reservations owned by the given user id.</param>
+        /// <param name="resourceId">If not null, get reservations for the given resource id.</param>
+        /// <param name="start">If not null, get reservations starting after the given DateTime.</param>
+        /// <param name="end">If not null, get reservations ending before the given DateTime.</param>
+        /// <returns>A task containing a JArray of reservations (JToken)</returns>
+        public virtual async Task<JArray> GetReservationsAsync(
+            long? userId = null,
+            long? resourceId = null,
+            DateTime? start = null,
+            DateTime? end = null)
         {
             using (var client = this.GetHttpClient())
             {
@@ -315,6 +392,11 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
+        /// <summary>
+        /// Gets a single reservation from the BookedScheduler instance.
+        /// </summary>
+        /// <param name="referenceNumber">The reference number of the reservation to retrieve.</param>
+        /// <returns>A task containing the reservation (JToken)</returns>
         public virtual async Task<JToken> GetReservationAsync(string referenceNumber)
         {
             using (var client = this.GetHttpClient())
@@ -327,6 +409,11 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
+        /// <summary>
+        /// Check in for a reservation.
+        /// </summary>
+        /// <param name="referenceNumber">The reference number of the reservation to be checked in.</param>
+        /// <returns>A task containing the updated reservation data.</returns>
         public virtual async Task<JToken> CheckInReservationAsync(string referenceNumber)
         {
             using (var client = this.GetHttpClient())
@@ -339,6 +426,11 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
+        /// <summary>
+        /// Check out of a reservation.
+        /// </summary>
+        /// <param name="referenceNumber">The reference number of the reservation to be checked out.</param>
+        /// <returns>A task containing the updated reservation data.</returns>
         public virtual async Task<JToken> CheckOutReservationAsync(string referenceNumber)
         {
             using (var client = this.GetHttpClient())
@@ -351,11 +443,21 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
+        /// <summary>
+        /// Gets all reservations for a particular user.
+        /// </summary>
+        /// <param name="userId">The user whose reservations should be fetched.</param>
+        /// <returns>A JArray containing the user's reservations.</returns>
         public virtual async Task<JArray> GetReservationsForUserAsync(long userId)
         {
             return await this.GetReservationsAsync(userId: userId);
         }
 
+        /// <summary>
+        /// Deletes a particular reservation.
+        /// </summary>
+        /// <param name="referenceNumber">The reference number of the reservation to be deleted.</param>
+        /// <returns>A task that completes when the reservation is deleted.</returns>
         public virtual async Task DeleteReservationAsync(string referenceNumber)
         {
             using (var client = this.GetHttpClient())
@@ -366,7 +468,25 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
-        public virtual async Task<JToken> CreateReservationAsync(JToken boat, long userId, DateTimeOffset start, TimeSpan duration, string title = null, string description = null, long? secondUserId = null)
+        /// <summary>
+        /// Creates a new reservation.
+        /// </summary>
+        /// <param name="boat">The id of the boat to be reserved.</param>
+        /// <param name="userId">The user creating the reservation.</param>
+        /// <param name="start">The reservation start time.</param>
+        /// <param name="duration">The reservation duration.</param>
+        /// <param name="title">An optional title for the reservation.</param>
+        /// <param name="description">An optional description for the reservation.</param>
+        /// <param name="secondUserId">An optional second user for pairs and doubles.</param>
+        /// <returns>A task containing the data for the created reservation.</returns>
+        public virtual async Task<JToken> CreateReservationAsync(
+            JToken boat,
+            long userId,
+            DateTimeOffset start,
+            TimeSpan duration,
+            string title = null,
+            string description = null,
+            long? secondUserId = null)
         {
             using (var client = this.GetHttpClient())
             {
@@ -412,6 +532,10 @@ namespace BoatTracker.BookedScheduler
 
         #region Helper methods
 
+        /// <summary>
+        /// Gets an HTTP client object with the proper timeout, base URL, and headers.
+        /// </summary>
+        /// <returns>The initialized HttpClient.</returns>
         private HttpClient GetHttpClient()
         {
             HttpClient client = new HttpClient();
@@ -421,12 +545,17 @@ namespace BoatTracker.BookedScheduler
             if (this.isSignedIn)
             {
                 client.DefaultRequestHeaders.Add(SessionTokenHeader, this.sessionToken);
-                client.DefaultRequestHeaders.Add(UserIdHeader, this.userId.ToString());
+                client.DefaultRequestHeaders.Add(UserIdHeader, this.sessionUserId.ToString());
             }
 
             return client;
         }
 
+        /// <summary>
+        /// Checks the response of an HTTP call. Throws an exception if an error is detected.
+        /// </summary>
+        /// <param name="response">The response to be checked.</param>
+        /// <returns>A task that completes when the response has been checked.</returns>
         private async Task CheckResponseAsync(HttpResponseMessage response)
         {
             if (!response.IsSuccessStatusCode)

@@ -990,7 +990,7 @@ namespace BoatTracker.Bot
 
             if (!this.cachedClient.IsSignedIn || this.cachedClient.IsSessionExpired)
             {
-                await this.cachedClient.SignIn(clubInfo.UserName, clubInfo.Password);
+                await this.cachedClient.SignInAsync(clubInfo.UserName, clubInfo.Password);
             }
 
             return this.cachedClient;

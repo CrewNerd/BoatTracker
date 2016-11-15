@@ -111,6 +111,9 @@ namespace BoatTracker.Bot.Configuration
 
         #region Helpers
 
+        /// <summary>
+        /// Gets the earliest reservation time as a TimeSpan.
+        /// </summary>
         [JsonIgnore]
         public TimeSpan EarliestUseTime
         {
@@ -120,6 +123,9 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        /// <summary>
+        /// Gets the latest reservation time as a TimeSpan.
+        /// </summary>
         [JsonIgnore]
         public TimeSpan LatestUseTime
         {
@@ -129,6 +135,9 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        /// <summary>
+        /// Gets the minimum reservation duration as a TimeSpan.
+        /// </summary>
         [JsonIgnore]
         public TimeSpan MinimumDuration
         {
@@ -138,6 +147,9 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        /// <summary>
+        /// Gets the maximum reservation duration as a TimeSpan.
+        /// </summary>
         [JsonIgnore]
         public TimeSpan MaximumDuration
         {

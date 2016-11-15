@@ -67,20 +67,14 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
-        public override bool IsLocal
-        {
-            get
-            {
-                return true;
-            }
-        }
+        /// <summary>
+        /// Gets a value indicating whether this is the local environment.
+        /// </summary>
+        public override bool IsLocal { get { return true; } }
 
-        public override string Name
-        {
-            get
-            {
-                return "LOCAL";
-            }
-        }
+        /// <summary>
+        /// Gets the short name of the environment.
+        /// </summary>
+        public override string Name { get { return "LOCAL"; } }
     }
 }
