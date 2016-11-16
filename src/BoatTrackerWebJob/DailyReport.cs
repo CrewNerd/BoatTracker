@@ -20,7 +20,9 @@ namespace BoatTrackerWebJob
     public class DailyReport
     {
         [NoAutomaticTrigger]
-        public static void SendDailyReport([Blob("container/dailyreport.txt")] TextWriter log)
+        public static void SendDailyReport(
+            string logName,
+            [Blob("container/{logName}.txt")] TextWriter log)
         {
             var env = EnvironmentDefinition.Instance;
 
@@ -56,7 +58,7 @@ namespace BoatTrackerWebJob
                 }
             }
 
-            log.WriteLine($"Daily Report WebJob complete at {DateTime.UtcNow.ToString()}");
+            log.WriteLine($"{env.Name}: Daily Report WebJob complete at {DateTime.UtcNow.ToString()}");
         }
 
         private static async Task RunDailyReport(string clubId, TextWriter log)

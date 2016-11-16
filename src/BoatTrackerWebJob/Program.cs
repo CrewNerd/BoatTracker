@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Azure.WebJobs;
+using BoatTracker.Bot.Configuration;
 
 namespace BoatTrackerWebJob
 {
@@ -10,8 +11,18 @@ namespace BoatTrackerWebJob
         // AzureWebJobsDashboard and AzureWebJobsStorage
         static void Main()
         {
+            var env = EnvironmentDefinition.Instance;
+            var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd_HH:MM");
+
+            var logName = $"{env.Name}_report_{timestamp}";
+
             var host = new JobHost();
-            host.Call(typeof(DailyReport).GetMethod("SendDailyReport"));
+            host.Call(
+                typeof(DailyReport).GetMethod("SendDailyReport"),
+                new {
+                    logName = logName,
+                    log = $"container/{logName}"
+                });
 
             // We refresh the bot caches every two hours for now. The bots will automatically
             // refresh on their own every 8 hours if the webjob fails to run for some reason.
@@ -19,7 +30,13 @@ namespace BoatTrackerWebJob
 
             if (DateTime.UtcNow.Hour % 2 == 0)
             {
-                host.Call(typeof(RefreshCaches).GetMethod("RefreshBotCaches"));
+                logName = $"{env.Name}_refresh_{timestamp}";
+                host.Call(
+                    typeof(RefreshCaches).GetMethod("RefreshBotCaches"),
+                    new {
+                        logName = logName,
+                        log = $"container/{logName}"
+                    });
             }
         }
     }

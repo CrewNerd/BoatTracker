@@ -16,7 +16,9 @@ namespace BoatTrackerWebJob
         /// </summary>
         /// <param name="log">The writer for logging.</param>
         [NoAutomaticTrigger]
-        public static void RefreshBotCaches([Blob("container/cacherefresh.txt")] TextWriter log)
+        public static void RefreshBotCaches(
+            string logName,
+            [Blob("container/{logName}.txt")] TextWriter log)
         {
             var env = EnvironmentDefinition.Instance;
 
@@ -47,7 +49,7 @@ namespace BoatTrackerWebJob
                 log.WriteLine($"Finished cache refresh for club: {clubId} at {DateTime.UtcNow.ToString()}");
             }
 
-            log.WriteLine($"Cache Refresh WebJob complete at {DateTime.UtcNow.ToString()}");
+            log.WriteLine($"{env.Name}: Cache Refresh WebJob complete at {DateTime.UtcNow.ToString()}");
         }
 
         /// <summary>

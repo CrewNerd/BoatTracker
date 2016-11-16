@@ -81,7 +81,15 @@ namespace BoatTracker.BookedScheduler
                     throw new HttpRequestException($"SignIn failed: {httpResponse.ReasonPhrase}");
                 }
 
-                var resp = JToken.Parse(await httpResponse.Content.ReadAsStringAsync());
+                var respBody = await httpResponse.Content.ReadAsStringAsync();
+
+                // Detect the common case where the API just hasn't been enabled on the site.
+                if (respBody.Contains("API") && respBody.Contains("disabled"))
+                {
+                    throw new HttpRequestException($"Authentication failed: the API is currently disabled.");
+                }
+
+                var resp = JToken.Parse(respBody);
 
                 if (resp["isAuthenticated"].Value<bool>())
                 {
