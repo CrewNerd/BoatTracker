@@ -20,7 +20,9 @@ namespace BoatTrackerWebJob
     public class DailyReport
     {
         [NoAutomaticTrigger]
-        public static void SendDailyReport([Blob("container/dailyreport.txt")] TextWriter log)
+        public static void SendDailyReport(
+            string logName,
+            [Blob("container/{logName}.txt")] TextWriter log)
         {
             var env = EnvironmentDefinition.Instance;
 
@@ -56,7 +58,7 @@ namespace BoatTrackerWebJob
                 }
             }
 
-            log.WriteLine($"Daily Report WebJob complete at {DateTime.UtcNow.ToString()}");
+            log.WriteLine($"{env.Name}: Daily Report WebJob complete at {DateTime.UtcNow.ToString()}");
         }
 
         private static async Task RunDailyReport(string clubId, TextWriter log)
@@ -65,7 +67,7 @@ namespace BoatTrackerWebJob
 
             var client = new BookedSchedulerLoggingClient(clubId, false);
 
-            await client.SignIn(clubInfo.UserName, clubInfo.Password);
+            await client.SignInAsync(clubInfo.UserName, clubInfo.Password);
 
             // Get all reservations for the last day
             var reservations = await client.GetReservationsAsync(start: DateTime.UtcNow - TimeSpan.FromDays(1), end: DateTime.UtcNow);
@@ -163,109 +165,19 @@ namespace BoatTrackerWebJob
                 }
             }
 
-            await client.SignOut();
+            await client.SignOutAsync();
 
             var sbMessage = new StringBuilder();
 
             sbMessage.AppendLine($"<h2>BoatTracker Daily Report for: {clubInfo.Name}</h2>");
             sbMessage.AppendLine($"<p>Total reservations: {reservations.Count}</p>");
 
-            if (compliant.Count > 0)
-            {
-                sbMessage.AppendLine($"<p>Compliant reservations ({compliant.Count}):<br/>");
-                foreach (var s in compliant)
-                {
-                    sbMessage.AppendLine(s);
-                    sbMessage.AppendLine("<br/>");
-                }
-
-                sbMessage.AppendLine("</p>");
-            }
-            else
-            {
-                sbMessage.AppendLine("<p>No compliant reservations.</p>");
-            }
-
-            if (abandoned.Count > 0)
-            {
-                sbMessage.AppendLine($"<p>Unused reservations ({abandoned.Count}):<br/>");
-                foreach (var s in abandoned)
-                {
-                    sbMessage.AppendLine(s);
-                    sbMessage.AppendLine("<br/>");
-                }
-
-                sbMessage.AppendLine("</p>");
-            }
-            else
-            {
-                sbMessage.AppendLine("<p>No unused reservations.</p>");
-            }
-
-            if (noCheckOut.Count > 0)
-            {
-                sbMessage.AppendLine($"<p>Unclosed reservations ({noCheckOut.Count}):<br/>");
-                foreach (var s in noCheckOut)
-                {
-                    sbMessage.AppendLine(s);
-                    sbMessage.AppendLine("<br/>");
-
-                }
-
-                sbMessage.AppendLine("</p>");
-            }
-            else
-            {
-                sbMessage.AppendLine("<p>No unclosed reservations.</p>");
-            }
-
-            if (unknownParticipants.Count > 0)
-            {
-                sbMessage.AppendLine($"<p>Incomplete roster ({unknownParticipants.Count}):<br/>");
-                foreach (var s in unknownParticipants)
-                {
-                    sbMessage.AppendLine(s);
-                    sbMessage.AppendLine("<br/>");
-                }
-
-                sbMessage.AppendLine("</p>");
-            }
-            else
-            {
-                sbMessage.AppendLine("<p>No incomplete rosters.</p>");
-            }
-
-            if (withGuest.Count > 0)
-            {
-                sbMessage.AppendLine($"<p>Guest rowers ({withGuest.Count}):<br/>");
-                foreach (var s in withGuest)
-                {
-                    sbMessage.AppendLine(s);
-                    sbMessage.AppendLine("<br/>");
-                }
-
-                sbMessage.AppendLine("</p>");
-            }
-            else
-            {
-                sbMessage.AppendLine("<p>No guest rowers.</p>");
-            }
-
-            if (upcomingWithGuest.Count > 0)
-            {
-                sbMessage.AppendLine($"<p>Upcoming guest rowers ({upcomingWithGuest.Count}):<br/>");
-                foreach (var s in upcomingWithGuest)
-                {
-                    sbMessage.AppendLine(s);
-                    sbMessage.AppendLine("<br/>");
-                }
-
-                sbMessage.AppendLine("</p>");
-            }
-            else
-            {
-                sbMessage.AppendLine("<p>No upcoming guest rowers.</p>");
-            }
+            AddReservationsToReport(sbMessage, compliant, "Compliant reservations");
+            AddReservationsToReport(sbMessage, abandoned, "Unused reservations");
+            AddReservationsToReport(sbMessage, noCheckOut, "Unclosed reservations");
+            AddReservationsToReport(sbMessage, unknownParticipants, "Incomplete rosters");
+            AddReservationsToReport(sbMessage, withGuest, "Guest rowers");
+            AddReservationsToReport(sbMessage, upcomingWithGuest, "Upcoming guest rowers");
 
             log.Write(sbMessage.ToString());
 
@@ -274,6 +186,25 @@ namespace BoatTrackerWebJob
                 clubInfo,
                 $"BoatTracker daily report for {clubInfo.Name}" + (EnvironmentDefinition.Instance.IsDevelopment ? " (DEV)" : ""),
                 sbMessage.ToString());
+        }
+
+        private static void AddReservationsToReport(StringBuilder sb, List<string> reservationList, string listName)
+        {
+            if (reservationList.Count > 0)
+            {
+                sb.AppendLine($"<p>{listName} ({reservationList.Count}):<br/>");
+                foreach (var s in reservationList)
+                {
+                    sb.AppendLine(s);
+                    sb.AppendLine("<br/>");
+                }
+
+                sb.AppendLine("</p>");
+            }
+            else
+            {
+                sb.AppendLine($"<p>No {listName.ToLower()}.</p>");
+            }
         }
 
         private static async Task SendDailyReportEmail(TextWriter log, ClubInfo clubInfo, string subject, string body)

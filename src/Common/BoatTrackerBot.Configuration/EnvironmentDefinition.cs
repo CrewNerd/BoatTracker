@@ -23,11 +23,17 @@ namespace BoatTracker.Bot.Configuration
         private const string SecurityKeyKey = "SecurityKey";
         private const string ServiceHostKey = "ServiceHost";
 
+        /// <summary>
+        /// Initialize the singleton instance of the environment definition.
+        /// </summary>
         static EnvironmentDefinition()
         {
             Instance = CreateFromEnvironment();
         }
 
+        /// <summary>
+        /// Gets the singleton instance of the environment definition.
+        /// </summary>
         public static EnvironmentDefinition Instance { get; private set; }
 
         /// <summary>
@@ -63,6 +69,9 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        /// <summary>
+        /// Gets the security key (a shared secret) used to authorize calls from WebJobs to the service.
+        /// </summary>
         public virtual string SecurityKey
         {
             get
@@ -71,6 +80,10 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        /// <summary>
+        /// Gets the name of the boattracker service for this deployment slot. Used by WebJobs
+        /// to call the service.
+        /// </summary>
         public virtual string ServiceHost
         {
             get
@@ -79,12 +92,24 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether we are running on the developer's local machine.
+        /// </summary>
         public virtual bool IsLocal { get { return false; } }
 
+        /// <summary>
+        /// Gets a value indicating whether this is the development environment.
+        /// </summary>
         public virtual bool IsDevelopment { get { return false; } }
 
+        /// <summary>
+        /// Gets a value indicating whether this is the production (or staging) environment.
+        /// </summary>
         public virtual bool IsProduction { get { return false; } }
 
+        /// <summary>
+        /// Gets the short name of the environment.
+        /// </summary>
         public abstract string Name { get; }
 
         /// <summary>
@@ -180,7 +205,7 @@ namespace BoatTracker.Bot.Configuration
                 }
                 catch (Exception ex)
                 {
-                    throw new ApplicationException("No configuration file found", ex);
+                    throw new ApplicationException("No configuration file found or the configuration is invalid.", ex);
                 }
             }
 

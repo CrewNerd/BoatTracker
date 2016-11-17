@@ -1,32 +1,61 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using Newtonsoft.Json.Linq;
 
 namespace BoatTracker.BookedScheduler
 {
+    /// <summary>
+    /// Extension methods for JToken to access properties for reservations, users, resources, and
+    /// so on. We did this in lieu of creating a full object model for BookedScheduler but we may
+    /// want to revisit that decision at some point.
+    /// </summary>
     public static class JTokenExtensions
     {
+        private const string CheckInDateKey = "checkInDate";
+        private const string CheckOutDateKey = "checkOutDate";
+        private const string CustomAttributesKey = "customAttributes";
+        private const string EmailAddressKey = "emailAddress";
+        private const string EndDateKey = "endDate";
+        private const string EndDateTimeKey = "endDateTime";
+        private const string FirstNameKey = "firstName";
+        private const string IdKey = "id";
+        private const string InvitedGuestsKey = "invitedGuests";
+        private const string LabelKey = "label";
+        private const string LastNameKey = "lastName";
+        private const string MaxParticipantsKey = "maxParticipants";
+        private const string NameKey = "name";
+        private const string ParticipatingGuestsKey = "participatingGuests";
+        private const string ParticipantsKey = "participants";
+        private const string ReferenceNumberKey = "referenceNumber";
+        private const string ResourceIdKey = "resourceId";
+        private const string ResourceNameKey = "resourceName";
+        private const string StartDateKey = "startDate";
+        private const string StartDateTimeKey = "startDateTime";
+        private const string TimezoneKey = "timezone";
+        private const string UserIdKey = "userId";
+        private const string UserNameKey = "userName";
+        private const string ValueKey = "value";
+
         #region Resource helpers
 
         public static long ResourceId(this JToken jtoken)
         {
-            return jtoken.Value<long>("resourceId");
+            return jtoken.Value<long>(ResourceIdKey);
         }
 
         public static string Name(this JToken jtoken)
         {
-            return jtoken.Value<string>("name");
+            return jtoken.Value<string>(NameKey);
         }
 
         public static IEnumerable<string> BoatTagIds(this JToken jtoken)
         {
             var boatTagIds = jtoken
-                .Value<JArray>("customAttributes")
-                .Where(x => x.Value<string>("label").StartsWith("RFID Tag"))
-                .Select(t => t.Value<string>("value") ?? string.Empty);
+                .Value<JArray>(CustomAttributesKey)
+                .Where(x => x.Value<string>(LabelKey).StartsWith("RFID Tag"))
+                .Select(t => t.Value<string>(ValueKey) ?? string.Empty);
 
             return boatTagIds;
         }
@@ -34,9 +63,9 @@ namespace BoatTracker.BookedScheduler
         public static bool IsPrivate(this JToken jtoken)
         {
             var isPrivate = jtoken
-                .Value<JArray>("customAttributes")
-                .Where(x => x.Value<string>("label").StartsWith("Private"))
-                .Select(t => t.Value<string>("value"))
+                .Value<JArray>(CustomAttributesKey)
+                .Where(x => x.Value<string>(LabelKey).StartsWith("Private"))
+                .Select(t => t.Value<string>(ValueKey))
                 .FirstOrDefault();
 
             return isPrivate != null && isPrivate != "0";
@@ -45,7 +74,7 @@ namespace BoatTracker.BookedScheduler
         public static int MaxParticipants(this JToken jtoken)
         {
             // Default to 1 if the administrator fails to set this property
-            return jtoken.Value<int?>("maxParticipants") ?? 1;
+            return jtoken.Value<int?>(MaxParticipantsKey) ?? 1;
         }
 
         #endregion
@@ -55,11 +84,11 @@ namespace BoatTracker.BookedScheduler
         public static DateTime StartDate(this JToken jtoken)
         {
             // NOTE: Look for either startDateTime or startDate to work around a BookedScheduler problem
-            DateTime? dateTime = jtoken.Value<DateTime?>("startDateTime");
+            DateTime? dateTime = jtoken.Value<DateTime?>(StartDateTimeKey);
 
             if (!dateTime.HasValue)
             {
-                dateTime = jtoken.Value<DateTime?>("startDate");
+                dateTime = jtoken.Value<DateTime?>(StartDateKey);
             }
 
             if (!dateTime.HasValue)
@@ -73,11 +102,11 @@ namespace BoatTracker.BookedScheduler
         public static DateTime EndDate(this JToken jtoken)
         {
             // NOTE: Look for either startDateTime or startDate to work around a BookedScheduler problem
-            DateTime? dateTime = jtoken.Value<DateTime?>("endDateTime");
+            DateTime? dateTime = jtoken.Value<DateTime?>(EndDateTimeKey);
 
             if (!dateTime.HasValue)
             {
-                dateTime = jtoken.Value<DateTime?>("endDate");
+                dateTime = jtoken.Value<DateTime?>(EndDateKey);
             }
 
             if (!dateTime.HasValue)
@@ -92,9 +121,9 @@ namespace BoatTracker.BookedScheduler
         {
             DateTime? checkInDate = null;
 
-            if (!string.IsNullOrEmpty(jtoken.Value<string>("checkInDate")))
+            if (!string.IsNullOrEmpty(jtoken.Value<string>(CheckInDateKey)))
             {
-                checkInDate = jtoken.Value<DateTime>("checkInDate");
+                checkInDate = jtoken.Value<DateTime>(CheckInDateKey);
             }
 
             return checkInDate;
@@ -104,9 +133,9 @@ namespace BoatTracker.BookedScheduler
         {
             DateTime? checkOutDate = null;
 
-            if (!string.IsNullOrEmpty(jtoken.Value<string>("checkOutDate")))
+            if (!string.IsNullOrEmpty(jtoken.Value<string>(CheckOutDateKey)))
             {
-                checkOutDate = jtoken.Value<DateTime>("checkOutDate");
+                checkOutDate = jtoken.Value<DateTime>(CheckOutDateKey);
             }
 
             return checkOutDate;
@@ -114,7 +143,7 @@ namespace BoatTracker.BookedScheduler
 
         public static string ReferenceNumber(this JToken jtoken)
         {
-            return jtoken.Value<string>("referenceNumber");
+            return jtoken.Value<string>(ReferenceNumberKey);
         }
 
         public static string ParticipantNames(this JToken jtoken, bool includeOwner = true)
@@ -123,12 +152,12 @@ namespace BoatTracker.BookedScheduler
 
             if (includeOwner)
             {
-                participantNames.Add($"{jtoken.Value<string>("firstName")} {jtoken.Value<string>("lastName")}");
+                participantNames.Add($"{jtoken.Value<string>(FirstNameKey)} {jtoken.Value<string>(LastNameKey)}");
             }
 
-            if (jtoken["participants"] is JObject)
+            if (jtoken[ParticipantsKey] is JObject)
             {
-                var participants = (JObject)jtoken["participants"];
+                var participants = (JObject)jtoken[ParticipantsKey];
 
                 foreach (var kv in participants)
                 {
@@ -136,13 +165,13 @@ namespace BoatTracker.BookedScheduler
                 }
             }
 
-            var invitedGuests = jtoken["invitedGuests"] as JArray;
+            var invitedGuests = jtoken[InvitedGuestsKey] as JArray;
             if (invitedGuests != null)
             {
                 participantNames.AddRange(invitedGuests.Select(t => t.Value<string>()).ToList());
             }
 
-            var participatingGuests = jtoken["participatingGuests"] as JArray;
+            var participatingGuests = jtoken[ParticipatingGuestsKey] as JArray;
             if (participatingGuests != null)
             {
                 participantNames.AddRange(participatingGuests.Select(t => t.Value<string>()).ToList());
@@ -153,12 +182,12 @@ namespace BoatTracker.BookedScheduler
 
         public static string ResourceName(this JToken jtoken)
         {
-            return jtoken.Value<string>("resourceName");
+            return jtoken.Value<string>(ResourceNameKey);
         }
 
         public static long UserId(this JToken jtoken)
         {
-            return jtoken.Value<long>("userId");
+            return jtoken.Value<long>(UserIdKey);
         }
 
         #endregion
@@ -167,47 +196,47 @@ namespace BoatTracker.BookedScheduler
 
         public static long Id(this JToken jtoken)
         {
-            return jtoken.Value<long>("id");
+            return jtoken.Value<long>(IdKey);
         }
 
         public static string UserName(this JToken jtoken)
         {
-            return jtoken.Value<string>("userName");
+            return jtoken.Value<string>(UserNameKey);
         }
 
         public static string FirstName(this JToken jtoken)
         {
-            return jtoken.Value<string>("firstName");
+            return jtoken.Value<string>(FirstNameKey);
         }
 
         public static string LastName(this JToken jtoken)
         {
-            return jtoken.Value<string>("lastName");
+            return jtoken.Value<string>(LastNameKey);
         }
 
         public static string FullName(this JToken jtoken)
         {
-            return $"{jtoken.Value<string>("firstName")} {jtoken.Value<string>("lastName")}";
+            return $"{jtoken.Value<string>(FirstNameKey)} {jtoken.Value<string>(LastNameKey)}";
         }
 
         public static string EmailAddress(this JToken jtoken)
         {
-            return jtoken.Value<string>("emailAddress");
+            return jtoken.Value<string>(EmailAddressKey);
         }
 
         public static string Timezone(this JToken jtoken)
         {
-            return jtoken.Value<string>("timezone");
+            return jtoken.Value<string>(TimezoneKey);
         }
 
         public static string MakerChannelKey(this JToken jtoken)
         {
             var jTokenChannelKey = jtoken
-                .Value<JArray>("customAttributes")
-                .Where(x => x.Value<string>("label").StartsWith("IFTTT"))
+                .Value<JArray>(CustomAttributesKey)
+                .Where(x => x.Value<string>(LabelKey).StartsWith("IFTTT"))
                 .FirstOrDefault();
 
-            return jTokenChannelKey?.Value<string>("value") ?? string.Empty;
+            return jTokenChannelKey?.Value<string>(ValueKey) ?? string.Empty;
         }
 
         #endregion

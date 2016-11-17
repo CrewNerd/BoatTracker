@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 using Microsoft.ApplicationInsights;
@@ -10,6 +11,9 @@ using BoatTracker.Bot.Configuration;
 
 namespace BoatTracker.BookedScheduler
 {
+    /// <summary>
+    /// Wrapper class for BookedSchedulerClient that adds logging and retries.
+    /// </summary>
     public class BookedSchedulerLoggingClient : BookedSchedulerClient, ITransientErrorDetectionStrategy
     {
         private string dependencyName;
@@ -26,7 +30,7 @@ namespace BoatTracker.BookedScheduler
                   EnvironmentDefinition.Instance.MapClubIdToClubInfo[clubId].Url,
                   TimeSpan.FromSeconds(isInteractive ? 10 : 30))
         {
-            this.dependencyName = "BS_" + clubId;
+            this.dependencyName = "bs_" + clubId;
             this.telemetryClient = new TelemetryClient();
 
             if (isInteractive)
@@ -74,6 +78,17 @@ namespace BoatTracker.BookedScheduler
             return this.retryPolicy.ExecuteAction(() => this.DoCallWithLogging(name, func));
         }
 
+        /// <summary>
+        /// Convert a member name to the form we prefer for logging. Remove the trailing "Async"
+        /// if present, and convert to camel-casing.
+        /// </summary>
+        /// <param name="caller">The calling method name</param>
+        /// <returns>The caller name adjusted for logging.</returns>
+        private string FixName([CallerMemberName] string caller = null)
+        {
+            return char.ToLower(caller[0]) + caller.Replace("Async", string.Empty).Substring(1);
+        }
+
         public override Task<JToken> CreateReservationAsync(
             JToken boat,
             long userId,
@@ -84,127 +99,127 @@ namespace BoatTracker.BookedScheduler
             long? secondUserId = null)
         {
             return this.DoCallWithRetry(
-                "createReservation",
+                this.FixName(),
                 () => base.CreateReservationAsync(boat, userId, start, duration, title, description, secondUserId));
         }
 
         public override Task DeleteReservationAsync(string referenceNumber)
         {
             return this.DoCallWithRetry(
-                "deleteReservation",
+                this.FixName(),
                 () => base.DeleteReservationAsync(referenceNumber));
         }
 
         public override Task<JToken> GetGroupAsync(long groupId)
         {
             return this.DoCallWithRetry(
-                "getGroup",
+                this.FixName(),
                 () => base.GetGroupAsync(groupId));
         }
 
         public override Task<JArray> GetGroupsAsync()
         {
             return this.DoCallWithRetry(
-                "getGroups",
+                this.FixName(),
                 () => base.GetGroupsAsync());
         }
 
         public override Task<JToken> GetReservationAsync(string referenceNumber)
         {
             return this.DoCallWithRetry(
-                "getReservation",
+                this.FixName(),
                 () => base.GetReservationAsync(referenceNumber));
         }
 
         public override Task<JToken> CheckInReservationAsync(string referenceNumber)
         {
             return this.DoCallWithRetry(
-                "checkinReservation",
+                this.FixName(),
                 () => base.CheckInReservationAsync(referenceNumber));
         }
 
         public override Task<JToken> CheckOutReservationAsync(string referenceNumber)
         {
             return this.DoCallWithRetry(
-                "checkoutReservation",
+                this.FixName(),
                 () => base.CheckOutReservationAsync(referenceNumber));
         }
 
         public override Task<JArray> GetReservationsAsync(long? userId = null, long? resourceId = null, DateTime? start = null, DateTime? end = null)
         {
             return this.DoCallWithRetry(
-                "getReservations",
+                this.FixName(),
                 () => base.GetReservationsAsync(userId, resourceId, start, end));
         }
 
         public override Task<JArray> GetReservationsForUserAsync(long userId)
         {
             return this.DoCallWithRetry(
-                "getReservationsForUser",
+                this.FixName(),
                 () => base.GetReservationsForUserAsync(userId));
         }
 
         public override Task<JToken> GetResourceAsync(long resourceId)
         {
             return this.DoCallWithRetry(
-                "getResource",
+                this.FixName(),
                 () => base.GetResourceAsync(resourceId));
         }
 
         public override Task<JArray> GetResourcesAsync()
         {
             return this.DoCallWithRetry(
-                "getResources",
+                this.FixName(),
                 () => base.GetResourcesAsync());
         }
 
         public override Task<JToken> GetScheduleAsync(string scheduleId)
         {
             return this.DoCallWithRetry(
-                "getSchedule",
+                this.FixName(),
                 () => base.GetScheduleAsync(scheduleId));
         }
 
         public override Task<JArray> GetSchedulesAsync()
         {
             return this.DoCallWithRetry(
-                "getSchedules",
+                this.FixName(),
                 () => base.GetSchedulesAsync());
         }
 
         public override Task<JToken> GetScheduleSlotsAsync(string scheduleId)
         {
             return this.DoCallWithRetry(
-                "getScheduleSlots",
+                this.FixName(),
                 () => base.GetScheduleSlotsAsync(scheduleId));
         }
 
         public override Task<JToken> GetUserAsync(long userId)
         {
             return this.DoCallWithRetry(
-                "getUser",
+                this.FixName(),
                 () => base.GetUserAsync(userId));
         }
 
         public override Task<JArray> GetUsersAsync()
         {
             return this.DoCallWithRetry(
-                "getUsers",
+                this.FixName(),
                 () => base.GetUsersAsync());
         }
 
-        public override Task SignIn(string userName, string password)
+        public override Task SignInAsync(string userName, string password)
         {
             return this.DoCallWithRetry(
-                "signIn",
-                () => base.SignIn(userName, password));
+                this.FixName(),
+                () => base.SignInAsync(userName, password));
         }
 
-        public override Task SignOut()
+        public override Task SignOutAsync()
         {
             return this.DoCallWithRetry(
-                "signOut",
-                () => base.SignOut());
+                this.FixName(),
+                () => base.SignOutAsync());
         }
     }
 }

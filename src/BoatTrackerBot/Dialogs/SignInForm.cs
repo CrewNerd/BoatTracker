@@ -114,7 +114,7 @@ namespace BoatTracker.Bot
 
             try
             {
-                await client.SignIn(state.UserName, password);
+                await client.SignInAsync(state.UserName, password);
             }
             catch (HttpRequestException)
             {
@@ -131,7 +131,7 @@ namespace BoatTracker.Bot
                 {
                     try
                     {
-                        await client.SignOut();
+                        await client.SignOutAsync();
                     }
                     catch (Exception)
                     {

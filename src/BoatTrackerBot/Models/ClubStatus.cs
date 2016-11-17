@@ -12,19 +12,38 @@ using Newtonsoft.Json.Linq;
 
 namespace BoatTracker.Bot.Models
 {
+    /// <summary>
+    /// Model object for the Club Status page view.
+    /// </summary>
     public class ClubStatus
     {
+        /// <summary>
+        /// Initializes a new instance of the ClubStatus class.
+        /// </summary>
+        /// <param name="clubId">The ID of the club.</param>
         public ClubStatus(string clubId)
         {
             this.ClubId = clubId;
         }
 
+        /// <summary>
+        /// Gets the club id.
+        /// </summary>
         public string ClubId { get; private set; }
 
+        /// <summary>
+        /// Gets the set of reservations to be filtered down for the status view.
+        /// </summary>
         public JArray Reservations { get; private set; }
 
+        /// <summary>
+        /// Gets the UserState object for the bot user (for timezone calculations).
+        /// </summary>
         public UserState BotUserState { get; private set; }
 
+        /// <summary>
+        /// Gets the configuration data for the club.
+        /// </summary>
         public ClubInfo ClubInfo
         {
             get
@@ -33,6 +52,9 @@ namespace BoatTracker.Bot.Models
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether we should use the fast page refresh interval.
+        /// </summary>
         private bool UseFasterPageRefresh
         {
             get
@@ -48,6 +70,9 @@ namespace BoatTracker.Bot.Models
             }
         }
 
+        /// <summary>
+        /// Gets the page refresh time in seconds.
+        /// </summary>
         public string PageRefreshTime
         {
             get
@@ -68,6 +93,9 @@ namespace BoatTracker.Bot.Models
             }
         }
 
+        /// <summary>
+        /// Gets the set of upcoming reservations
+        /// </summary>
         public IEnumerable<JToken> UpcomingReservations
         {
             get
@@ -80,6 +108,11 @@ namespace BoatTracker.Bot.Models
                         var startDateTime = this.BotUserState.ConvertToLocalTime(r.StartDate());
                         var endDateTime = this.BotUserState.ConvertToLocalTime(r.EndDate());
 
+                        // TODO: This assumes that everyone uses the 15-minute expiration time, but this can
+                        // be configured separately for each reservation. We should pull the expiration from
+                        // the resource and use that here. Check to see if the value gets put in the reservation
+                        // since that would make life a lot simpler here. Maybe make this a per-club setting.
+
                         return
                             localTime.Date == startDateTime.Date &&                     // current day
                             r.CheckInDate() == null &&                                  // not checked in
@@ -89,6 +122,9 @@ namespace BoatTracker.Bot.Models
             }
         }
 
+        /// <summary>
+        /// Gets the set of reservations that are checked in and on the water now.
+        /// </summary>
         public IEnumerable<JToken> OnTheWaterReservations
         {
             get
@@ -109,6 +145,9 @@ namespace BoatTracker.Bot.Models
             }
         }
 
+        /// <summary>
+        /// Gets the set of reservations that should have checked out by now.
+        /// </summary>
         public IEnumerable<JToken> OverdueReservations
         {
             get
@@ -155,7 +194,7 @@ namespace BoatTracker.Bot.Models
             try
             {
                 client = new BookedSchedulerLoggingClient(this.ClubId, true);
-                await client.SignIn(clubInfo.UserName, clubInfo.Password);
+                await client.SignInAsync(clubInfo.UserName, clubInfo.Password);
 
                 string message = null;
 
@@ -202,7 +241,7 @@ namespace BoatTracker.Bot.Models
                 {
                     try
                     {
-                        await client.SignOut();
+                        await client.SignOutAsync();
                     }
                     catch (Exception)
                     {

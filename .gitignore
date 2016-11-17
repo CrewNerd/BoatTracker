@@ -30,3 +30,5 @@
 /src/BoatTrackerBot/ClubConfiguration.json~
 /src/Common/BoatTrackerBot.BookedScheduler/bin/Debug
 /src/Common/BoatTrackerBot.BookedScheduler/obj/Debug
+/src/Common/BoatTrackerBot.BookedScheduler/bin/Release
+/src/Common/BoatTrackerBot.BookedScheduler/obj/Release
