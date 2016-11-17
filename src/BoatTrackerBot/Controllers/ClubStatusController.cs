@@ -3,6 +3,9 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Mvc;
 
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+
 using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.Models;
 
@@ -10,6 +13,21 @@ namespace BoatTracker.Bot
 {
     public class ClubStatusController : Controller
     {
+        private TelemetryClient telemetryClient;
+
+        private TelemetryClient TelemetryClient
+        {
+            get
+            {
+                if (this.telemetryClient == null)
+                {
+                    this.telemetryClient = new TelemetryClient();
+                }
+
+                return this.telemetryClient;
+            }
+        }
+
         /// <summary>
         /// Gets the club status page. The clubid specifies the club to display. The checkin and
         /// checkout buttons direct here with the corresponding query parameter containing the
@@ -48,7 +66,17 @@ namespace BoatTracker.Bot
             // and we display it as an alert at the top of the page.
             ViewBag.Message = await model.LoadDataAsync(checkin, checkout);
 
-            return View("ClubStatus", model);
+            var viewResult = View("ClubStatus", model);
+
+            // Send the telemetry as late as possible to get more accurate page load times.
+            var pageViewTelemetry = new PageViewTelemetry("clubStatus");
+            pageViewTelemetry.Properties["clubId"] = clubId;
+            pageViewTelemetry.Properties["isCheckIn"] = (checkin != null).ToString();
+            pageViewTelemetry.Properties["isCheckOut"] = (checkout != null).ToString();
+
+            this.TelemetryClient.TrackPageView(pageViewTelemetry);
+
+            return viewResult;
         }
     }
 }
