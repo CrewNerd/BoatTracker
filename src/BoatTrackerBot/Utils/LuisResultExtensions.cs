@@ -45,6 +45,16 @@ namespace BoatTracker.Bot.Utils
 
         public static DateTime? FindStartDate(this LuisResult result, UserState userState)
         {
+            //
+            // We special-case "now" since it most likely overrules anything else we might see.
+            //
+            if (result.IsStartTimeNow())
+            {
+                var localNow = userState.ConvertToLocalTime(DateTime.UtcNow);
+
+                return localNow.Date;
+            }
+
             TimeSpan MaxDaysInFuture = TimeSpan.FromDays(30);   // Limit how far in the future we can recognize
 
             EntityRecommendation builtinDate = null;
@@ -111,6 +121,15 @@ namespace BoatTracker.Bot.Utils
 
         public static DateTime? FindStartTime(this LuisResult result, UserState userState)
         {
+            //
+            // We special-case "now" since it most likely overrules anything else we might see.
+            // We snap the time to the "best" nearby time-slot (15-minute intervals).
+            //
+            if (result.IsStartTimeNow())
+            {
+                return userState.LocalTime().ToNearestTimeSlot();
+            }
+
             EntityRecommendation builtinTime = null;
             result.TryFindEntity(EntityBuiltinTime, out builtinTime);
 
@@ -158,6 +177,11 @@ namespace BoatTracker.Bot.Utils
             }
 
             return null;
+        }
+
+        public static bool IsStartTimeNow(this LuisResult result)
+        {
+            return result.Entities.Any(e => e.Resolution != null && e.Resolution.ContainsKey("time") && e.Resolution["time"] == "PRESENT_REF");
         }
 
         /// <summary>

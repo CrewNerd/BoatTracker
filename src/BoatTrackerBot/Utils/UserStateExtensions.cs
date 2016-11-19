@@ -224,6 +224,17 @@ namespace BoatTracker.Bot.Utils
         }
 
         /// <summary>
+        /// Some terms should never be allowed in boat names. If LUIS mis-identifies these as part
+        /// of a boat name entity, we remove them to make sure they don't confuse our resource matching.
+        /// One common case is: "Reserve boat-name now for 30 minutes", where "now" is sometimes
+        /// identified as part of the boat name.
+        /// </summary>
+        private readonly static string[] excludedBoatNameTerms = new string[]
+        {
+            "now"
+        };
+
+        /// <summary>
         /// Look for an acceptable match between the 'boatName' entities found by LUIS and
         /// the known set of boat names for the user's club. Consider alternate names for
         /// each boat as configured by the administrator using a custom attribute.
@@ -237,6 +248,7 @@ namespace BoatTracker.Bot.Utils
             var entityWords = entities
                 .Where(e => e.Type == LuisResultExtensions.EntityBoatName)
                 .SelectMany(e => e.Entity.ToLower().Split(' '))
+                .Where(word => !excludedBoatNameTerms.Contains(word))
                 .ToList();
 
             if (entityWords.Count == 0)
