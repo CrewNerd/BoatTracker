@@ -281,7 +281,7 @@ namespace BoatTracker.Bot.Utils
                     return new Tuple<JToken, string>(overMatches.First(), null);
 
                 default:
-                    // Mutiple matches - ask for clarification.
+                    // Multiple matches - ask for clarification.
                     var boatNames = overMatches.Select(b => $"'{b.Name()}'");
                     return new Tuple<JToken, string>(null, $"I think you meant one of these boats ({string.Join(", ", boatNames)}). Can you be more specific?");
             }
@@ -304,7 +304,7 @@ namespace BoatTracker.Bot.Utils
                     return new Tuple<JToken, string>(underMatches.First(), null);
 
                 default:
-                    // Mutiple matches - ask for clarification.
+                    // Multiple matches - ask for clarification.
                     var boatNames = underMatches.Select(b => $"'{b.Name()}'");
                     return new Tuple<JToken, string>(null, $"I think you meant one of these boats ({string.Join(", ", boatNames)}). Can you be more specific?");
             }
@@ -429,7 +429,7 @@ namespace BoatTracker.Bot.Utils
                     return new Tuple<JToken, string>(overMatches.First(), null);
 
                 default:
-                    // Mutiple matches - ask for clarification.
+                    // Multiple matches - ask for clarification.
                     var userNames = overMatches.Select(u => $"'{u.FullName()}'");
                     return new Tuple<JToken, string>(null, $"I think you meant one of these users ({string.Join(", ", userNames)}). Can you be more specific?");
             }
@@ -452,7 +452,7 @@ namespace BoatTracker.Bot.Utils
                     return new Tuple<JToken, string>(underMatches.First(), null);
 
                 default:
-                    // Mutiple matches - ask for clarification.
+                    // Multiple matches - ask for clarification.
                     var userNames = underMatches.Select(u => $"'{u.FullName()}'");
                     return new Tuple<JToken, string>(null, $"I think you meant one of these users ({string.Join(", ", userNames)}). Can you be more specific?");
             }
