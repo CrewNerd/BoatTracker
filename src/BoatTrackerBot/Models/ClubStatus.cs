@@ -32,6 +32,12 @@ namespace BoatTracker.Bot.Models
         public string ClubId { get; private set; }
 
         /// <summary>
+        /// If we received a valid clubStatusSecret, then this is a kiosk. Otherwise, we
+        /// don't display the checkin/checkout buttons.
+        /// </summary>
+        public bool IsKiosk { get; set; }
+
+        /// <summary>
         /// Gets the set of reservations to be filtered down for the status view.
         /// </summary>
         public JArray Reservations { get; private set; }
