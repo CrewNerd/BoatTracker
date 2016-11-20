@@ -109,6 +109,9 @@ namespace BoatTracker.Bot
         {
             return new FormBuilder<ReservationRequest>()
                 .Field(nameof(BoatName), validate: ValidateBoatName)
+                .Field(nameof(StartDate), validate: ValidateStartDate)
+                .Field(nameof(StartTime), validate: ValidateStartTime)
+                .Field(nameof(Duration), validate: ValidateDuration)
                 .Field(nameof(PartnerName),
                     ((state) =>
                     {
@@ -119,9 +122,6 @@ namespace BoatTracker.Bot
                         return boat.MaxParticipants() > 1;
                     }),
                     validate: ValidatePartnerName)
-                .Field(nameof(StartDate), validate: ValidateStartDate)
-                .Field(nameof(StartTime), validate: ValidateStartTime)
-                .Field(nameof(Duration), validate: ValidateDuration)
                 .Confirm(GenerateConfirmationMessage)
                 .Build();
         }

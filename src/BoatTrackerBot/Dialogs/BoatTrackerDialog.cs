@@ -454,47 +454,9 @@ namespace BoatTracker.Bot
 
             var boatName = boat?.Name();
             var now = this.currentUserState.LocalTime();
+            var startTime = now.ToNearestTimeSlot();
 
             var partnerMatch = await this.currentUserState.FindBestUserMatchAsync(result);
-
-            //
-            // Select a starting slot for the reservation. If we're withing 5 minutes of the next slot, we'll
-            // be allowed to check in early, so choose that. Otherwise, choose the slot that's already in progress.
-            //
-            int startMinute;
-            int startHour = now.Hour;
-            if (now.Minute >= 0 && now.Minute <= 10)
-            {
-                startMinute = 0;
-            }
-            else if (now.Minute >= 11 && now.Minute <= 25)
-            {
-                startMinute = 15;
-            }
-            else if (now.Minute >= 26 && now.Minute <= 40)
-            {
-                startMinute = 30;
-            }
-            else if (now.Minute >= 41 && now.Minute <= 55)
-            {
-                startMinute = 45;
-            }
-            else
-            {
-                startMinute = 0;
-                startHour = now.Hour + 1;
-            }
-
-            // Adjust the start time to an even 15-minute interval
-            // BUG: There's a known bug if we take out a boat within 5 minutes of midnight.
-            var startTime = new DateTime(
-                now.Year,
-                now.Month,
-                now.Day,
-                startHour,
-                startMinute,
-                0,
-                DateTimeKind.Unspecified);
 
             ReservationRequest reservationRequest;
 
@@ -502,7 +464,7 @@ namespace BoatTracker.Bot
             {
                 reservationRequest = new ReservationRequest
                 {
-                    CheckInAfterCreation = false,
+                    CheckInAfterCreation = result.IsStartTimeNow(),
                     UserState = this.currentUserState,
                     BoatName = boatName,
                     PartnerName = partnerMatch.Item1?.FullName(),

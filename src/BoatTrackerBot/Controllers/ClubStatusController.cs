@@ -51,16 +51,7 @@ namespace BoatTracker.Bot
 
             ClubStatus model = new ClubStatus(clubId);
 
-            //
-            // If the club is configured with a club status secret, we require the caller to provide it.
-            //
-            if (!string.IsNullOrEmpty(model.ClubInfo.ClubStatusSecret))
-            {
-                if (model.ClubInfo.ClubStatusSecret != clubStatusSecret)
-                {
-                    return new HttpUnauthorizedResult("Security key missing or invalid");
-                }
-            }
+            model.IsKiosk = clubStatusSecret != null && clubStatusSecret == model.ClubInfo.ClubStatusSecret; 
 
             // If the return value is non-null, it's an error message from the checkin or checkout
             // and we display it as an alert at the top of the page.
@@ -73,6 +64,7 @@ namespace BoatTracker.Bot
             pageViewTelemetry.Properties["clubId"] = clubId;
             pageViewTelemetry.Properties["isCheckIn"] = (checkin != null).ToString();
             pageViewTelemetry.Properties["isCheckOut"] = (checkout != null).ToString();
+            pageViewTelemetry.Properties["isKiosk"] = model.IsKiosk.ToString();
 
             this.TelemetryClient.TrackPageView(pageViewTelemetry);
 

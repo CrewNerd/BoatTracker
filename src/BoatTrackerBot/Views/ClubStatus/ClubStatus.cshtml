@@ -19,6 +19,8 @@
     var upcoming = Model.UpcomingReservations;
     var onTheWater = Model.OnTheWaterReservations;
     var overdue = Model.OverdueReservations;
+
+    var numColumns = Model.IsKiosk ? "5" : "4";
 }
 
 <h2>@(Model.ClubInfo.Name)</h2>
@@ -34,7 +36,7 @@
 <table class="table table-striped table-bordered">
     <thead>
         <tr>
-            <th colspan="5" valign="bottom">
+            <th colspan="@(numColumns)" valign="bottom">
                 <div class="panel panel-info">
                     <div class="panel-heading">
                         <h2 class="panel-title">Upcoming reservations (@(upcoming.Count() > 0 ? upcoming.Count().ToString() : "None"))</h2>
@@ -49,7 +51,11 @@
                 <th>End time</th>
                 <th>Boat</th>
                 <th>Rower(s)</th>
-                <th></th>
+
+                @if (Model.IsKiosk)
+                {
+                    <th></th>
+                }
             </tr>
         }
     </thead>
@@ -63,15 +69,15 @@
                 <td>@(r.ParticipantNames())</td>
 
                 @{
-                    var disabled = DateTime.UtcNow + TimeSpan.FromMinutes(Model.ClubInfo.EarlyCheckinWindowInMinutes ?? 5) < r.StartDate();
+                    var disabled = DateTime.UtcNow + TimeSpan.FromMinutes(Model.ClubInfo.EarlyCheckinWindowInMinutes ?? 15) < r.StartDate();
                 }
-                @if (disabled)
+                @if (Model.IsKiosk && disabled)
                 {
                     <td align="center">
                         <button type="button" class="btn btn-info" disabled>Check In</button>
                     </td>
                 }
-                else
+                else if (Model.IsKiosk)
                 {
                     <td align="center">
                         <button type="button" class="btn btn-info" onclick="location.href='@(refreshUrl)&checkin=@(r.ReferenceNumber())'">Check In</button>
@@ -83,7 +89,7 @@
 
     <thead>
         <tr>
-            <th colspan="5" valign="bottom">
+            <th colspan="@(numColumns)" valign="bottom">
                 <div class="panel panel-success">
                     <div class="panel-heading">
                         <h2 class="panel-title">On the water (@(onTheWater.Count() > 0 ? onTheWater.Count().ToString() : "None"))</h2>
@@ -98,7 +104,11 @@
                 <th>End time</th>
                 <th>Boat</th>
                 <th>Rower(s)</th>
-                <th></th>
+
+                @if (Model.IsKiosk)
+                {
+                    <th></th>
+                }
             </tr>
         }
     </thead>
@@ -110,16 +120,20 @@
                 <td>@(Model.BotUserState.ConvertToLocalTime(r.EndDate()).ToShortTimeString())</td>
                 <td>@(r.Value<string>("resourceName"))</td>
                 <td>@(r.ParticipantNames())</td>
-                <td align="center">
-                    <button type="button" class="btn btn-success" onclick="location.href='@(refreshUrl)&checkout=@(r.ReferenceNumber())'">Check Out</button>
-                </td>
+
+                @if (Model.IsKiosk)
+                {
+                    <td align="center">
+                        <button type="button" class="btn btn-success" onclick="location.href='@(refreshUrl)&checkout=@(r.ReferenceNumber())'">Check Out</button>
+                    </td>
+                }
             </tr>
         }
     </tbody>
 
     <thead>
         <tr>
-            <th colspan="5" valign="bottom">
+            <th colspan="@(numColumns)" valign="bottom">
                 <div class="panel panel-warning">
                     <div class="panel-heading">
                         <h2 class="panel-title">Overdue (@(overdue.Count() > 0 ? overdue.Count().ToString() : "None"))</h2>
@@ -134,7 +148,11 @@
                 <th>End time</th>
                 <th>Boat</th>
                 <th>Rower(s)</th>
-                <th></th>
+
+                @if (Model.IsKiosk)
+                {
+                    <th></th>
+                }
             </tr>
         }
     </thead>
@@ -146,9 +164,13 @@
                 <td>@(Model.BotUserState.ConvertToLocalTime(r.EndDate()).ToShortTimeString())</td>
                 <td>@(r.Value<string>("resourceName"))</td>
                 <td>@(r.ParticipantNames())</td>
-                <td align="center">
-                    <button type="button" class="btn btn-warning" onclick="location.href='@(refreshUrl)&checkout=@(r.ReferenceNumber())'">Check Out</button>
-                </td>
+
+                @if (Model.IsKiosk)
+                {
+                    <td align="center">
+                        <button type="button" class="btn btn-warning" onclick="location.href='@(refreshUrl)&checkout=@(r.ReferenceNumber())'">Check Out</button>
+                    </td>
+                }
             </tr>
         }
     </tbody>
