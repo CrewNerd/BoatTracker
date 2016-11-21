@@ -851,6 +851,12 @@ namespace BoatTracker.Bot
         {
             this.currentChannelInfo = EnvironmentDefinition.Instance.GetChannelInfo(context.GetChannel());
 
+            if (this.currentChannelInfo == null)
+            {
+                context.PostAsync("This channel is not currently supported.").Wait();
+                return false;
+            }
+
             UserState userState = null;
 
             //
@@ -903,6 +909,13 @@ namespace BoatTracker.Bot
             }
 
             var channelInfo = EnvironmentDefinition.Instance.GetChannelInfo(context.GetChannel());
+
+            if (channelInfo == null)
+            {
+                await context.PostAsync("Unexpected error in the sign-in process - the channel wasn't found after form completion.");
+                context.Wait(MessageReceived);
+                return;
+            }
 
             try
             {
