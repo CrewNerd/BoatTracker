@@ -29,7 +29,6 @@ namespace BoatTracker.Bot
         [NonSerialized]
         private ChannelInfo currentChannelInfo;
 
-        [NonSerialized]
         private BookedSchedulerClient cachedClient;
 
         private string pendingReservationToCancel;
@@ -847,6 +846,7 @@ namespace BoatTracker.Bot
         /// </summary>
         /// <param name="context">The caller's dialog context</param>
         /// <returns>True if the user accounts are connected, false otherwise.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Bot.Builder.Dialogs.Extensions.PostAsync(Microsoft.Bot.Builder.Dialogs.Internals.IBotToUser,System.String,System.String,System.Threading.CancellationToken)")]
         private bool CheckUserIsRegistered(IDialogContext context)
         {
             this.currentChannelInfo = EnvironmentDefinition.Instance.GetChannelInfo(context.GetChannel());

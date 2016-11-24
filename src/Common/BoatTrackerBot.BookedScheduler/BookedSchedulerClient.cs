@@ -12,18 +12,16 @@ namespace BoatTracker.BookedScheduler
     /// Client API wrapper for BookedScheduler. Logging and retries are implemented in separate
     /// class that wraps this one.
     /// </summary>
+    [Serializable]
     public class BookedSchedulerClient
     {
         private const string SessionTokenHeader = "X-Booked-SessionToken";
         private const string UserIdHeader = "X-Booked-UserId";
+        private const long InvalidUserId = -1;
 
         private Uri baseUri;
         private TimeSpan timeout;
 
-        private bool isSignedIn;
-
-        private string userName;
-        private string password;
         private long sessionUserId;
         private string sessionToken;
         private DateTime sessionExpires;
@@ -42,12 +40,19 @@ namespace BoatTracker.BookedScheduler
 
             this.baseUri = baseUri;
             this.timeout = timeout ?? TimeSpan.FromSeconds(30);
+            this.sessionUserId = InvalidUserId;
         }
 
         /// <summary>
         /// Gets a value indicating whether we have successfully signed in.
         /// </summary>
-        public bool IsSignedIn { get { return this.isSignedIn; } }
+        public bool IsSignedIn
+        {
+            get
+            {
+                return this.sessionUserId != InvalidUserId;
+            }
+        }
 
         /// <summary>
         /// Gets a value indicating whether the session token has expired.
@@ -56,7 +61,7 @@ namespace BoatTracker.BookedScheduler
         {
             get
             {
-                return DateTime.Now + TimeSpan.FromMinutes(2) > this.sessionExpires;
+                return string.IsNullOrEmpty(this.sessionToken) || DateTime.Now + TimeSpan.FromMinutes(2) > this.sessionExpires;
             }
         }
 
@@ -93,14 +98,9 @@ namespace BoatTracker.BookedScheduler
 
                 if (resp["isAuthenticated"].Value<bool>())
                 {
-                    this.userName = userName;
-                    this.password = password;
-
                     this.sessionToken = resp["sessionToken"].Value<string>();
                     this.sessionExpires = DateTime.Parse(resp["sessionExpires"].Value<string>());
                     this.sessionUserId = resp["userId"].Value<long>();
-
-                    this.isSignedIn = true;
                 }
                 else
                 {
@@ -126,13 +126,8 @@ namespace BoatTracker.BookedScheduler
                     throw new HttpRequestException($"SignOut failed: {httpResponse.ReasonPhrase}");
                 }
 
-                this.userName = null;
-                this.password = null;
-                this.sessionUserId = 0;
+                this.sessionUserId = InvalidUserId;
                 this.sessionToken = null;
-                this.sessionToken = null;
-
-                this.isSignedIn = false;
             }
         }
 
@@ -550,7 +545,7 @@ namespace BoatTracker.BookedScheduler
             client.BaseAddress = this.baseUri;
             client.Timeout = this.timeout;
 
-            if (this.isSignedIn)
+            if (this.IsSignedIn)
             {
                 client.DefaultRequestHeaders.Add(SessionTokenHeader, this.sessionToken);
                 client.DefaultRequestHeaders.Add(UserIdHeader, this.sessionUserId.ToString());
