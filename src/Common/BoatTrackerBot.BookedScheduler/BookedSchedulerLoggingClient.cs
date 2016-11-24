@@ -24,7 +24,7 @@ namespace BoatTracker.BookedScheduler
         public BookedSchedulerLoggingClient(string clubId, bool isInteractive)
             : base(
                   EnvironmentDefinition.Instance.MapClubIdToClubInfo[clubId].Url,
-                  TimeSpan.FromSeconds(isInteractive ? 10 : 30))
+                  TimeSpan.FromSeconds(isInteractive ? 20 : 30))
         {
             this.isInteractive = isInteractive;
             this.dependencyName = "bs_" + clubId;
@@ -141,12 +141,6 @@ namespace BoatTracker.BookedScheduler
             bool success = true;
             try
             {
-                bool simulateFailure = false;
-                if (simulateFailure)
-                {
-                    throw new Exception("forced failure");
-                }
-
                 return func.Invoke();
             }
             catch (Exception)
