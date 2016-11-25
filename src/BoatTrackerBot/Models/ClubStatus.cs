@@ -195,11 +195,11 @@ namespace BoatTracker.Bot.Models
             // We only need the timezone for the user.
             this.BotUserState = await BookedSchedulerCache.Instance[this.ClubId].GetBotUserStateAsync();
 
-            BookedSchedulerLoggingClient client = null;
+            BookedSchedulerRetryClient client = null;
 
             try
             {
-                client = new BookedSchedulerLoggingClient(this.ClubId, true);
+                client = new BookedSchedulerRetryClient(this.ClubId, true);
                 await client.SignInAsync(clubInfo.UserName, clubInfo.Password);
 
                 string message = null;

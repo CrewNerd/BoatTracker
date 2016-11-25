@@ -348,7 +348,7 @@ namespace BoatTracker.Bot.Utils
 
             public async Task RefreshCacheAsync(bool failSilently = true)
             {
-                BookedSchedulerLoggingClient client = null;
+                BookedSchedulerRetryClient client = null;
 
                 try
                 {
@@ -364,7 +364,7 @@ namespace BoatTracker.Bot.Utils
 
                     var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.clubId];
 
-                    client = new BookedSchedulerLoggingClient(this.clubId, false);
+                    client = new BookedSchedulerRetryClient(this.clubId, false);
 
                     await client.SignInAsync(clubInfo.UserName, clubInfo.Password);
 

@@ -846,7 +846,6 @@ namespace BoatTracker.Bot
         /// </summary>
         /// <param name="context">The caller's dialog context</param>
         /// <returns>True if the user accounts are connected, false otherwise.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:Do not pass literals as localized parameters", MessageId = "Microsoft.Bot.Builder.Dialogs.Extensions.PostAsync(Microsoft.Bot.Builder.Dialogs.Internals.IBotToUser,System.String,System.String,System.Threading.CancellationToken)")]
         private bool CheckUserIsRegistered(IDialogContext context)
         {
             this.currentChannelInfo = EnvironmentDefinition.Instance.GetChannelInfo(context.GetChannel());
@@ -960,7 +959,7 @@ namespace BoatTracker.Bot
 
             if (this.cachedClient == null)
             {
-                this.cachedClient = new BookedSchedulerLoggingClient(this.currentUserState.ClubId, true);
+                this.cachedClient = new BookedSchedulerRetryClient(this.currentUserState.ClubId, true);
             }
 
             if (!this.cachedClient.IsSignedIn || this.cachedClient.IsSessionExpired)

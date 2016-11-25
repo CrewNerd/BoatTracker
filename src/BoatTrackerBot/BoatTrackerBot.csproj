@@ -236,6 +236,7 @@
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\ClubStatusController.cs" />
     <Compile Include="Controllers\ControlApiController.cs" />
+    <Compile Include="Controllers\DebugWarmUpController.cs" />
     <Compile Include="DataObjects\RfidEvent.cs" />
     <Compile Include="DataObjects\RfidEvents.cs" />
     <Compile Include="DataObjects\UserState.cs" />
@@ -247,6 +248,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Models\ClubStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\BookedSchedulerCache.cs" />

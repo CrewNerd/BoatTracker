@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -16,12 +15,15 @@ namespace BoatTracker.BookedScheduler
     /// Wrapper class for BookedSchedulerClient that adds logging and retries.
     /// </summary>
     [Serializable]
-    public class BookedSchedulerLoggingClient : BookedSchedulerClient, ITransientErrorDetectionStrategy
+    public class BookedSchedulerRetryClient : BookedSchedulerClient, ITransientErrorDetectionStrategy
     {
         private string dependencyName;
         private bool isInteractive;
 
-        public BookedSchedulerLoggingClient(string clubId, bool isInteractive)
+        [NonSerialized]
+        private string inProgressCallName;
+
+        public BookedSchedulerRetryClient(string clubId, bool isInteractive)
             : base(
                   EnvironmentDefinition.Instance.MapClubIdToClubInfo[clubId].Url,
                   TimeSpan.FromSeconds(isInteractive ? 20 : 30))
@@ -131,35 +133,15 @@ namespace BoatTracker.BookedScheduler
 
         #endregion
 
-        #region Retry & Logging helpers
+        #region Retry helpers
 
-        private TResult DoCallWithLogging<TResult>(string name, Func<TResult> func)
-        {
-            var callStartTime = DateTime.UtcNow;
-            var callTimer = Stopwatch.StartNew();
-
-            bool success = true;
-            try
-            {
-                return func.Invoke();
-            }
-            catch (Exception)
-            {
-                success = false;
-                throw;
-            }
-            finally
-            {
-                callTimer.Stop();
-                new TelemetryClient().TrackDependency(this.dependencyName, name, callStartTime, callTimer.Elapsed, success);
-            }
-        }
+        public static bool forceOneError = false;
 
         private TResult DoCallWithRetry<TResult>(
             Func<TResult> func,
             [CallerMemberName] string name = null)
         {
-            name = char.ToLower(name[0]) + name.Replace("Async", string.Empty).Substring(1);
+            this.inProgressCallName = char.ToLower(name[0]) + name.Replace("Async", string.Empty).Substring(1);
 
             RetryStrategy retryStrategy;
 
@@ -174,7 +156,7 @@ namespace BoatTracker.BookedScheduler
 
             var retryPolicy = new RetryPolicy(this, retryStrategy);
 
-            return retryPolicy.ExecuteAction(() => this.DoCallWithLogging(name, func));
+            return retryPolicy.ExecuteAction(() => func.Invoke());
         }
 
         public bool IsTransient(Exception ex)
@@ -182,7 +164,14 @@ namespace BoatTracker.BookedScheduler
             // TODO: Be more discriminating here...
             bool doRetry = true;
 
-            new TelemetryClient().TrackException(ex, new Dictionary<string, string> { ["willRetry"] = doRetry.ToString() });
+            new TelemetryClient().TrackException(
+                ex,
+                new Dictionary<string, string>
+                {
+                    ["willRetry"] = doRetry.ToString(),
+                    ["dependency"] = this.dependencyName,
+                    ["name"] = this.inProgressCallName
+                });
 
             return doRetry;
         }
