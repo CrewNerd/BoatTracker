@@ -231,12 +231,12 @@ namespace BoatTracker.BookedScheduler
 
         public static string MakerChannelKey(this JToken jtoken)
         {
-            var jTokenChannelKey = jtoken
+            var jtokenChannelKey = jtoken
                 .Value<JArray>(CustomAttributesKey)
                 .Where(x => x.Value<string>(LabelKey).StartsWith("IFTTT"))
                 .FirstOrDefault();
 
-            return jTokenChannelKey?.Value<string>(ValueKey) ?? string.Empty;
+            return jtokenChannelKey?.Value<string>(ValueKey) ?? string.Empty;
         }
 
         #endregion

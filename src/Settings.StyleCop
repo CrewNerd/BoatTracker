@@ -4,6 +4,7 @@
       <Value>boattracker</Value>
       <Value>checkin</Value>
       <Value>nullable</Value>
+      <Value>signout</Value>
     </CollectionProperty>
   </GlobalSettings>
   <Analyzers>
@@ -66,6 +67,14 @@
         </Rule>
       </Rules>
       <AnalyzerSettings />
+    </Analyzer>
+    <Analyzer AnalyzerId="StyleCop.CSharp.NamingRules">
+      <AnalyzerSettings>
+        <CollectionProperty Name="Hungarian">
+          <Value>is</Value>
+          <Value>in</Value>
+        </CollectionProperty>
+      </AnalyzerSettings>
     </Analyzer>
   </Analyzers>
 </StyleCopSettings>

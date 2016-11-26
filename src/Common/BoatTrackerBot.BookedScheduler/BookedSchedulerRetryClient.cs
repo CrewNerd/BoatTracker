@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
+using BoatTracker.Bot.Configuration;
 using Microsoft.ApplicationInsights;
 using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
 using Newtonsoft.Json.Linq;
-
-using BoatTracker.Bot.Configuration;
 
 namespace BoatTracker.BookedScheduler
 {
@@ -135,8 +134,6 @@ namespace BoatTracker.BookedScheduler
 
         #region Retry helpers
 
-        public static bool forceOneError = false;
-
         private TResult DoCallWithRetry<TResult>(
             Func<TResult> func,
             [CallerMemberName] string name = null)
@@ -162,18 +159,18 @@ namespace BoatTracker.BookedScheduler
         public bool IsTransient(Exception ex)
         {
             // TODO: Be more discriminating here...
-            bool doRetry = true;
+            bool requestRetry = true;
 
             new TelemetryClient().TrackException(
                 ex,
                 new Dictionary<string, string>
                 {
-                    ["willRetry"] = doRetry.ToString(),
+                    ["willRetry"] = requestRetry.ToString(),
                     ["dependency"] = this.dependencyName,
                     ["name"] = this.inProgressCallName
                 });
 
-            return doRetry;
+            return requestRetry;
         }
 
         #endregion
