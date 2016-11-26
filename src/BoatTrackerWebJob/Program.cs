@@ -1,15 +1,19 @@
 ﻿using System;
-using Microsoft.Azure.WebJobs;
 using BoatTracker.Bot.Configuration;
+using Microsoft.Azure.WebJobs;
 
 namespace BoatTrackerWebJob
 {
-    // To learn more about Microsoft Azure WebJobs SDK, please see http://go.microsoft.com/fwlink/?LinkID=320976
-    class Program
+    /// <summary>
+    /// Main program for our web job. We call the daily report generator every hour since there could be
+    /// clubs in each time zone. We refresh all of the caches every two hours.
+    /// </summary>
+    public class Program
     {
-        // Please set the following connection strings in app.config for this WebJob to run:
-        // AzureWebJobsDashboard and AzureWebJobsStorage
-        static void Main()
+        /// <summary>
+        /// Set up for logging and call our web job functions as appropriate.
+        /// </summary>
+        public static void Main()
         {
             var env = EnvironmentDefinition.Instance;
             var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd_HH:MM");
@@ -19,7 +23,8 @@ namespace BoatTrackerWebJob
             var host = new JobHost();
             host.Call(
                 typeof(DailyReport).GetMethod("SendDailyReport"),
-                new {
+                new
+                {
                     logName = logName,
                     log = $"container/{logName}"
                 });
@@ -33,7 +38,8 @@ namespace BoatTrackerWebJob
                 logName = $"{env.Name}_refresh_{timestamp}";
                 host.Call(
                     typeof(RefreshCaches).GetMethod("RefreshBotCaches"),
-                    new {
+                    new
+                    {
                         logName = logName,
                         log = $"container/{logName}"
                     });
