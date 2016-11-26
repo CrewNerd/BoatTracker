@@ -31,6 +31,9 @@ namespace BoatTracker.Bot.Configuration
             };
         }
 
+        /// <summary>
+        /// Gets the model ID for our LUIS service.
+        /// </summary>
         public override string LuisModelId
         {
             get
@@ -40,6 +43,9 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        /// <summary>
+        /// Gets the subscription key for our LUIS service
+        /// </summary>
         public override string LuisSubscriptionKey
         {
             get
@@ -49,6 +55,9 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        /// <summary>
+        /// Gets the API key for SendGrid
+        /// </summary>
         public override string SendGridApiKey
         {
             get
@@ -58,6 +67,10 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        /// <summary>
+        /// Gets the name of the boattracker service for this deployment slot. Used by WebJobs
+        /// to call the service.
+        /// </summary>
         public override string ServiceHost
         {
             get
