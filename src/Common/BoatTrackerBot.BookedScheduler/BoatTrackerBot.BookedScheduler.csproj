@@ -53,7 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BookedSchedulerClient.cs" />
-    <Compile Include="BookedSchedulerLoggingClient.cs" />
+    <Compile Include="BookedSchedulerRetryClient.cs" />
     <Compile Include="JTokenExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

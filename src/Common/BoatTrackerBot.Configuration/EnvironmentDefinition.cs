@@ -149,7 +149,7 @@ namespace BoatTracker.Bot.Configuration
             }
             else
             {
-                throw new ArgumentException("Invalid channel name: " + channel);
+                channelInfo = null;
             }
 
             return channelInfo;

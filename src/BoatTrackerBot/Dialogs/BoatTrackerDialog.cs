@@ -29,7 +29,6 @@ namespace BoatTracker.Bot
         [NonSerialized]
         private ChannelInfo currentChannelInfo;
 
-        [NonSerialized]
         private BookedSchedulerClient cachedClient;
 
         private string pendingReservationToCancel;
@@ -851,6 +850,12 @@ namespace BoatTracker.Bot
         {
             this.currentChannelInfo = EnvironmentDefinition.Instance.GetChannelInfo(context.GetChannel());
 
+            if (this.currentChannelInfo == null)
+            {
+                context.PostAsync("This channel is not currently supported.").Wait();
+                return false;
+            }
+
             UserState userState = null;
 
             //
@@ -904,6 +909,13 @@ namespace BoatTracker.Bot
 
             var channelInfo = EnvironmentDefinition.Instance.GetChannelInfo(context.GetChannel());
 
+            if (channelInfo == null)
+            {
+                await context.PostAsync("Unexpected error in the sign-in process - the channel wasn't found after form completion.");
+                context.Wait(MessageReceived);
+                return;
+            }
+
             try
             {
                 // Now finish populating the user state and persist it.
@@ -947,7 +959,7 @@ namespace BoatTracker.Bot
 
             if (this.cachedClient == null)
             {
-                this.cachedClient = new BookedSchedulerLoggingClient(this.currentUserState.ClubId, true);
+                this.cachedClient = new BookedSchedulerRetryClient(this.currentUserState.ClubId, true);
             }
 
             if (!this.cachedClient.IsSignedIn || this.cachedClient.IsSessionExpired)
