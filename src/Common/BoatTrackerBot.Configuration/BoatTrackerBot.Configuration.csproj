@@ -55,7 +55,9 @@
     <Compile Include="ClubInfo.cs" />
     <Compile Include="DevelopmentEnvironmentDefinition.cs" />
     <Compile Include="EnvironmentDefinition.cs" />
-    <Compile Include="LocalEnvironmentDefinition.cs" />
+    <Compile Include="LocalEnvironmentDefinition.cs">
+      <ExcludeFromStyleCop>True</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="ProductionEnvironmentDefinition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

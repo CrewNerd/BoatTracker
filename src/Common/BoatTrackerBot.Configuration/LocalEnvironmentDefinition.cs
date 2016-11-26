@@ -36,7 +36,7 @@ namespace BoatTracker.Bot.Configuration
             get
             {
                 // Leaving this empty for security reasons... fill it in by hand when debugging locally
-                return "";
+                return string.Empty;
             }
         }
 
@@ -45,7 +45,7 @@ namespace BoatTracker.Bot.Configuration
             get
             {
                 // Leaving this empty for security reasons... fill it in by hand when debugging locally
-                return "";
+                return string.Empty;
             }
         }
 
@@ -54,7 +54,7 @@ namespace BoatTracker.Bot.Configuration
             get
             {
                 // Leaving this empty for security reasons... fill it in by hand when debugging locally
-                return "";
+                return string.Empty;
             }
         }
 
@@ -63,18 +63,24 @@ namespace BoatTracker.Bot.Configuration
             get
             {
                 // Leaving this empty for security reasons... fill it in by hand when debugging locally
-                return "";
+                return string.Empty;
             }
         }
 
         /// <summary>
         /// Gets a value indicating whether this is the local environment.
         /// </summary>
-        public override bool IsLocal { get { return true; } }
+        public override bool IsLocal
+        {
+            get { return true; }
+        }
 
         /// <summary>
         /// Gets the short name of the environment.
         /// </summary>
-        public override string Name { get { return "LOCAL"; } }
+        public override string Name
+        {
+            get { return "LOCAL"; }
+        }
     }
 }

@@ -24,7 +24,7 @@ namespace BoatTracker.Bot.Configuration
         private const string ServiceHostKey = "ServiceHost";
 
         /// <summary>
-        /// Initialize the singleton instance of the environment definition.
+        /// Initializes static members of the <see cref="EnvironmentDefinition"/> class.
         /// </summary>
         static EnvironmentDefinition()
         {
@@ -95,17 +95,26 @@ namespace BoatTracker.Bot.Configuration
         /// <summary>
         /// Gets a value indicating whether we are running on the developer's local machine.
         /// </summary>
-        public virtual bool IsLocal { get { return false; } }
+        public virtual bool IsLocal
+        {
+            get { return false; }
+        }
 
         /// <summary>
         /// Gets a value indicating whether this is the development environment.
         /// </summary>
-        public virtual bool IsDevelopment { get { return false; } }
+        public virtual bool IsDevelopment
+        {
+            get { return false; }
+        }
 
         /// <summary>
         /// Gets a value indicating whether this is the production (or staging) environment.
         /// </summary>
-        public virtual bool IsProduction { get { return false; } }
+        public virtual bool IsProduction
+        {
+            get { return false; }
+        }
 
         /// <summary>
         /// Gets the short name of the environment.
@@ -113,7 +122,7 @@ namespace BoatTracker.Bot.Configuration
         public abstract string Name { get; }
 
         /// <summary>
-        /// Gets a mapping from club id to its ClubInfo object.
+        /// Gets or sets a mapping from club id to its ClubInfo object.
         /// </summary>
         public IReadOnlyDictionary<string, ClubInfo> MapClubIdToClubInfo { get; protected set; }
 
@@ -130,22 +139,22 @@ namespace BoatTracker.Bot.Configuration
             {
                 channelInfo = new ChannelInfo(
                     "Skype",
-                    supportsButtons:true,
-                    supportsMarkdown:true);
+                    supportsButtons: true,
+                    supportsMarkdown: true);
             }
             else if (channel == "facebook")
             {
                 channelInfo = new ChannelInfo(
                     "Facebook Messenger",
-                    supportsButtons:false,
-                    supportsMarkdown:false);
+                    supportsButtons: false,
+                    supportsMarkdown: false);
             }
             else if (channel == "sms")
             {
                 channelInfo = new ChannelInfo(
                     "Text Message",
-                    supportsButtons:false,
-                    supportsMarkdown:false);
+                    supportsButtons: false,
+                    supportsMarkdown: false);
             }
             else
             {
