@@ -40,16 +40,31 @@ namespace BoatTracker.BookedScheduler
 
         #region Resource helpers
 
+        /// <summary>
+        /// Gets the ResourceId from a resource node.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The ResourceId of a resource.</returns>
         public static long ResourceId(this JToken jtoken)
         {
             return jtoken.Value<long>(ResourceIdKey);
         }
 
+        /// <summary>
+        /// Gets the name of a resource.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The name of the resource.</returns>
         public static string Name(this JToken jtoken)
         {
             return jtoken.Value<string>(NameKey);
         }
 
+        /// <summary>
+        /// Gets the RFID tags for a resource.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>A list of RFID tags associated with the resource.</returns>
         public static IEnumerable<string> BoatTagIds(this JToken jtoken)
         {
             var boatTagIds = jtoken
@@ -60,6 +75,11 @@ namespace BoatTracker.BookedScheduler
             return boatTagIds;
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the resource is privately owned.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>True if the resource is privately owned.</returns>
         public static bool IsPrivate(this JToken jtoken)
         {
             var isPrivate = jtoken
@@ -71,6 +91,11 @@ namespace BoatTracker.BookedScheduler
             return isPrivate != null && isPrivate != "0";
         }
 
+        /// <summary>
+        /// Gets the maximum number of participants for the resource.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The maximum number of participants for the resource.</returns>
         public static int MaxParticipants(this JToken jtoken)
         {
             // Default to 1 if the administrator fails to set this property
@@ -81,6 +106,11 @@ namespace BoatTracker.BookedScheduler
 
         #region Reservation helpers
 
+        /// <summary>
+        /// Gets the start date for a reservation.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The start date of the reservation.</returns>
         public static DateTime StartDate(this JToken jtoken)
         {
             // NOTE: Look for either startDateTime or startDate to work around a BookedScheduler problem
@@ -99,6 +129,11 @@ namespace BoatTracker.BookedScheduler
             return dateTime.Value;
         }
 
+        /// <summary>
+        /// Gets the end date for a reservation.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The end date of the reservation.</returns>
         public static DateTime EndDate(this JToken jtoken)
         {
             // NOTE: Look for either startDateTime or startDate to work around a BookedScheduler problem
@@ -117,6 +152,11 @@ namespace BoatTracker.BookedScheduler
             return dateTime.Value;
         }
 
+        /// <summary>
+        /// Gets the checkin date for a reservation (if checked in).
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The checkin date or null if not checked in.</returns>
         public static DateTime? CheckInDate(this JToken jtoken)
         {
             DateTime? checkInDate = null;
@@ -129,6 +169,11 @@ namespace BoatTracker.BookedScheduler
             return checkInDate;
         }
 
+        /// <summary>
+        /// Gets the checkout date for a reservation (if checked out).
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The checkout date or null if not checked out.</returns>
         public static DateTime? CheckOutDate(this JToken jtoken)
         {
             DateTime? checkOutDate = null;
@@ -141,11 +186,24 @@ namespace BoatTracker.BookedScheduler
             return checkOutDate;
         }
 
+        /// <summary>
+        /// Gets the reference number for a reservation.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The reference number for the reservation.</returns>
         public static string ReferenceNumber(this JToken jtoken)
         {
             return jtoken.Value<string>(ReferenceNumberKey);
         }
 
+        /// <summary>
+        /// Gets a full list of participant names for a reservation. This includes the reservation
+        /// owner (if includeOwner is true), any confirmed participants, and any invited or
+        /// participating guests.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <param name="includeOwner">If true, include the reservation owner in the returned list.</param>
+        /// <returns>A comma-separated list of participants (full names or email addresses).</returns>
         public static string ParticipantNames(this JToken jtoken, bool includeOwner = true)
         {
             var participantNames = new List<string>();
@@ -180,11 +238,21 @@ namespace BoatTracker.BookedScheduler
             return string.Join(", ", participantNames);
         }
 
+        /// <summary>
+        /// Gets the name of the resource associated with a reservation.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The resource name for the reservation.</returns>
         public static string ResourceName(this JToken jtoken)
         {
             return jtoken.Value<string>(ResourceNameKey);
         }
 
+        /// <summary>
+        /// Gets the id of the reservation owner.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The user id associated with the reservation.</returns>
         public static long UserId(this JToken jtoken)
         {
             return jtoken.Value<long>(UserIdKey);
@@ -194,41 +262,81 @@ namespace BoatTracker.BookedScheduler
 
         #region User helpers
 
+        /// <summary>
+        /// Gets the id of a user.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The user id.</returns>
         public static long Id(this JToken jtoken)
         {
             return jtoken.Value<long>(IdKey);
         }
 
+        /// <summary>
+        /// Gets the username for a user object.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The username of the user.</returns>
         public static string UserName(this JToken jtoken)
         {
             return jtoken.Value<string>(UserNameKey);
         }
 
+        /// <summary>
+        /// Gets the first name of the user.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The user's first name.</returns>
         public static string FirstName(this JToken jtoken)
         {
             return jtoken.Value<string>(FirstNameKey);
         }
 
+        /// <summary>
+        /// Gets the last name of the user.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The user's last name.</returns>
         public static string LastName(this JToken jtoken)
         {
             return jtoken.Value<string>(LastNameKey);
         }
 
+        /// <summary>
+        /// Gets the full name of the user.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The full name of the user.</returns>
         public static string FullName(this JToken jtoken)
         {
             return $"{jtoken.Value<string>(FirstNameKey)} {jtoken.Value<string>(LastNameKey)}";
         }
 
+        /// <summary>
+        /// Gets the email address of the user.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The user's email address.</returns>
         public static string EmailAddress(this JToken jtoken)
         {
             return jtoken.Value<string>(EmailAddressKey);
         }
 
+        /// <summary>
+        /// Gets the time zone string of the user.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The user's time zone.</returns>
         public static string Timezone(this JToken jtoken)
         {
             return jtoken.Value<string>(TimezoneKey);
         }
 
+        /// <summary>
+        /// Gets the IFTTT maker channel key for the user.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>The user's IFTTT maker channel key or an empty string if not key is set.</returns>
         public static string MakerChannelKey(this JToken jtoken)
         {
             var jtokenChannelKey = jtoken

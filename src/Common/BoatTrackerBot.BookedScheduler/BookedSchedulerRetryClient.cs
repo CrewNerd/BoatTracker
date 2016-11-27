@@ -22,6 +22,11 @@ namespace BoatTracker.BookedScheduler
         [NonSerialized]
         private string inProgressCallName;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BookedSchedulerRetryClient"/> class.
+        /// </summary>
+        /// <param name="clubId">The clubId we communicate with.</param>
+        /// <param name="isInteractive">True if we're being used in an interactive scenario.</param>
         public BookedSchedulerRetryClient(string clubId, bool isInteractive)
             : base(
                   EnvironmentDefinition.Instance.MapClubIdToClubInfo[clubId].Url,
@@ -134,6 +139,14 @@ namespace BoatTracker.BookedScheduler
 
         #region Retry helpers
 
+        /// <summary>
+        /// Perform the given function with a retry policy as appropriate depending on whether this is
+        /// an interactive or background situation.
+        /// </summary>
+        /// <typeparam name="TResult">The result type of the function.</typeparam>
+        /// <param name="func">The function to be performed with retries.</param>
+        /// <param name="name">The name of the operation (for logging).</param>
+        /// <returns>The result of the given function.</returns>
         private TResult DoCallWithRetry<TResult>(
             Func<TResult> func,
             [CallerMemberName] string name = null)
@@ -156,6 +169,12 @@ namespace BoatTracker.BookedScheduler
             return retryPolicy.ExecuteAction(() => func.Invoke());
         }
 
+        /// <summary>
+        /// Returns true if the given exception indicates a condition that should be retried. We always log
+        /// the exception, and for now we retry everything.
+        /// </summary>
+        /// <param name="ex">The exception that was thrown.</param>
+        /// <returns>True if the retry framework should retry this exception.</returns>
         public bool IsTransient(Exception ex)
         {
             // TODO: Be more discriminating here...
