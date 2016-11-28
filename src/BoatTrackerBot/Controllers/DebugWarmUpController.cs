@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Web.Mvc;
 using System.Net;
 using System.Net.Http;
+using System.Web.Mvc;
 
 namespace BoatTracker.Bot.Controllers
 {

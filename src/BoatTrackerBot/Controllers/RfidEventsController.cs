@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -8,14 +7,13 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 
+using BoatTracker.BookedScheduler;
+using BoatTracker.Bot.Configuration;
+using BoatTracker.Bot.DataObjects;
+using BoatTracker.Bot.Utils;
+
 using Microsoft.ApplicationInsights;
 using Newtonsoft.Json.Linq;
-
-using BoatTracker.BookedScheduler;
-using BoatTracker.Bot.DataObjects;
-using BoatTracker.Bot.Configuration;
-using BoatTracker.Bot.Utils;
-using System.Web;
 
 namespace BoatTracker.Bot.Controllers
 {
@@ -107,11 +105,13 @@ namespace BoatTracker.Bot.Controllers
                 }
                 catch (Exception ex)
                 {
-                    this.telemetryClient.TrackException(ex, new Dictionary<string, string>
-                    {
-                        ["clubId"] = this.currentClub.Id,
-                        ["eventName"] = eventName
-                    });
+                    this.telemetryClient.TrackException(
+                        ex,
+                        new Dictionary<string, string>
+                        {
+                            ["clubId"] = this.currentClub.Id,
+                            ["eventName"] = eventName
+                        });
                 }
             }
         }
@@ -156,24 +156,28 @@ namespace BoatTracker.Bot.Controllers
         {
             if (boat != null)
             {
-                telemetryClient.TrackEvent(ev.EventType, new Dictionary<string, string>
-                {
-                    ["ClubId"] = this.currentClub.Id,
-                    ["Timestamp"] = ev.Timestamp.Value.ToString(),
-                    ["TagId"] = ev.Id,
-                    ["BoatName"] = boat.Name(),
-                    ["DoorName"] = doorName
-                });
+                this.telemetryClient.TrackEvent(
+                    ev.EventType,
+                    new Dictionary<string, string>
+                    {
+                        ["ClubId"] = this.currentClub.Id,
+                        ["Timestamp"] = ev.Timestamp.Value.ToString(),
+                        ["TagId"] = ev.Id,
+                        ["BoatName"] = boat.Name(),
+                        ["DoorName"] = doorName
+                    });
             }
             else
             {
-                telemetryClient.TrackEvent("new_tag", new Dictionary<string, string>
-                {
-                    ["ClubId"] = this.currentClub.Id,
-                    ["Timestamp"] = ev.Timestamp.Value.ToString(),
-                    ["DoorName"] = doorName,
-                    ["TagId"] = ev.Id,
-                });
+                this.telemetryClient.TrackEvent(
+                    "new_tag",
+                    new Dictionary<string, string>
+                    {
+                        ["ClubId"] = this.currentClub.Id,
+                        ["Timestamp"] = ev.Timestamp.Value.ToString(),
+                        ["DoorName"] = doorName,
+                        ["TagId"] = ev.Id,
+                    });
             }
         }
     }

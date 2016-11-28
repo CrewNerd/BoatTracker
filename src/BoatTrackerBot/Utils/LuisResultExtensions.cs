@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
 
+using BoatTracker.Bot.DataObjects;
+
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
-
-using BoatTracker.Bot.DataObjects;
 
 namespace BoatTracker.Bot.Utils
 {
@@ -55,7 +55,7 @@ namespace BoatTracker.Bot.Utils
                 return localNow.Date;
             }
 
-            TimeSpan MaxDaysInFuture = TimeSpan.FromDays(30);   // Limit how far in the future we can recognize
+            TimeSpan maxDaysInFuture = TimeSpan.FromDays(30);   // Limit how far in the future we can recognize
 
             EntityRecommendation builtinDate = null;
             result.TryFindEntity(EntityBuiltinDate, out builtinDate);
@@ -85,12 +85,11 @@ namespace BoatTracker.Bot.Utils
                 {
                     date = date.Date;
                     // Only accept dates in the reasonably near future.
-                    if (date >= DateTime.Now.Date && date <= DateTime.Now.Date + MaxDaysInFuture)
+                    if (date >= DateTime.Now.Date && date <= DateTime.Now.Date + maxDaysInFuture)
                     {
                         return date;
                     }
                 }
-
 
                 var span = parser.Parse(builtinDate.Entity);
 
@@ -163,7 +162,7 @@ namespace BoatTracker.Bot.Utils
 
             foreach (var startDate in result.Entities.Where(e => e.Type == EntityStart))
             {
-                var span = parser.Parse(startDate.Entity.Replace("at ", ""));
+                var span = parser.Parse(startDate.Entity.Replace("at ", string.Empty));
 
                 if (span != null)
                 {

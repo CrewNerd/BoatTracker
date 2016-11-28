@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-using Microsoft.Bot.Builder.FormFlow;
-
 using BoatTracker.BookedScheduler;
 using BoatTracker.Bot.DataObjects;
 using BoatTracker.Bot.Utils;
+
+using Microsoft.Bot.Builder.FormFlow;
 
 namespace BoatTracker.Bot
 {
@@ -112,15 +112,16 @@ namespace BoatTracker.Bot
                 .Field(nameof(StartDate), validate: ValidateStartDate)
                 .Field(nameof(StartTime), validate: ValidateStartTime)
                 .Field(nameof(Duration), validate: ValidateDuration)
-                .Field(nameof(PartnerName),
-                    ((state) =>
+                .Field(
+                    nameof(PartnerName),
+                    state =>
                     {
                         // We only need another rower name if the boat isn't a single.
                         var boatTask = BookedSchedulerCache.Instance[state.UserState.ClubId].GetResourceFromIdAsync(state.BoatId);
                         boatTask.Wait();
                         var boat = boatTask.Result;
                         return boat.MaxParticipants() > 1;
-                    }),
+                    },
                     validate: ValidatePartnerName)
                 .Confirm(GenerateConfirmationMessage)
                 .Build();
@@ -268,8 +269,8 @@ namespace BoatTracker.Bot
             DateTime startTime = (DateTime)value;
             TimeSpan time = startTime.TimeOfDay;
 
-            TimeSpan StartLowerBound = state.UserState.ClubInfo().EarliestUseTime;
-            TimeSpan StartUpperBound = state.UserState.ClubInfo().LatestUseTime;
+            TimeSpan startLowerBound = state.UserState.ClubInfo().EarliestUseTime;
+            TimeSpan startUpperBound = state.UserState.ClubInfo().LatestUseTime;
 
             if (time.Minutes != 0 && time.Minutes != 15 && time.Minutes != 30 && time.Minutes != 45)
             {
@@ -281,23 +282,23 @@ namespace BoatTracker.Bot
                 });
             }
 
-            if (time < StartLowerBound)
+            if (time < startLowerBound)
             {
                 return Task.FromResult(new ValidateResult
                 {
                     IsValid = false,
                     Value = null,
-                    Feedback = $"Reservations can't be made earlier than {(DateTime.MinValue + StartLowerBound).ToShortTimeString()}"
+                    Feedback = $"Reservations can't be made earlier than {(DateTime.MinValue + startLowerBound).ToShortTimeString()}"
                 });
             }
 
-            if (time >= StartUpperBound)
+            if (time >= startUpperBound)
             {
                 return Task.FromResult(new ValidateResult
                 {
                     IsValid = false,
                     Value = null,
-                    Feedback = $"Reservations can't be made later than {(DateTime.MinValue + StartUpperBound).ToShortTimeString()}"
+                    Feedback = $"Reservations can't be made later than {(DateTime.MinValue + startUpperBound).ToShortTimeString()}"
                 });
             }
 

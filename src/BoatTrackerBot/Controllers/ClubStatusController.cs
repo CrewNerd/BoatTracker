@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Mvc;
 
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.DataContracts;
-
 using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.Models;
+
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 
 namespace BoatTracker.Bot
 {
@@ -29,7 +29,7 @@ namespace BoatTracker.Bot
         }
 
         /// <summary>
-        /// Gets the club status page. The clubid specifies the club to display. The checkin and
+        /// Gets the club status page. The club id specifies the club to display. The checkin and
         /// checkout buttons direct here with the corresponding query parameter containing the
         /// reference id for the reservation of interest.
         /// </summary>
