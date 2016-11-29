@@ -4,19 +4,30 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using BoatTracker.BookedScheduler;
+using BoatTracker.Bot.Configuration;
+using BoatTracker.Bot.DataObjects;
+
 using Microsoft.Bot.Builder.Luis.Models;
 
 using Newtonsoft.Json.Linq;
 using NodaTime.TimeZones;
 
-using BoatTracker.Bot.Configuration;
-using BoatTracker.Bot.DataObjects;
-using BoatTracker.BookedScheduler;
-
 namespace BoatTracker.Bot.Utils
 {
     public static class UserStateExtensions
     {
+        /// <summary>
+        /// Some terms should never be allowed in boat names. If LUIS incorrectly identifies these as part
+        /// of a boat name entity, we remove them to make sure they don't confuse our resource matching.
+        /// One common case is: "Reserve boat-name now for 30 minutes", where "now" is sometimes
+        /// identified as part of the boat name.
+        /// </summary>
+        private static readonly string[] ExcludedBoatNameTerms = new string[]
+        {
+            "now"
+        };
+
         public static ClubInfo ClubInfo(this UserState userState)
         {
             return EnvironmentDefinition.Instance.MapClubIdToClubInfo[userState.ClubId];
@@ -149,8 +160,7 @@ namespace BoatTracker.Bot.Utils
                 "{0} {1} {2}",
                 startDate.ToLocalTime().ToString("d"),
                 startDate.ToLocalTime().ToString("t"),
-                boatName
-                );
+                boatName);
         }
 
         #endregion
@@ -224,23 +234,12 @@ namespace BoatTracker.Bot.Utils
         }
 
         /// <summary>
-        /// Some terms should never be allowed in boat names. If LUIS mis-identifies these as part
-        /// of a boat name entity, we remove them to make sure they don't confuse our resource matching.
-        /// One common case is: "Reserve boat-name now for 30 minutes", where "now" is sometimes
-        /// identified as part of the boat name.
-        /// </summary>
-        private readonly static string[] excludedBoatNameTerms = new string[]
-        {
-            "now"
-        };
-
-        /// <summary>
         /// Look for an acceptable match between the 'boatName' entities found by LUIS and
         /// the known set of boat names for the user's club. Consider alternate names for
         /// each boat as configured by the administrator using a custom attribute.
         /// </summary>
         /// <param name="userState">The user context</param>
-        /// <param name="entities">The entities discovered by LUIS</param>
+        /// <param name="result">The result returned by LUIS</param>
         /// <returns>The JToken for the matching boat resource, or null if no good match was found.</returns>
         public static async Task<Tuple<JToken, string>> FindBestResourceMatchAsync(this UserState userState, LuisResult result)
         {
@@ -248,7 +247,7 @@ namespace BoatTracker.Bot.Utils
             var entityWords = entities
                 .Where(e => e.Type == LuisResultExtensions.EntityBoatName)
                 .SelectMany(e => e.Entity.ToLower().Split(' '))
-                .Where(word => !excludedBoatNameTerms.Contains(word))
+                .Where(word => !ExcludedBoatNameTerms.Contains(word))
                 .ToList();
 
             if (entityWords.Count == 0)
@@ -389,7 +388,7 @@ namespace BoatTracker.Bot.Utils
         /// name, and username for each user.
         /// </summary>
         /// <param name="userState">The user context</param>
-        /// <param name="entities">The entities discovered by LUIS</param>
+        /// <param name="result">The result returned by LUIS</param>
         /// <returns>The JToken for the matching user, or null if no good match was found.</returns>
         public static async Task<Tuple<JToken, string>> FindBestUserMatchAsync(this UserState userState, LuisResult result)
         {

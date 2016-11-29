@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using BoatTracker.BookedScheduler;
+using BoatTracker.Bot.Configuration;
 using Microsoft.Azure;
 using Microsoft.Azure.WebJobs;
 using Newtonsoft.Json.Linq;
@@ -12,13 +14,18 @@ using NodaTime.TimeZones;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 
-using BoatTracker.BookedScheduler;
-using BoatTracker.Bot.Configuration;
-
 namespace BoatTrackerWebJob
 {
+    /// <summary>
+    /// Entry point and helpers for generating the daily report of usage and policy violations.
+    /// </summary>
     public class DailyReport
     {
+        /// <summary>
+        /// Iterates over all of the clubs, calling a helper to generate the daily report.
+        /// </summary>
+        /// <param name="logName">The name of the log file blob.</param>
+        /// <param name="log">The writer for logging.</param>
         [NoAutomaticTrigger]
         public static void SendDailyReport(
             string logName,
@@ -61,6 +68,12 @@ namespace BoatTrackerWebJob
             log.WriteLine($"{env.Name}: Daily Report WebJob complete at {DateTime.UtcNow.ToString()}");
         }
 
+        /// <summary>
+        /// Generates a daily report of usage and policy violations and emails it to the configured recipients.
+        /// </summary>
+        /// <param name="clubId">The club of interest</param>
+        /// <param name="log">The writer for logging.</param>
+        /// <returns>A task that completes when the daily report has been generated and sent.</returns>
         private static async Task RunDailyReport(string clubId, TextWriter log)
         {
             var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[clubId];
@@ -74,7 +87,7 @@ namespace BoatTrackerWebJob
 
             var compliant = new List<string>();
             var abandoned = new List<string>();
-            var noCheckOut = new List<string>();
+            var failedToCheckOut = new List<string>();
             var unknownParticipants = new List<string>();
             var withGuest = new List<string>();
 
@@ -103,7 +116,7 @@ namespace BoatTrackerWebJob
                     }
                     else
                     {
-                        noCheckOut.Add($"{basicInfo} (actual: {localCheckInTime} - ??)");
+                        failedToCheckOut.Add($"{basicInfo} (actual: {localCheckInTime} - ??)");
                     }
                 }
                 else
@@ -167,27 +180,33 @@ namespace BoatTrackerWebJob
 
             await client.SignOutAsync();
 
-            var sbMessage = new StringBuilder();
+            var body = new StringBuilder();
 
-            sbMessage.AppendLine($"<h2>BoatTracker Daily Report for: {clubInfo.Name}</h2>");
-            sbMessage.AppendLine($"<p>Total reservations: {reservations.Count}</p>");
+            body.AppendLine($"<h2>BoatTracker Daily Report for: {clubInfo.Name}</h2>");
+            body.AppendLine($"<p>Total reservations: {reservations.Count}</p>");
 
-            AddReservationsToReport(sbMessage, compliant, "Compliant reservations");
-            AddReservationsToReport(sbMessage, abandoned, "Unused reservations");
-            AddReservationsToReport(sbMessage, noCheckOut, "Unclosed reservations");
-            AddReservationsToReport(sbMessage, unknownParticipants, "Incomplete rosters");
-            AddReservationsToReport(sbMessage, withGuest, "Guest rowers");
-            AddReservationsToReport(sbMessage, upcomingWithGuest, "Upcoming guest rowers");
+            AddReservationsToReport(body, compliant, "Compliant reservations");
+            AddReservationsToReport(body, abandoned, "Unused reservations");
+            AddReservationsToReport(body, failedToCheckOut, "Unclosed reservations");
+            AddReservationsToReport(body, unknownParticipants, "Incomplete rosters");
+            AddReservationsToReport(body, withGuest, "Guest rowers");
+            AddReservationsToReport(body, upcomingWithGuest, "Upcoming guest rowers");
 
-            log.Write(sbMessage.ToString());
+            log.Write(body.ToString());
 
             await SendDailyReportEmail(
                 log,
                 clubInfo,
-                $"BoatTracker daily report for {clubInfo.Name}" + (EnvironmentDefinition.Instance.IsDevelopment ? " (DEV)" : ""),
-                sbMessage.ToString());
+                $"BoatTracker daily report for {clubInfo.Name}" + (EnvironmentDefinition.Instance.IsDevelopment ? " (DEV)" : string.Empty),
+                body.ToString());
         }
 
+        /// <summary>
+        /// Adds a set of reservations to the email body we're building.
+        /// </summary>
+        /// <param name="sb">Buffer containing the generated email body.</param>
+        /// <param name="reservationList">The set of reservation descriptions to be added.</param>
+        /// <param name="listName">The name of the list.</param>
         private static void AddReservationsToReport(StringBuilder sb, List<string> reservationList, string listName)
         {
             if (reservationList.Count > 0)
@@ -207,6 +226,14 @@ namespace BoatTrackerWebJob
             }
         }
 
+        /// <summary>
+        /// Sends the generated report.
+        /// </summary>
+        /// <param name="log">The writer for logging.</param>
+        /// <param name="clubInfo">Info about the club of interest</param>
+        /// <param name="subject">The email subject</param>
+        /// <param name="body">The email body</param>
+        /// <returns>A task that completes when the email has been sent.</returns>
         private static async Task SendDailyReportEmail(TextWriter log, ClubInfo clubInfo, string subject, string body)
         {
             dynamic sg = new SendGridAPIClient(EnvironmentDefinition.Instance.SendGridApiKey);
@@ -260,9 +287,9 @@ namespace BoatTrackerWebJob
                 return TimeSpan.Zero;
             }
 
-            var tzInfo = TimeZoneInfo.FindSystemTimeZoneById(mappedTz.WindowsId);
+            var timezoneInfo = TimeZoneInfo.FindSystemTimeZoneById(mappedTz.WindowsId);
 
-            TimeSpan offset = tzInfo.GetUtcOffset(date);
+            TimeSpan offset = timezoneInfo.GetUtcOffset(date);
 
             return offset;
         }

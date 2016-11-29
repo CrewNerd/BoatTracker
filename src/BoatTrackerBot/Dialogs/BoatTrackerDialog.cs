@@ -4,6 +4,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using BoatTracker.BookedScheduler;
+using BoatTracker.Bot.Configuration;
+using BoatTracker.Bot.DataObjects;
+using BoatTracker.Bot.Utils;
+
 using Microsoft.ApplicationInsights;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.FormFlow;
@@ -12,11 +17,6 @@ using Microsoft.Bot.Builder.Luis.Models;
 using Microsoft.Bot.Connector;
 
 using Newtonsoft.Json.Linq;
-
-using BoatTracker.BookedScheduler;
-using BoatTracker.Bot.Configuration;
-using BoatTracker.Bot.DataObjects;
-using BoatTracker.Bot.Utils;
 
 namespace BoatTracker.Bot
 {
@@ -29,6 +29,9 @@ namespace BoatTracker.Bot
         [NonSerialized]
         private ChannelInfo currentChannelInfo;
 
+        [NonSerialized]
+        private TelemetryClient telemetryClient;
+
         private BookedSchedulerClient cachedClient;
 
         private string pendingReservationToCancel;
@@ -39,9 +42,6 @@ namespace BoatTracker.Bot
             : base(service)
         {
         }
-
-        [NonSerialized]
-        private TelemetryClient telemetryClient;
 
         private TelemetryClient TelemetryClient
         {
@@ -68,7 +68,7 @@ namespace BoatTracker.Bot
                 this.TelemetryClient.TrackEvent("ControlMessage", new Dictionary<string, string> { ["Command"] = command });
 
                 await this.ProcessControlMessage(context, command);
-                context.Wait(MessageReceived);
+                context.Wait(this.MessageReceived);
                 return;
             }
 
@@ -88,7 +88,7 @@ namespace BoatTracker.Bot
                 await context.PostAsync(message);
             }
 
-            context.Wait(MessageReceived);
+            context.Wait(this.MessageReceived);
         }
 
         private async Task ProcessControlMessage(IDialogContext context, string msg)
@@ -202,7 +202,7 @@ namespace BoatTracker.Bot
             }
 
             var reservationForm = new FormDialog<ReservationRequest>(reservationRequest, ReservationRequest.BuildForm, FormOptions.PromptInStart, result.Entities);
-            context.Call(reservationForm, ReservationComplete);
+            context.Call(reservationForm, this.ReservationComplete);
         }
 
         private async Task ReservationComplete(IDialogContext context, IAwaitable<ReservationRequest> result)
@@ -218,7 +218,7 @@ namespace BoatTracker.Bot
             catch (FormCanceledException)
             {
                 await context.PostAsync("Okay, I'm aborting your reservation request.");
-                context.Wait(MessageReceived);
+                context.Wait(this.MessageReceived);
                 return;
             }
 
@@ -266,7 +266,7 @@ namespace BoatTracker.Bot
                 await context.PostAsync("ERROR: Form returned an empty response!!");
             }
 
-            context.Wait(MessageReceived);
+            context.Wait(this.MessageReceived);
         }
 
         [LuisIntent("CheckBoatAvailability")]
@@ -284,14 +284,14 @@ namespace BoatTracker.Bot
             if (result.ContainsBoatNameEntity() && boatMatch.Item1 == null)
             {
                 await context.PostAsync(boatMatch.Item2);
-                context.Wait(MessageReceived);
+                context.Wait(this.MessageReceived);
                 return;
             }
 
             if (boatMatch.Item1 != null && !await this.currentUserState.HasPermissionForResourceAsync(boatMatch.Item1))
             {
                 await context.PostAsync($"I'm sorry, but you don't have permission to use the {boatMatch.Item1.Name()}.");
-                context.Wait(MessageReceived);
+                context.Wait(this.MessageReceived);
                 return;
             }
 
@@ -348,14 +348,14 @@ namespace BoatTracker.Bot
             {
                 string reservationDescription = await this.currentUserState.DescribeReservationsAsync(
                     reservations,
-                    showOwner:true,
-                    showDate:showDate,
-                    useMarkdown:this.currentChannelInfo.SupportsMarkdown);
+                    showOwner: true,
+                    showDate: showDate,
+                    useMarkdown: this.currentChannelInfo.SupportsMarkdown);
 
                 await context.PostAsync($"I found the following reservation{this.Pluralize(reservations.Count)}{filterDescription}:\n\n---{reservationDescription}");
             }
 
-            context.Wait(MessageReceived);
+            context.Wait(this.MessageReceived);
         }
 
         [LuisIntent("TakeOut")]
@@ -378,7 +378,7 @@ namespace BoatTracker.Bot
                 if (!await this.currentUserState.HasPermissionForResourceAsync(res))
                 {
                     await context.PostAsync($"I'm sorry, but you don't have permission to use the {res.Name()}");
-                    context.Wait(MessageReceived);
+                    context.Wait(this.MessageReceived);
                     return;
                 }
             }
@@ -393,7 +393,7 @@ namespace BoatTracker.Bot
             var reservations = (await client.GetReservationsAsync(
                 this.currentUserState.UserId,
                 boatId,
-                start:localTime - TimeSpan.FromHours(6)))
+                start: localTime - TimeSpan.FromHours(6)))
                 .ToList();
 
             // Look for reservations starting within 15 minutes (plus or minus) of the current time that aren't already checked in.
@@ -432,7 +432,7 @@ namespace BoatTracker.Bot
                     break;
             }
 
-            context.Wait(MessageReceived);
+            context.Wait(this.MessageReceived);
         }
 
         private async Task CreateReservationOnDemand(IDialogContext context, LuisResult result, JToken boat)
@@ -503,7 +503,7 @@ namespace BoatTracker.Bot
             }
 
             var reservationForm = new FormDialog<ReservationRequest>(reservationRequest, ReservationRequest.BuildForm, FormOptions.PromptInStart, result.Entities);
-            context.Call(reservationForm, ReservationComplete);
+            context.Call(reservationForm, this.ReservationComplete);
         }
 
         [LuisIntent("Return")]
@@ -525,7 +525,7 @@ namespace BoatTracker.Bot
             var reservations = (await client.GetReservationsAsync(
                 this.currentUserState.UserId,
                 boatId,
-                start:localTime - TimeSpan.FromHours(6)))
+                start: localTime - TimeSpan.FromHours(6)))
                 .ToList();
 
             // Filter down to "current" reservations that haven't been checked-out yet.
@@ -561,7 +561,7 @@ namespace BoatTracker.Bot
                     break;
             }
 
-            context.Wait(MessageReceived);
+            context.Wait(this.MessageReceived);
         }
 
         [LuisIntent("CheckReservations")]
@@ -627,7 +627,7 @@ namespace BoatTracker.Bot
                 await context.PostAsync($"I found the following reservation{this.Pluralize(reservations.Count)}{filterDescription}:\n\n---{reservationDescription}");
             }
 
-            context.Wait(MessageReceived);
+            context.Wait(this.MessageReceived);
         }
 
         [LuisIntent("CancelReservation")]
@@ -685,7 +685,7 @@ namespace BoatTracker.Bot
             {
                 case 0:
                     await context.PostAsync($"I don't see any reservations{filterDescription}.");
-                    context.Wait(MessageReceived);
+                    context.Wait(this.MessageReceived);
                     break;
 
                 case 1:
@@ -702,7 +702,7 @@ namespace BoatTracker.Bot
 
                     PromptDialog.Confirm(
                         context,
-                        AfterConfirming_DeleteReservation,
+                        this.AfterConfirming_DeleteReservation,
                         $"Is this the reservation you want to cancel? (yes/no)\n\n---{reservationDescription}",
                         attempts: 3,
                         retry: "Sorry, I don't understand your response. Do you want to cancel the reservation shown above? (yes/no)",
@@ -740,7 +740,7 @@ namespace BoatTracker.Bot
                         response.Attachments.Add(card.ToAttachment());
 
                         await context.PostAsync(response);
-                        context.Wait(MessageReceived);
+                        context.Wait(this.MessageReceived);
                     }
                     else
                     {
@@ -761,6 +761,7 @@ namespace BoatTracker.Bot
                             "I'm sorry, but that isn't a valid response. Please select one of the options listed above.",
                             3);
                     }
+
                     break;
             }
         }
@@ -794,7 +795,7 @@ namespace BoatTracker.Bot
                 await context.PostAsync("Sorry, I don't understand that. I'm leaving your reservation unchanged.");
             }
 
-            context.Wait(MessageReceived);
+            context.Wait(this.MessageReceived);
         }
 
         public async Task AfterSelectingReservation_DeleteReservation(IDialogContext context, IAwaitable<long> confirmation)
@@ -833,7 +834,7 @@ namespace BoatTracker.Bot
             }
 
             this.pendingReservationsToCancel = null;
-            context.Wait(MessageReceived);
+            context.Wait(this.MessageReceived);
         }
 
         #endregion
@@ -875,7 +876,7 @@ namespace BoatTracker.Bot
             // The current intent is aborted in favor of the sign-in flow.
             this.TrackIntent(context, "SignIn");
             var signInForm = new FormDialog<SignInForm>(new SignInForm(), SignInForm.BuildForm, FormOptions.PromptInStart);
-            context.Call(signInForm, SignInComplete);
+            context.Call(signInForm, this.SignInComplete);
             return false;
         }
 
@@ -890,7 +891,7 @@ namespace BoatTracker.Bot
             catch (FormCanceledException)
             {
                 await context.PostAsync("Okay, I'm aborting your sign-in. You can retry again later.");
-                context.Wait(MessageReceived);
+                context.Wait(this.MessageReceived);
                 return;
             }
 
@@ -903,7 +904,7 @@ namespace BoatTracker.Bot
             if (user == null)
             {
                 await context.PostAsync("Unexpected error in the sign-in process - the user wasn't found after form completion.");
-                context.Wait(MessageReceived);
+                context.Wait(this.MessageReceived);
                 return;
             }
 
@@ -912,7 +913,7 @@ namespace BoatTracker.Bot
             if (channelInfo == null)
             {
                 await context.PostAsync("Unexpected error in the sign-in process - the channel wasn't found after form completion.");
-                context.Wait(MessageReceived);
+                context.Wait(this.MessageReceived);
                 return;
             }
 
@@ -937,16 +938,18 @@ namespace BoatTracker.Bot
                 await context.PostAsync($"I'm sorry... I verified your identity but I wasn't able to connect your {channelInfo.DisplayName} account to the reservation system. Please try again later. ({ex.Message})");
             }
 
-            context.Wait(MessageReceived);
+            context.Wait(this.MessageReceived);
         }
 
         private void TrackIntent(IDialogContext context, string intent)
         {
-            this.TelemetryClient.TrackEvent(intent, new Dictionary<string, string>
-            {
-                ["ClubId"] = this.currentUserState != null ? this.currentUserState.ClubId : "Unknown",
-                ["Channel"] = context.GetChannel()
-            });
+            this.TelemetryClient.TrackEvent(
+                intent,
+                new Dictionary<string, string>
+                {
+                    ["ClubId"] = this.currentUserState != null ? this.currentUserState.ClubId : "Unknown",
+                    ["Channel"] = context.GetChannel()
+                });
         }
 
         /// <summary>
@@ -987,8 +990,7 @@ namespace BoatTracker.Bot
                 "## Taking out a boat\n\n" +
                 "* Take out the Little Thunder for two hours\n\n" +
                 "## Returning a boat\n\n" +
-                "* Return the Little Thunder"
-            );
+                "* Return the Little Thunder");
 
             this.currentUserState.HelpMessageShown = true;
             context.UserData.SetValue(UserState.PropertyName, this.currentUserState);

@@ -3,17 +3,20 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-using Microsoft.Azure.WebJobs;
-
 using BoatTracker.Bot.Configuration;
+using Microsoft.Azure.WebJobs;
 
 namespace BoatTrackerWebJob
 {
+    /// <summary>
+    /// Entry point and helpers for doing the background refresh of each club's cache.
+    /// </summary>
     public static class RefreshCaches
     {
         /// <summary>
         /// Iterates over all of the clubs, refreshing the cache for each one.
         /// </summary>
+        /// <param name="logName">The name of the logging blob.</param>
         /// <param name="log">The writer for logging.</param>
         [NoAutomaticTrigger]
         public static void RefreshBotCaches(

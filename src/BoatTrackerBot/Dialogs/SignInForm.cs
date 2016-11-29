@@ -3,13 +3,12 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-using Microsoft.Bot.Builder.FormFlow;
-using Microsoft.Bot.Builder.Dialogs;
-using Newtonsoft.Json.Linq;
-
 using BoatTracker.BookedScheduler;
 using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.Utils;
+
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.FormFlow;
 
 namespace BoatTracker.Bot
 {

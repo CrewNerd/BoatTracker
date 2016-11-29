@@ -31,50 +31,69 @@ namespace BoatTracker.Bot.Configuration
             };
         }
 
+        /// <summary>
+        /// Gets the model ID for our LUIS service.
+        /// </summary>
         public override string LuisModelId
         {
             get
             {
                 // Leaving this empty for security reasons... fill it in by hand when debugging locally
-                return "";
+                return string.Empty;
             }
         }
 
+        /// <summary>
+        /// Gets the subscription key for our LUIS service
+        /// </summary>
         public override string LuisSubscriptionKey
         {
             get
             {
                 // Leaving this empty for security reasons... fill it in by hand when debugging locally
-                return "";
+                return string.Empty;
             }
         }
 
+        /// <summary>
+        /// Gets the API key for SendGrid
+        /// </summary>
         public override string SendGridApiKey
         {
             get
             {
                 // Leaving this empty for security reasons... fill it in by hand when debugging locally
-                return "";
+                return string.Empty;
             }
         }
 
+        /// <summary>
+        /// Gets the name of the boattracker service for this deployment slot. Used by WebJobs
+        /// to call the service.
+        /// </summary>
         public override string ServiceHost
         {
             get
             {
                 // Leaving this empty for security reasons... fill it in by hand when debugging locally
-                return "";
+                return string.Empty;
             }
         }
 
         /// <summary>
         /// Gets a value indicating whether this is the local environment.
         /// </summary>
-        public override bool IsLocal { get { return true; } }
+        public override bool IsLocal
+        {
+            get { return true; }
+        }
 
         /// <summary>
         /// Gets the short name of the environment.
         /// </summary>
-        public override string Name { get { return "LOCAL"; } }
+        public override string Name
+        {
+            get { return "LOCAL"; }
+        }
     }
 }

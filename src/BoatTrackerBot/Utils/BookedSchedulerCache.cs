@@ -6,29 +6,44 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Newtonsoft.Json.Linq;
-
 using BoatTracker.BookedScheduler;
 using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.DataObjects;
+
+using Newtonsoft.Json.Linq;
 
 namespace BoatTracker.Bot.Utils
 {
     public class BookedSchedulerCache
     {
+        private ConcurrentDictionary<string, BookedSchedulerCacheEntry> entries;
+
         static BookedSchedulerCache()
         {
             Instance = new BookedSchedulerCache();
         }
-
-        public static BookedSchedulerCache Instance { get; private set; }
 
         private BookedSchedulerCache()
         {
             this.entries = new ConcurrentDictionary<string, BookedSchedulerCacheEntry>();
         }
 
-        private ConcurrentDictionary<string, BookedSchedulerCacheEntry> entries;
+        public static BookedSchedulerCache Instance { get; private set; }
+
+        public BookedSchedulerCacheEntry this[string clubId]
+        {
+            get
+            {
+                if (!this.entries.ContainsKey(clubId))
+                {
+                    // This should never happen now that we load the cache on startup.
+                    var newEntry = new BookedSchedulerCacheEntry(clubId);
+                    this.entries.TryAdd(clubId, newEntry);
+                }
+
+                return this.entries[clubId];
+            }
+        }
 
         /// <summary>
         /// Iterate over all of the configured clubs, initializing the cache for each one. We use
@@ -70,21 +85,6 @@ namespace BoatTracker.Bot.Utils
             Trace.TraceInformation($"{envName} Finished BookedSchedulerCache initialization");
         }
 
-        public BookedSchedulerCacheEntry this[string clubId]
-        {
-            get
-            {
-                if (!entries.ContainsKey(clubId))
-                {
-                    // This should never happen now that we load the cache on startup.
-                    var newEntry = new BookedSchedulerCacheEntry(clubId);
-                    this.entries.TryAdd(clubId, newEntry);
-                }
-
-                return this.entries[clubId];
-            }
-        }
-
         public async Task RefreshCacheAsync(string clubId = null)
         {
             var env = EnvironmentDefinition.Instance;
@@ -120,6 +120,8 @@ namespace BoatTracker.Bot.Utils
             private static readonly TimeSpan CacheTimeout = TimeSpan.FromHours(8);
             private static readonly TimeSpan CacheRetryTime = TimeSpan.FromMinutes(10);
             private static readonly TimeSpan EventLifetime = TimeSpan.FromSeconds(15);
+
+            private long refreshInProgress = 0;
 
             private string clubId;
 
@@ -344,8 +346,6 @@ namespace BoatTracker.Bot.Utils
                 }
             }
 
-            private long RefreshInProgress = 0;
-
             public async Task RefreshCacheAsync(bool failSilently = true)
             {
                 BookedSchedulerRetryClient client = null;
@@ -357,7 +357,7 @@ namespace BoatTracker.Bot.Utils
                     // the caller proceed with date that's soon to be replaced. The priority
                     // is to ensure that two threads aren't updating the cache at once.
                     //
-                    if (Interlocked.CompareExchange(ref this.RefreshInProgress, 1, 0) != 0)
+                    if (Interlocked.CompareExchange(ref this.refreshInProgress, 1, 0) != 0)
                     {
                         return;
                     }
@@ -418,7 +418,7 @@ namespace BoatTracker.Bot.Utils
                 }
                 finally
                 {
-                    this.RefreshInProgress = 0;
+                    this.refreshInProgress = 0;
 
                     if (client != null && client.IsSignedIn)
                     {

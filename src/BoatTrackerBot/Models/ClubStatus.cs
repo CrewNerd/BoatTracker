@@ -32,8 +32,9 @@ namespace BoatTracker.Bot.Models
         public string ClubId { get; private set; }
 
         /// <summary>
-        /// If we received a valid clubStatusSecret, then this is a kiosk. Otherwise, we
-        /// don't display the checkin/checkout buttons.
+        /// Gets or sets a value indicating whether we received a valid clubStatusSecret,
+        /// meaning the call came from a kiosk. Otherwise, we don't display the checkin
+        /// and checkout buttons.
         /// </summary>
         public bool IsKiosk { get; set; }
 
@@ -43,7 +44,7 @@ namespace BoatTracker.Bot.Models
         public JArray Reservations { get; private set; }
 
         /// <summary>
-        /// Gets the UserState object for the bot user (for timezone calculations).
+        /// Gets the UserState object for the bot user (for time zone calculations).
         /// </summary>
         public UserState BotUserState { get; private set; }
 
@@ -72,7 +73,7 @@ namespace BoatTracker.Bot.Models
                 // Refresh more frequently during business hours (or within 30 minutes of business hours)
                 return
                     localTime.TimeOfDay.TotalHours + 0.5 >= (clubInfo.EarliestUseHour ?? 5) &&
-                    localTime.TimeOfDay.TotalHours - 0.5< (clubInfo.LatestUseHour ?? 21);
+                    localTime.TimeOfDay.TotalHours - 0.5 < (clubInfo.LatestUseHour ?? 21);
             }
         }
 

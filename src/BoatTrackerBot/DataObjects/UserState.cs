@@ -17,7 +17,7 @@ namespace BoatTracker.Bot.DataObjects
         {
             get
             {
-                return (this.UserId != 0 && !string.IsNullOrEmpty(this.ClubId));
+                return this.UserId != 0 && !string.IsNullOrEmpty(this.ClubId);
             }
         }
     }
