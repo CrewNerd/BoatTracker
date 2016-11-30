@@ -74,7 +74,7 @@ namespace BoatTracker.Bot
 
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "None");
+            this.TrackIntent(context, nameof(None));
 
             bool forceHelp = result.Query.ToLower().Contains("help") || result.Query.Equals("?");
 
@@ -95,18 +95,10 @@ namespace BoatTracker.Bot
         {
             Func<Task> help = async () =>
             {
-                await context.PostAsync(
-                    "clearuserdata - clear all data for the calling user\n\n" +
-                    "refreshcache [club id] - refresh the cache of BookedScheduler data");
+                await context.PostAsync("refreshcache [club id] - refresh the cache of BookedScheduler data");
             };
 
-            if (msg == "clearuserdata")
-            {
-                context.UserData.Clear();
-                await context.FlushAsync(CancellationToken.None);
-                await context.PostAsync("User data cleared");
-            }
-            else if (msg.StartsWith("refreshcache"))
+            if (msg.StartsWith("refreshcache"))
             {
                 var args = msg.Split(' ');
                 var clubId = args.Length > 1 ? args[1] : null;
@@ -153,12 +145,24 @@ namespace BoatTracker.Bot
             }
         }
 
-        [LuisIntent("CreateReservation")]
+        [LuisIntent(nameof(ResetAccount))]
+        public async Task ResetAccount(IDialogContext context, LuisResult result)
+        {
+            this.TrackIntent(context, nameof(ResetAccount));
+
+            context.UserData.Clear();
+            await context.FlushAsync(CancellationToken.None);
+
+            await context.PostAsync("Okay, by the time you read this it will be just like we've never met :) Say anything to start the sign-in process all over again.");
+            context.Wait(this.MessageReceived);
+        }
+
+        [LuisIntent(nameof(CreateReservation))]
         public async Task CreateReservation(IDialogContext context, LuisResult result)
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "CreateReservation");
+            this.TrackIntent(context, nameof(CreateReservation));
 
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
             var boatName = boatMatch.Item1?.Name();
@@ -269,12 +273,12 @@ namespace BoatTracker.Bot
             context.Wait(this.MessageReceived);
         }
 
-        [LuisIntent("CheckBoatAvailability")]
+        [LuisIntent(nameof(CheckBoatAvailability))]
         public async Task CheckBoatAvailability(IDialogContext context, LuisResult result)
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "CheckBoatAvailability");
+            this.TrackIntent(context, nameof(CheckBoatAvailability));
 
             //
             // Check for (and apply) a boat name filter
@@ -358,12 +362,12 @@ namespace BoatTracker.Bot
             context.Wait(this.MessageReceived);
         }
 
-        [LuisIntent("TakeOut")]
+        [LuisIntent(nameof(TakeOut))]
         public async Task TakeOut(IDialogContext context, LuisResult result)
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "TakeOut");
+            this.TrackIntent(context, nameof(TakeOut));
 
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
             long? boatId = boatMatch.Item1?.ResourceId();
@@ -506,12 +510,12 @@ namespace BoatTracker.Bot
             context.Call(reservationForm, this.ReservationComplete);
         }
 
-        [LuisIntent("Return")]
+        [LuisIntent(nameof(Return))]
         public async Task Return(IDialogContext context, LuisResult result)
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "Return");
+            this.TrackIntent(context, nameof(Return));
 
             // Note: we don't require a boat name here. Normally, there will only be one
             // active reservation for the user and they can simply say "i'm done".
@@ -564,12 +568,12 @@ namespace BoatTracker.Bot
             context.Wait(this.MessageReceived);
         }
 
-        [LuisIntent("CheckReservations")]
+        [LuisIntent(nameof(CheckReservations))]
         public async Task CheckReservations(IDialogContext context, LuisResult result)
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "CheckReservations");
+            this.TrackIntent(context, nameof(CheckReservations));
 
             var client = await this.GetClient();
 
@@ -630,12 +634,12 @@ namespace BoatTracker.Bot
             context.Wait(this.MessageReceived);
         }
 
-        [LuisIntent("CancelReservation")]
+        [LuisIntent(nameof(CancelReservation))]
         public async Task CancelReservation(IDialogContext context, LuisResult result)
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, "CancelReservation");
+            this.TrackIntent(context, nameof(CancelReservation));
 
             var client = await this.GetClient();
 
@@ -837,9 +841,9 @@ namespace BoatTracker.Bot
             context.Wait(this.MessageReceived);
         }
 
-        #endregion
+#endregion
 
-        #region Misc Helpers
+#region Misc Helpers
 
         /// <summary>
         /// Checks to see if the user has signed into the bot previously. If so, set the currentUserState
@@ -1001,6 +1005,6 @@ namespace BoatTracker.Bot
             return count > 1 ? "s" : string.Empty;
         }
 
-        #endregion
+#endregion
     }
 }

@@ -245,7 +245,7 @@ namespace BoatTrackerWebJob
 
             if (EnvironmentDefinition.Instance.IsDevelopment)
             {
-                recipients = new string[] { CloudConfigurationManager.GetSetting("DeveloperEmail") };
+                recipients = new string[] { CloudConfigurationManager.GetSetting("DeveloperEmail", false) };
             }
             else if (EnvironmentDefinition.Instance.IsProduction)
             {

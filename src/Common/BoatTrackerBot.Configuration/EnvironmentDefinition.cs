@@ -43,7 +43,7 @@ namespace BoatTracker.Bot.Configuration
         {
             get
             {
-                return CloudConfigurationManager.GetSetting(LuisModelIdKey);
+                return CloudConfigurationManager.GetSetting(LuisModelIdKey, false);
             }
         }
 
@@ -54,7 +54,7 @@ namespace BoatTracker.Bot.Configuration
         {
             get
             {
-                return CloudConfigurationManager.GetSetting(LuisSubscriptionKeyKey);
+                return CloudConfigurationManager.GetSetting(LuisSubscriptionKeyKey, false);
             }
         }
 
@@ -65,7 +65,7 @@ namespace BoatTracker.Bot.Configuration
         {
             get
             {
-                return CloudConfigurationManager.GetSetting(SendGridApiKeyKey);
+                return CloudConfigurationManager.GetSetting(SendGridApiKeyKey, false);
             }
         }
 
@@ -76,7 +76,7 @@ namespace BoatTracker.Bot.Configuration
         {
             get
             {
-                return CloudConfigurationManager.GetSetting(SecurityKeyKey);
+                return CloudConfigurationManager.GetSetting(SecurityKeyKey, false);
             }
         }
 
@@ -88,7 +88,7 @@ namespace BoatTracker.Bot.Configuration
         {
             get
             {
-                return CloudConfigurationManager.GetSetting(ServiceHostKey);
+                return CloudConfigurationManager.GetSetting(ServiceHostKey, false);
             }
         }
 
