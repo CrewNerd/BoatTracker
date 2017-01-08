@@ -9,7 +9,7 @@
 
 @section scripts {
     <script>
-        setTimeout(function(){ location.href = '@(refreshUrl)'; }, @(Model.PageRefreshTime) * 1000);
+        setTimeout(function(){ location.href = '@Html.Raw(refreshUrl)'; }, @(Model.PageRefreshTime) * 1000);
     </script>
 }
 
