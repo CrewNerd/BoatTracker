@@ -14,12 +14,16 @@ namespace BoatTracker.Bot.Utils
     public static class LuisResultExtensions
     {
         public const string EntityBoatName = "boatName";
+        public const string EntityBoatClass = "boatClass";
         public const string EntityRowerName = "rowerName";
         private const string EntityStart = "DateTime::startDate";
         private const string EntityDuration = "DateTime::duration";
         private const string EntityBuiltinDate = "builtin.datetime.date";
         private const string EntityBuiltinTime = "builtin.datetime.time";
         private const string EntityBuiltinDuration = "builtin.datetime.duration";
+
+        private static string[] SingleClassNames = { "single", "singles", "1x" };
+        private static string[] DoubleClassNames = { "double", "doubles", "2x" };
 
         public static bool ContainsBoatNameEntity(this LuisResult result)
         {
@@ -41,6 +45,27 @@ namespace BoatTracker.Bot.Utils
         {
             var userEntities = result.Entities.Where(e => e.Type == EntityRowerName).Select(e => e.Entity);
             return string.Join(" ", userEntities);
+        }
+
+        public static int? BoatCapacity(this LuisResult result)
+        {
+            var classEntities = result.Entities.Where(e => e.Type == EntityBoatClass).Select(e => e.Entity);
+
+            var singles = SingleClassNames.Intersect(classEntities).Count() > 0;
+            var doubles = DoubleClassNames.Intersect(classEntities).Count() > 0;
+
+            if (singles && !doubles)
+            {
+                return 1;
+            }
+            else if (doubles && !singles)
+            {
+                return 2;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public static DateTime? FindStartDate(this LuisResult result, UserState userState)

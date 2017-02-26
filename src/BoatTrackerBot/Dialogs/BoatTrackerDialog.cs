@@ -273,6 +273,56 @@ namespace BoatTracker.Bot
             context.Wait(this.MessageReceived);
         }
 
+        [LuisIntent(nameof(ListBoats))]
+        public async Task ListBoats(IDialogContext context, LuisResult result)
+        {
+            if (!this.CheckUserIsRegistered(context)) { return; }
+
+            this.TrackIntent(context, nameof(ListBoats));
+
+            //
+            // Check for (and apply) a boat name filter
+            //
+            var resources = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourcesAsync();
+
+            var usableResources = resources.Where(boat => this.currentUserState.HasPermissionForResourceAsync(boat).Result);
+
+            var capacity = result.BoatCapacity();
+            var boatClass = "boat(s)";
+
+            //
+            // If the user specified a boat class, filter based on that.
+            //
+            if (capacity.HasValue)
+            {
+                usableResources = usableResources.Where(boat => boat.MaxParticipants() == capacity.Value);
+
+                switch (capacity.Value)
+                {
+                    case 1:
+                        boatClass = "single(s)";
+                        break;
+                    case 2:
+                        boatClass = "double(s)";
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (usableResources.Count() > 0)
+            {
+                await context.PostAsync($"You have permission to use the following {boatClass}:");
+                await context.PostAsync(string.Join(", ", usableResources.Select(b => b.Name()).ToArray()));
+            }
+            else
+            {
+                await context.PostAsync("You don't have permission to use any boats, currently.");
+            }
+
+            context.Wait(this.MessageReceived);
+        }
+
         [LuisIntent(nameof(CheckBoatAvailability))]
         public async Task CheckBoatAvailability(IDialogContext context, LuisResult result)
         {
@@ -313,6 +363,26 @@ namespace BoatTracker.Bot
             else
             {
                 reservations = (await client.GetReservationsAsync()).ToList();
+
+                //
+                // If we didn't get a specific boat name, check to see if they want to filter by type
+                //
+                var capacity = result.BoatCapacity();
+
+                if (capacity.HasValue)
+                {
+                    reservations = reservations
+                        .Where(r =>
+                        {
+                            var boat = BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourceFromIdAsync(r.ResourceId()).Result;
+                            return boat.MaxParticipants() == capacity.Value;
+                        })
+                        .ToList();
+
+                    var boatClass = capacity.Value == 1 ? "singles" : "doubles";
+
+                    filterDescription += $" for {boatClass}";
+                }
             }
 
             var startDate = result.FindStartDate(this.currentUserState);
@@ -981,8 +1051,12 @@ namespace BoatTracker.Bot
         {
             await context.PostAsync(
                 "I can help you with:\n\n" +
+                "## Listing all boats\n\n" +
+                "* What boats can I use?\n\n" +
+                "* What singles can I use?\n\n" +
                 "## Checking the availability of a boat\n\n" +
                 "* Is the Little Thunder available on Thursday?\n\n" +
+                "* What doubles are free tomorrow?\n\n" +
                 "## Creating a reservation\n\n" +
                 "* Reserve the Little Thunder on Thursday at 5am for 2 hours\n\n" +
                 "## Canceling a reservation\n\n" +
