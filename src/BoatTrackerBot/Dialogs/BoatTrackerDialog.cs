@@ -1052,10 +1052,10 @@ namespace BoatTracker.Bot
             await context.PostAsync(
                 "I can help you with:\n\n" +
                 "## Listing all boats\n\n" +
-                "* What boats can I use?\n\n" +
+                "* What boats can I use?\n" +
                 "* What singles can I use?\n\n" +
                 "## Checking the availability of a boat\n\n" +
-                "* Is the Little Thunder available on Thursday?\n\n" +
+                "* Is the Little Thunder available on Thursday?\n" +
                 "* What doubles are free tomorrow?\n\n" +
                 "## Creating a reservation\n\n" +
                 "* Reserve the Little Thunder on Thursday at 5am for 2 hours\n\n" +
