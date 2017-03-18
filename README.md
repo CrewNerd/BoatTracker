@@ -13,6 +13,7 @@ features that serve our needs well:
 * An extensible data model for users, resources, and reservations
 * A rich security model that allows typical club policies (e.g. based on membership or skill level) to be implemented easily
 * A rich web UI with good mobile support
+* A flexible reporting feature to track equipment usage
 * A complete REST API
 
 On top of this, the BoatTracker project adds:
