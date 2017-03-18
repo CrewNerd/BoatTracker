@@ -58,6 +58,12 @@ is reserving a boat and specifies the boat name, date, time, and duration for th
 BoatTracker knows that the named boat is a double, so it asks the user for the name of the other
 person who will be rowing.
 
+The bot also provides a flexible approach for naming users and boats. A custom resource extension in BookedScheduler allows
+each boat to have a set of "alternate" names, to allow for common spelling errors. For both user and
+boat names, the bot will accept any subset of words in the name, provided they are unique within the
+set of users or boats for that club. In the example below, the user name "Hanna" is unique, so the
+last name is not required.
+
 ![Bot Example](https://github.com/CrewNerd/BoatTracker/raw/master/artwork/BotSample.png "Bot Example")
 
 ## Club Status view
