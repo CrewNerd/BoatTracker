@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
@@ -43,7 +44,28 @@ namespace BoatTracker.Bot
                 switch (activity.GetActivityType())
                 {
                     case ActivityTypes.Message:
-                        await Conversation.SendAsync(activity, () => new BoatTrackerDialog(this.LuisService));
+                        if (!string.IsNullOrEmpty(activity.Text))
+                        {
+                            await Conversation.SendAsync(activity, () => new BoatTrackerDialog(this.LuisService));
+                        }
+                        else
+                        {
+                            ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
+                            string replyText;
+
+                            if (activity.Attachments.Any() && activity.Attachments.First().ContentType.Contains("mp4"))
+                            {
+                                replyText = "I'm sorry, but I don't know how to handle voice messages yet. I hope to be able to do that soon.";
+                            }
+                            else
+                            {
+                                replyText = "I'm sorry, but I don't understand this kind of message.";
+                            }
+
+                            Activity reply = activity.CreateReply(replyText);
+                            await connector.Conversations.ReplyToActivityAsync(reply);
+                        }
+
                         break;
 
                     case ActivityTypes.Ping:
