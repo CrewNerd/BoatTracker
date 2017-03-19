@@ -236,10 +236,9 @@ namespace BoatTrackerWebJob
         /// <returns>A task that completes when the email has been sent.</returns>
         private static async Task SendDailyReportEmail(TextWriter log, ClubInfo clubInfo, string subject, string body)
         {
-            dynamic sg = new SendGridAPIClient(EnvironmentDefinition.Instance.SendGridApiKey);
+            var client = new SendGridClient(EnvironmentDefinition.Instance.SendGridApiKey);
 
-            Email from = new Email(clubInfo.DailyReportSender);
-            Content content = new Content("text/html", body);
+            EmailAddress from = new EmailAddress(clubInfo.DailyReportSender);
 
             string[] recipients = new string[0];
 
@@ -256,10 +255,16 @@ namespace BoatTrackerWebJob
             {
                 try
                 {
-                    Email to = new Email(recipient);
-                    Mail mail = new Mail(from, subject, to, content);
+                    EmailAddress to = new EmailAddress(recipient);
+                    SendGridMessage mail = new SendGridMessage
+                    {
+                        From = from,
+                        Subject = subject,
+                        HtmlContent = body
+                    };
+                    mail.AddTo(to);
 
-                    dynamic response = await sg.client.mail.send.post(requestBody: mail.Get());
+                    var response = await client.SendEmailAsync(mail);
 
                     log.WriteLine($"Sent report email to {recipient}");
                 }
