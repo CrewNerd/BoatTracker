@@ -34,9 +34,9 @@ namespace BoatTracker.Bot
         {
             return new FormBuilder<SignInForm>()
                 .Message(GenerateIntroMessage)
-                .Field(nameof(ClubInitials), validate: ValidateClubInitials)
-                .Field(nameof(UserName), validate: ValidateUserName)
-                .Field(nameof(Password), validate: ValidatePassword)
+                .Field(nameof(SignInForm.ClubInitials), validate: ValidateClubInitials)
+                .Field(nameof(SignInForm.UserName), validate: ValidateUserName)
+                .Field(nameof(SignInForm.Password), validate: ValidatePassword)
                 .Build();
         }
 

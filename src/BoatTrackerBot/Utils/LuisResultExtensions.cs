@@ -22,8 +22,8 @@ namespace BoatTracker.Bot.Utils
         private const string EntityBuiltinTime = "builtin.datetime.time";
         private const string EntityBuiltinDuration = "builtin.datetime.duration";
 
-        private static string[] SingleClassNames = { "single", "singles", "1x" };
-        private static string[] DoubleClassNames = { "double", "doubles", "2x" };
+        private static readonly string[] SingleClassNames = { "single", "singles", "1x" };
+        private static readonly string[] DoubleClassNames = { "double", "doubles", "2x" };
 
         public static bool ContainsBoatNameEntity(this LuisResult result)
         {

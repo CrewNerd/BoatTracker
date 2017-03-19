@@ -108,12 +108,12 @@ namespace BoatTracker.Bot
         public static IForm<ReservationRequest> BuildForm()
         {
             return new FormBuilder<ReservationRequest>()
-                .Field(nameof(BoatName), validate: ValidateBoatName)
-                .Field(nameof(StartDate), validate: ValidateStartDate)
-                .Field(nameof(StartTime), validate: ValidateStartTime)
-                .Field(nameof(Duration), validate: ValidateDuration)
+                .Field(nameof(ReservationRequest.BoatName), validate: ValidateBoatName)
+                .Field(nameof(ReservationRequest.StartDate), validate: ValidateStartDate)
+                .Field(nameof(ReservationRequest.StartTime), validate: ValidateStartTime)
+                .Field(nameof(ReservationRequest.Duration), validate: ValidateDuration)
                 .Field(
-                    nameof(PartnerName),
+                    nameof(ReservationRequest.PartnerName),
                     state =>
                     {
                         // We only need another rower name if the boat isn't a single.

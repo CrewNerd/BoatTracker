@@ -74,7 +74,7 @@ namespace BoatTracker.Bot
 
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, nameof(None));
+            this.TrackIntent(context, nameof(this.None));
 
             bool forceHelp = result.Query.ToLower().Contains("help") || result.Query.Equals("?");
 
@@ -148,7 +148,7 @@ namespace BoatTracker.Bot
         [LuisIntent(nameof(ResetAccount))]
         public async Task ResetAccount(IDialogContext context, LuisResult result)
         {
-            this.TrackIntent(context, nameof(ResetAccount));
+            this.TrackIntent(context, nameof(this.ResetAccount));
 
             context.UserData.Clear();
             await context.FlushAsync(CancellationToken.None);
@@ -162,7 +162,7 @@ namespace BoatTracker.Bot
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, nameof(CreateReservation));
+            this.TrackIntent(context, nameof(this.CreateReservation));
 
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
             var boatName = boatMatch.Item1?.Name();
@@ -278,7 +278,7 @@ namespace BoatTracker.Bot
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, nameof(ListBoats));
+            this.TrackIntent(context, nameof(this.ListBoats));
 
             //
             // Check for (and apply) a boat name filter
@@ -328,7 +328,7 @@ namespace BoatTracker.Bot
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, nameof(CheckBoatAvailability));
+            this.TrackIntent(context, nameof(this.CheckBoatAvailability));
 
             //
             // Check for (and apply) a boat name filter
@@ -437,7 +437,7 @@ namespace BoatTracker.Bot
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, nameof(TakeOut));
+            this.TrackIntent(context, nameof(this.TakeOut));
 
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
             long? boatId = boatMatch.Item1?.ResourceId();
@@ -585,7 +585,7 @@ namespace BoatTracker.Bot
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, nameof(Return));
+            this.TrackIntent(context, nameof(this.Return));
 
             // Note: we don't require a boat name here. Normally, there will only be one
             // active reservation for the user and they can simply say "i'm done".
@@ -643,7 +643,7 @@ namespace BoatTracker.Bot
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, nameof(CheckReservations));
+            this.TrackIntent(context, nameof(this.CheckReservations));
 
             var client = await this.GetClient();
 
@@ -709,7 +709,7 @@ namespace BoatTracker.Bot
         {
             if (!this.CheckUserIsRegistered(context)) { return; }
 
-            this.TrackIntent(context, nameof(CancelReservation));
+            this.TrackIntent(context, nameof(this.CancelReservation));
 
             var client = await this.GetClient();
 
