@@ -20,9 +20,9 @@ namespace BoatTracker.Bot
         [Template(TemplateUsage.NavigationFormat, "Club Initials ({})")]
         public string ClubInitials { get; set; }
 
-        [Prompt("What is your user name?")]
-        [Template(TemplateUsage.StatusFormat, "User name: {}")]
-        [Template(TemplateUsage.NavigationFormat, "User Name ({})")]
+        [Prompt("What is your username?")]
+        [Template(TemplateUsage.StatusFormat, "Username: {}")]
+        [Template(TemplateUsage.NavigationFormat, "Username ({})")]
         public string UserName { get; set; }
 
         [Prompt("What is your password?")]
@@ -99,7 +99,7 @@ namespace BoatTracker.Bot
                 {
                     IsValid = false,
                     Value = null,
-                    Feedback = $"I don't see that user name in the roster for {clubName}. You may need to check with your club's administrator."
+                    Feedback = $"I don't see that username in the roster for {clubName}. You may need to check with your club's administrator."
                 };
             }
         }
