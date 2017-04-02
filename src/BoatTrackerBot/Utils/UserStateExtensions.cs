@@ -250,15 +250,26 @@ namespace BoatTracker.Bot.Utils
                 .Where(word => !ExcludedBoatNameTerms.Contains(word))
                 .ToList();
 
+            var resources = await BookedSchedulerCache.Instance[userState.ClubId].GetResourcesAsync();
+
+            //
+            // See if the user said something like "my boat" or "my double" and if so, try to match
+            // that to a resource that makes sense.
+            //
+            var boat = userState.MatchMyBoatRequest(resources, entityWords, result);
+
+            if (boat != null)
+            {
+                return new Tuple<JToken, string>(boat, null);
+            }
+
             if (entityWords.Count == 0)
             {
                 return new Tuple<JToken, string>(null, "I'm sorry, but I didn't see anything that looked like a boat name.");
             }
 
-            var resources = await BookedSchedulerCache.Instance[userState.ClubId].GetResourcesAsync();
-
             // If the boats are named sensibly, there should be only one perfect match.
-            var boat = resources.FirstOrDefault((b) => PerfectMatchBoat(entityWords, b));
+            boat = resources.FirstOrDefault((b) => PerfectMatchBoat(entityWords, b));
 
             if (boat != null)
             {
@@ -306,6 +317,79 @@ namespace BoatTracker.Bot.Utils
                     // Multiple matches - ask for clarification.
                     var boatNames = underMatches.Select(b => $"'{b.Name()}'");
                     return new Tuple<JToken, string>(null, $"I think you meant one of these boats ({string.Join(", ", boatNames)}). Can you be more specific?");
+            }
+        }
+
+        private static JToken MatchMyBoatRequest(this UserState userState, JArray resources, IEnumerable<string> entityWords, LuisResult result)
+        {
+            IEnumerable<string> queryWords;
+
+            if (string.IsNullOrEmpty(result.Query))
+            {
+                queryWords = entityWords;
+            }
+            else
+            {
+                queryWords = result.Query.ToLower().Split(' ', '\t', '\n');
+            }
+
+
+            if (!queryWords.Contains("my"))
+            {
+                return null;
+            }
+
+            // Get the word following "my"
+            var myObject = queryWords.SkipWhile(w => !w.Equals("my")).Skip(1).FirstOrDefault();
+
+            if (string.IsNullOrEmpty(myObject))
+            {
+                return null;
+            }
+
+            int? capacity = null;
+
+            switch (myObject)
+            {
+                case "boat":
+                case "shell":
+                case "kayak":
+                case "canoe":
+                    break;
+
+                case "single":
+                case "1x":
+                    capacity = 1;
+                    break;
+
+                case "double":
+                case "pair":
+                case "dbl":
+                case "2x":
+                case "2-":
+                    capacity = 2;
+                    break;
+
+                default:
+                    return null;
+            }
+
+            // Look for private boats that the user has permission for
+            var candidates = resources.Where(boat => boat.IsPrivate() && userState.HasPermissionForResourceAsync(boat).Result);
+
+            // If we don't have a clear winner, see if the user specified the type of boat
+            if (candidates.Count() > 1 && capacity.HasValue)
+            {
+                candidates = candidates.Where(boat => boat.MaxParticipants() == capacity.Value);
+            }
+
+            if (candidates.Count() == 1)
+            {
+                return candidates.First();
+            }
+            else
+            {
+                return null;
             }
         }
 
