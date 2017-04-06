@@ -200,6 +200,11 @@ namespace BoatTracker.Bot
                 await context.PostAsync($"I'm sorry, but you don't have permission to use the {boatName}.");
             }
 
+            if (boatMatch.Item1 != null && !boatMatch.Item1.IsAvailable())
+            {
+                await context.PostAsync($"I'm sorry, but the {boatName} is currently unavailable for use.");
+            }
+
             if (result.ContainsUserNameEntity() && partnerMatch.Item1 == null)
             {
                 await context.PostAsync(partnerMatch.Item2);

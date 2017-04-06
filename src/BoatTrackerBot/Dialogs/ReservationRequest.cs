@@ -134,6 +134,16 @@ namespace BoatTracker.Bot
 
             if (boatMatch.Item1 != null)
             {
+                if (!boatMatch.Item1.IsAvailable())
+                {
+                    return new ValidateResult
+                    {
+                        IsValid = false,
+                        Value = null,
+                        Feedback = "I'm sorry, but that boat is currently unavailable for use."
+                    };
+                }
+
                 if (await state.UserState.HasPermissionForResourceAsync(boatMatch.Item1))
                 {
                     bool partnerRemoved = false;

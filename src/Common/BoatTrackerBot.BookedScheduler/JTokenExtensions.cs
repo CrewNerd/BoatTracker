@@ -33,6 +33,7 @@ namespace BoatTracker.BookedScheduler
         private const string ResourceNameKey = "resourceName";
         private const string StartDateKey = "startDate";
         private const string StartDateTimeKey = "startDateTime";
+        private const string StatusIdKey = "statusId";
         private const string TimezoneKey = "timezone";
         private const string UserIdKey = "userId";
         private const string UserNameKey = "userName";
@@ -89,6 +90,16 @@ namespace BoatTracker.BookedScheduler
                 .FirstOrDefault();
 
             return isPrivate != null && isPrivate != "0";
+        }
+
+        /// <summary>
+        /// Gets a value indicating whether the resource is currently available.
+        /// </summary>
+        /// <param name="jtoken">The extension object.</param>
+        /// <returns>True if the resource is currently available.</returns>
+        public static bool IsAvailable(this JToken jtoken)
+        {
+            return jtoken.Value<string>(StatusIdKey) == "1";
         }
 
         /// <summary>
