@@ -164,6 +164,7 @@ namespace BoatTracker.Bot
 
             this.TrackIntent(context, nameof(this.CreateReservation));
 
+            result.FixEntities();
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
             var boatName = boatMatch.Item1?.Name();
             var partnerMatch = await this.currentUserState.FindBestUserMatchAsync(result);
@@ -285,6 +286,7 @@ namespace BoatTracker.Bot
 
             this.TrackIntent(context, nameof(this.ListBoats));
 
+            result.FixEntities();
             //
             // Check for (and apply) a boat name filter
             //
@@ -335,6 +337,7 @@ namespace BoatTracker.Bot
 
             this.TrackIntent(context, nameof(this.CheckBoatAvailability));
 
+            result.FixEntities();
             //
             // Check for (and apply) a boat name filter
             //
@@ -444,6 +447,7 @@ namespace BoatTracker.Bot
 
             this.TrackIntent(context, nameof(this.TakeOut));
 
+            result.FixEntities();
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
             long? boatId = boatMatch.Item1?.ResourceId();
 
@@ -592,6 +596,8 @@ namespace BoatTracker.Bot
 
             this.TrackIntent(context, nameof(this.Return));
 
+            result.FixEntities();
+
             // Note: we don't require a boat name here. Normally, there will only be one
             // active reservation for the user and they can simply say "i'm done".
 
@@ -650,6 +656,7 @@ namespace BoatTracker.Bot
 
             this.TrackIntent(context, nameof(this.CheckReservations));
 
+            result.FixEntities();
             var client = await this.GetClient();
 
             var reservations = (await client.GetReservationsForUserAsync(this.currentUserState.UserId)).ToList();
@@ -716,6 +723,7 @@ namespace BoatTracker.Bot
 
             this.TrackIntent(context, nameof(this.CancelReservation));
 
+            result.FixEntities();
             var client = await this.GetClient();
 
             var reservations = (await client.GetReservationsForUserAsync(this.currentUserState.UserId)).ToList();

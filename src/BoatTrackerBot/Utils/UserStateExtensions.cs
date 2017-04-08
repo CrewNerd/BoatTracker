@@ -427,7 +427,7 @@ namespace BoatTracker.Bot.Utils
             // Start with the set of alternate names (if any) for the boat
             var boatNames = (boat
                 .Value<JArray>("customAttributes")
-                .Where(x => x.Value<string>("label") == "Alternate names")
+                .Where(x => x.Value<string>("label").Equals("Alternate names", StringComparison.OrdinalIgnoreCase))
                 .First()
                 .Value<string>("value") ?? string.Empty)
                 .Split(',')

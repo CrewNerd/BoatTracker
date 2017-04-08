@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 using BoatTracker.Bot.DataObjects;
 
@@ -24,6 +25,21 @@ namespace BoatTracker.Bot.Utils
 
         private static readonly string[] SingleClassNames = { "single", "singles", "1x" };
         private static readonly string[] DoubleClassNames = { "double", "doubles", "2x" };
+
+        /// <summary>
+        /// Look for entities that were originally #NN and restore them.
+        /// </summary>
+        /// <param name="result">The result to be repaired</param>
+        /// <returns>The repaired result</returns>
+        public static LuisResult FixEntities(this LuisResult result)
+        {
+            foreach (var entity in result.Entities)
+            {
+                entity.Entity = Regex.Replace(entity.Entity, "xyzzy(?<digits>[0-9]*)$", "#${digits}");
+            }
+
+            return result;
+        }
 
         public static bool ContainsBoatNameEntity(this LuisResult result)
         {

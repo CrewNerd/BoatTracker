@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
@@ -46,6 +47,14 @@ namespace BoatTracker.Bot
                     case ActivityTypes.Message:
                         if (!string.IsNullOrEmpty(activity.Text))
                         {
+                            // HACK!!
+                            // LUIS thinks "#" characters are special, so tokens like "#1" get screwed up
+                            // as they pass through to the BoatTracker dialog. To work around that, we
+                            // transform them into a unique string that will be ignored, and considered to
+                            // be a boatName entity. Later, we restore it to its original form.
+                            var pattern = @"#(?<suffix>[0-9]*)\s";
+                            activity.Text = Regex.Replace(activity.Text, pattern, @"xYZzy${suffix} ");
+
                             await Conversation.SendAsync(activity, () => new BoatTrackerDialog(this.LuisService));
                         }
                         else
