@@ -156,6 +156,13 @@ namespace BoatTracker.Bot.Configuration
                     supportsButtons: false,
                     supportsMarkdown: false);
             }
+            else if (channel == "directline")
+            {
+                channelInfo = new ChannelInfo(
+                    "DirectLine",
+                    supportsButtons: false,
+                    supportsMarkdown: false);
+            }
             else
             {
                 channelInfo = null;

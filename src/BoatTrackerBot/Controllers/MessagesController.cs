@@ -40,57 +40,77 @@ namespace BoatTracker.Bot
         [ResponseType((typeof(void)))]
         public async Task<HttpResponseMessage> Post([FromBody]Activity activity)
         {
-            if (activity != null)
+            try
             {
-                switch (activity.GetActivityType())
+                if (activity != null)
                 {
-                    case ActivityTypes.Message:
-                        if (!string.IsNullOrEmpty(activity.Text))
-                        {
-                            // HACK!!
-                            // LUIS thinks "#" characters are special, so tokens like "#1" get screwed up
-                            // as they pass through to the BoatTracker dialog. To work around that, we
-                            // transform them into a unique string that will be ignored, and considered to
-                            // be a boatName entity. Later, we restore it to its original form.
-                            var pattern = @"#(?<suffix>[0-9]*)\s";
-                            activity.Text = Regex.Replace(activity.Text, pattern, @"xYZzy${suffix} ");
-
-                            await Conversation.SendAsync(activity, () => new BoatTrackerDialog(this.LuisService));
-                        }
-                        else
-                        {
-                            ConnectorClient connector = new ConnectorClient(new Uri(activity.ServiceUrl));
-                            string replyText;
-
-                            if (activity.Attachments.Any() && activity.Attachments.First().ContentType.Contains("mp4"))
+                    switch (activity.GetActivityType())
+                    {
+                        case ActivityTypes.Message:
+                            if (!string.IsNullOrEmpty(activity.Text))
                             {
-                                replyText = "I'm sorry, but I don't know how to handle voice messages yet. I hope to be able to do that soon.";
+                                // HACK!!
+                                // LUIS thinks "#" characters are special, so tokens like "#1" get screwed up
+                                // as they pass through to the BoatTracker dialog. To work around that, we
+                                // transform them into a unique string that will be ignored, and considered to
+                                // be a boatName entity. Later, we restore it to its original form.
+                                var pattern = @"#(?<suffix>[0-9]*)\s";
+                                activity.Text = Regex.Replace(activity.Text, pattern, @"xYZzy${suffix} ");
+
+                                await Conversation.SendAsync(activity, () => new BoatTrackerDialog(this.LuisService));
                             }
                             else
                             {
-                                replyText = "I'm sorry, but I don't understand this kind of message.";
+                                using (var connector = new ConnectorClient(new Uri(activity.ServiceUrl)))
+                                {
+                                    string replyText;
+
+                                    if (activity.Attachments.Any() && activity.Attachments.First().ContentType.Contains("mp4"))
+                                    {
+                                        replyText = "I'm sorry, but I don't know how to handle voice messages yet. I hope to be able to do that soon.";
+                                    }
+                                    else
+                                    {
+                                        replyText = "I'm sorry, but I don't understand this kind of message.";
+                                    }
+
+                                    Activity reply = activity.CreateReply(replyText);
+                                    await connector.Conversations.ReplyToActivityAsync(reply);
+                                }
                             }
 
-                            Activity reply = activity.CreateReply(replyText);
-                            await connector.Conversations.ReplyToActivityAsync(reply);
-                        }
+                            break;
 
-                        break;
+                        case ActivityTypes.Ping:
+                            break;
 
-                    case ActivityTypes.Ping:
-                        break;
-
-                    case ActivityTypes.ConversationUpdate:
-                    case ActivityTypes.ContactRelationUpdate:
-                    case ActivityTypes.Typing:
-                    case ActivityTypes.DeleteUserData:
-                    default:
-                        Trace.TraceError($"Unknown activity type ignored: {activity.GetActivityType()}");
-                        break;
+                        case ActivityTypes.ConversationUpdate:
+                        case ActivityTypes.ContactRelationUpdate:
+                        case ActivityTypes.Typing:
+                        case ActivityTypes.DeleteUserData:
+                        default:
+                            Trace.TraceError($"Unknown activity type ignored: {activity.GetActivityType()}");
+                            break;
+                    }
                 }
-            }
 
-            return new HttpResponseMessage(HttpStatusCode.Accepted);
+                return new HttpResponseMessage(HttpStatusCode.Accepted);
+            }
+            catch (Exception ex)
+            {
+                // In the dev environment, we return exception for debugging purposes and
+                // to diagnose test case failures more easily.
+                if (EnvironmentDefinition.Instance.IsDevelopment)
+                {
+                    using (var connector = new ConnectorClient(new Uri(activity.ServiceUrl)))
+                    {
+                        await connector.Conversations.ReplyToActivityAsync(activity.CreateReply($"{ex.GetType().Name}: {ex.Message}"));
+                        await connector.Conversations.ReplyToActivityAsync(activity.CreateReply($"Exception: {ex.StackTrace}"));
+                    }
+                }
+
+                throw;
+            }
         }
     }
 }

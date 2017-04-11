@@ -33,3 +33,5 @@
 /src/Common/BoatTrackerBot.BookedScheduler/bin/Release
 /src/Common/BoatTrackerBot.BookedScheduler/obj/Release
 *.Cache
+/src/BoatTrackerBot.Tests/bin/Debug
+/src/BoatTrackerBot.Tests/obj/Debug

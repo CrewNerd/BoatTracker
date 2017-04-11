@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoatTrackerBot.Configuratio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoatTrackerBot.BookedScheduler", "..\Common\BoatTrackerBot.BookedScheduler\BoatTrackerBot.BookedScheduler.csproj", "{46367A47-45DF-4458-8AF0-D57434A620EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoatTrackerBot.Tests", "..\BoatTrackerBot.Tests\BoatTrackerBot.Tests.csproj", "{8D70AF3C-C2CA-4A09-8737-073E7ECECDEB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +49,10 @@ Global
 		{46367A47-45DF-4458-8AF0-D57434A620EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{46367A47-45DF-4458-8AF0-D57434A620EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{46367A47-45DF-4458-8AF0-D57434A620EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D70AF3C-C2CA-4A09-8737-073E7ECECDEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D70AF3C-C2CA-4A09-8737-073E7ECECDEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D70AF3C-C2CA-4A09-8737-073E7ECECDEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D70AF3C-C2CA-4A09-8737-073E7ECECDEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
