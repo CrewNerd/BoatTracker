@@ -163,6 +163,13 @@ namespace BoatTracker.Bot.Configuration
                     supportsButtons: false,
                     supportsMarkdown: false);
             }
+            else if (channel == "webchat")
+            {
+                channelInfo = new ChannelInfo(
+                    "Web Chat",
+                    supportsButtons: false,
+                    supportsMarkdown: false);
+            }
             else
             {
                 channelInfo = null;

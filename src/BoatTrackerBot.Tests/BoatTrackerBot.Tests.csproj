@@ -71,6 +71,7 @@
     <Compile Include="BotTestCase.cs" />
     <Compile Include="ContextExtensions.cs" />
     <Compile Include="General.cs" />
+    <Compile Include="TestBasics.cs" />
     <Compile Include="TestRunner.cs" />
     <Compile Include="TestSignIn.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -82,6 +83,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
+    <None Include="README.md" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
