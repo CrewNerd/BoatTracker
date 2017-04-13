@@ -191,7 +191,7 @@ namespace BoatTracker.Bot
                 reservationRequest.RawDuration = duration.Value;
             }
 
-            if (result.ContainsBoatNameEntity() && boatMatch.Item1 == null)
+            if (boatMatch != null && boatMatch.Item1 == null)
             {
                 await context.PostAsync(boatMatch.Item2);
             }
@@ -343,7 +343,7 @@ namespace BoatTracker.Bot
             //
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
 
-            if (result.ContainsBoatNameEntity() && boatMatch.Item1 == null)
+            if (boatMatch != null && boatMatch.Item1 == null)
             {
                 await context.PostAsync(boatMatch.Item2);
                 context.Wait(this.MessageReceived);

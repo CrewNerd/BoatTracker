@@ -35,3 +35,4 @@
 *.Cache
 /src/BoatTrackerBot.Tests/bin/Debug
 /src/BoatTrackerBot.Tests/obj/Debug
+/src/BoatTrackerBot.Tests/BoatTrackerBotTests.runsettings

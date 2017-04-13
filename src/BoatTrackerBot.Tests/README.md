@@ -12,12 +12,16 @@ Requirements & assumptions:
     * testuser1
       * Member of the novice group
       * Doesn't own any boats
-    * testuser
+    * testuser2
       * Member of the advanced group
       * Doesn't own any boats
     * testuser3
       * Member of the advanced group
-      * Owns a private single (santa maria)
+      * Co-owns a private single (nina)
+    * testuser4
+      * Member of the advanced group
+      * Owns a private single (shadowfax)
+      * Co-owns a private single (nina)
 * Groups
     * Novice
     * Advanced - has access to all club boats
@@ -31,4 +35,7 @@ Requirements & assumptions:
       * advanced
     * nina
       * private 1x
-      * owned by testuser3
+      * owned by testuser3 & testuser4
+    * shadowfax
+      * private 1x
+      * owned by testuser4

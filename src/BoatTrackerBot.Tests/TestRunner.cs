@@ -4,7 +4,10 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+
     using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+    using BoatTracker.BookedScheduler;
 
     internal class TestRunner
     {
@@ -68,28 +71,24 @@
             }
         }
 
-        internal static async Task EnsureAllReservationsCleared()
+
+        /// <summary>
+        /// Remove all reservations from our test site between each test.
+        /// </summary>
+        /// <param name="context">The text context</param>
+        /// <returns>Task that finishes when the reservations are removed.</returns>
+        internal static async Task EnsureAllReservationsCleared(TestContext context)
         {
-            // TODO: Make sure our reservations are removed. Use the BookedScheduler client
-            // to do this directly on the back-end, avoiding any potential bot issues.
+            var client = new BookedSchedulerClient(new Uri(context.GetBookedSchedulerUrl()), TimeSpan.FromSeconds(10));
 
-#if false
-            await General.BotHelper.SendMessageNoReply("stop all vms");
+            await client.SignInAsync(context.GetBotUsername(), context.GetBotPassword());
 
-            Action<IList<string>> action = async (replies) =>
+            var reservations = await client.GetReservationsAsync();
+
+            foreach (var r in reservations)
             {
-                if (replies.Any())
-                {
-                    if (replies.First().ToLowerInvariant().Contains("you are trying to stop the following"))
-                    {
-                        await General.BotHelper.SendMessageNoReply("yes");
-                        Action<IList<string>> action2 = (replies2) => { };
-                        await General.BotHelper.WaitForLongRunningOperations(action2, 1);
-                    }
-                }
-            };
-            await General.BotHelper.WaitForLongRunningOperations(action, 1);
-#endif
+                await client.DeleteReservationAsync(r.ReferenceNumber());
+            }
         }
     }
 }

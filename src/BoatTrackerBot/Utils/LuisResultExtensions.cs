@@ -41,11 +41,6 @@ namespace BoatTracker.Bot.Utils
             return result;
         }
 
-        public static bool ContainsBoatNameEntity(this LuisResult result)
-        {
-            return result.Entities.Any(e => e.Type == EntityBoatName);
-        }
-
         public static string BoatName(this LuisResult result)
         {
             var nameEntities = result.Entities.Where(e => e.Type == EntityBoatName).Select(e => e.Entity);

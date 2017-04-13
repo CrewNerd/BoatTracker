@@ -28,7 +28,7 @@
 
             try
             {
-                TestRunner.EnsureAllReservationsCleared().Wait();
+                TestRunner.EnsureAllReservationsCleared(testContext).Wait();
             }
             catch
             {
@@ -42,7 +42,7 @@
         {
             try
             {
-                TestRunner.EnsureAllReservationsCleared().Wait();
+                TestRunner.EnsureAllReservationsCleared(testContext).Wait();
             }
             finally
             {

@@ -256,11 +256,11 @@ namespace BoatTracker.Bot.Utils
             // See if the user said something like "my boat" or "my double" and if so, try to match
             // that to a resource that makes sense.
             //
-            var boat = userState.MatchMyBoatRequest(resources, entityWords, result);
+            var myBoat = userState.MatchMyBoatRequest(resources, entityWords, result);
 
-            if (boat != null)
+            if (myBoat != null)
             {
-                return new Tuple<JToken, string>(boat, null);
+                return myBoat;
             }
 
             if (entityWords.Count == 0)
@@ -269,7 +269,7 @@ namespace BoatTracker.Bot.Utils
             }
 
             // If the boats are named sensibly, there should be only one perfect match.
-            boat = resources.FirstOrDefault((b) => PerfectMatchBoat(entityWords, b));
+            var boat = resources.FirstOrDefault((b) => PerfectMatchBoat(entityWords, b));
 
             if (boat != null)
             {
@@ -320,7 +320,7 @@ namespace BoatTracker.Bot.Utils
             }
         }
 
-        private static JToken MatchMyBoatRequest(this UserState userState, JArray resources, IEnumerable<string> entityWords, LuisResult result)
+        private static Tuple<JToken, string> MatchMyBoatRequest(this UserState userState, JArray resources, IEnumerable<string> entityWords, LuisResult result)
         {
             IEnumerable<string> queryWords;
 
@@ -377,19 +377,27 @@ namespace BoatTracker.Bot.Utils
             // Look for private boats that the user has permission for
             var candidates = resources.Where(boat => boat.IsPrivate() && userState.HasPermissionForResourceAsync(boat).Result);
 
-            // If we don't have a clear winner, see if the user specified the type of boat
-            if (candidates.Count() > 1 && capacity.HasValue)
+            // If the user was specific about the boat type, make sure we have a real match
+            if (capacity.HasValue)
             {
                 candidates = candidates.Where(boat => boat.MaxParticipants() == capacity.Value);
+
+                if (!candidates.Any())
+                {
+                    return new Tuple<JToken, string>(null, $"I'm sorry, but I don't see a {myObject} that you own in your club's boat list.");
+                }
             }
 
-            if (candidates.Count() == 1)
+            switch (candidates.Count())
             {
-                return candidates.First();
-            }
-            else
-            {
-                return null;
+                case 0:
+                    return new Tuple<JToken, string>(null, $"I'm sorry, but according to your club's boat list, you don't own a {myObject}.");
+
+                case 1:
+                    return new Tuple<JToken, string>(candidates.First(), null);
+
+                default:
+                    return new Tuple<JToken, string>(null, "It looks like multiple boats fit that description. You'll have to refer to the boat by name.");
             }
         }
 

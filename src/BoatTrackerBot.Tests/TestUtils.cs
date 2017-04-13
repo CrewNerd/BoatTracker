@@ -15,6 +15,7 @@
         public static BotUser User1 = new BotUser { UserName = "testuser1", Password = "testuser1" };
         public static BotUser User2 = new BotUser { UserName = "testuser2", Password = "testuser2" };
         public static BotUser User3 = new BotUser { UserName = "testuser3", Password = "testuser3" };
+        public static BotUser User4 = new BotUser { UserName = "testuser4", Password = "testuser4" };
 
         internal static IList<BotTestCase> SignIn(BotUser user)
         {

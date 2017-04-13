@@ -23,5 +23,25 @@
         {
             return context.Properties["BotId"].ToString();
         }
+
+        public static string GetBookedSchedulerUrl(this TestContext context)
+        {
+            return context.Properties["BookedSchedulerUrl"].ToString();
+        }
+
+        public static string GetClubId(this TestContext context)
+        {
+            return context.Properties["ClubId"].ToString();
+        }
+
+        public static string GetBotUsername(this TestContext context)
+        {
+            return context.Properties["BotUsername"].ToString();
+        }
+
+        public static string GetBotPassword(this TestContext context)
+        {
+            return context.Properties["BotPassword"].ToString();
+        }
     }
 }
