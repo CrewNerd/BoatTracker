@@ -1,12 +1,23 @@
 ﻿namespace BoatTrackerBot.Tests
 {
     using System;
+    using System.IO;
+    using System.Runtime.CompilerServices;
 
     internal class BotTestCase
     {
+        public string CallerFile { get; set; }
+        public int CallerLineNumber { get; set; }
+
         private string _expectedReply;
-        public BotTestCase()
+
+        public BotTestCase(
+            [CallerFilePath] string file = "",
+            [CallerLineNumber] int lineNumber = 0)
         {
+            this.CallerFile = Path.GetFileName(file);
+            this.CallerLineNumber = lineNumber;
+
             this.ErrorMessageHandler = DefaultErrorMessageHandler;
         }
 
@@ -23,13 +34,13 @@
             }
         }
 
-        public Func<string, string, string, string> ErrorMessageHandler { get; internal set; }
+        public Func<string, int, string, string, string, string> ErrorMessageHandler { get; internal set; }
 
         public Action<string> Verified { get; internal set; }
 
-        private static string DefaultErrorMessageHandler(string action, string expectedReply, string receivedReply)
+        private static string DefaultErrorMessageHandler(string file, int line, string action, string expectedReply, string receivedReply)
         {
-            return $"'{action}' received reply '{receivedReply}' that doesn't contain the expected message: '{expectedReply}'";
+            return $"{file}:{line} '{action}' received reply '{receivedReply}' that doesn't contain the expected message: '{expectedReply}'";
         }
     }
 }

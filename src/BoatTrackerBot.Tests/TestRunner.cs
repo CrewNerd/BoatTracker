@@ -35,7 +35,7 @@
                 Action<IList<string>> action = (replies) =>
                 {
                     var match = replies.FirstOrDefault(stringToCheck => stringToCheck.ToLowerInvariant().Contains(step.ExpectedReply));
-                    Assert.IsTrue(match != null, step.ErrorMessageHandler(step.Action, step.ExpectedReply, string.Join(", ", replies)));
+                    Assert.IsTrue(match != null, step.ErrorMessageHandler(step.CallerFile, step.CallerLineNumber, step.Action, step.ExpectedReply, string.Join(", ", replies)));
                     step.Verified?.Invoke(replies.LastOrDefault());
                 };
                 await General.BotHelper.WaitForLongRunningOperations(action, 1);
@@ -61,7 +61,12 @@
 
                         Assert.IsTrue(
                             replies[i].ToLowerInvariant().Contains(completionTestCase.ExpectedReply.ToLowerInvariant()),
-                            completionTestCase.ErrorMessageHandler(completionTestCase.Action, completionTestCase.ExpectedReply, replies[i]));
+                            completionTestCase.ErrorMessageHandler(
+                                completionTestCase.CallerFile,
+                                completionTestCase.CallerLineNumber,
+                                completionTestCase.Action,
+                                completionTestCase.ExpectedReply,
+                                replies[i]));
 
                         completionTestCase.Verified?.Invoke(replies[i]);
                     }

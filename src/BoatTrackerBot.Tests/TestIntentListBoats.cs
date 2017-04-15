@@ -9,7 +9,7 @@ namespace BoatTrackerBot.Tests
     public class TestIntentListBoats
     {
         [TestMethod]
-        public async Task TestListBoatsUser1()
+        public async Task ListBoatsUser1()
         {
             var steps = new List<BotTestCase>();
 
@@ -43,7 +43,7 @@ namespace BoatTrackerBot.Tests
         }
 
         [TestMethod]
-        public async Task TestListBoatsUser2()
+        public async Task ListBoatsUser2()
         {
             var steps = new List<BotTestCase>();
 
@@ -75,7 +75,7 @@ namespace BoatTrackerBot.Tests
         }
 
         [TestMethod]
-        public async Task TestListBoatsUser3()
+        public async Task ListBoatsUser3()
         {
             var steps = new List<BotTestCase>();
 
@@ -107,7 +107,7 @@ namespace BoatTrackerBot.Tests
         }
 
         [TestMethod]
-        public async Task TestListBoatsUser4()
+        public async Task ListBoatsUser4()
         {
             var steps = new List<BotTestCase>();
 

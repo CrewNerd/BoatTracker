@@ -13,7 +13,7 @@ namespace BoatTrackerBot.Tests
         /// </summary>
         /// <returns>Task that completes when the test finishes.</returns>
         [TestMethod]
-        public async Task TestAllAccounts()
+        public async Task AllAccounts()
         {
             var steps = new List<BotTestCase>();
 

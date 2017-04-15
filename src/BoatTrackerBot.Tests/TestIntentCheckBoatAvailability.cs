@@ -11,6 +11,8 @@ namespace BoatTrackerBot.Tests
         [ClassInitialize]
         public static void CreateReservations(TestContext context)
         {
+            TestRunner.EnsureAllReservationsCleared(context).Wait();
+
             var steps = new List<BotTestCase>();
 
             steps.AddRange(TestUtils.SignOut());
@@ -56,7 +58,7 @@ namespace BoatTrackerBot.Tests
         }
 
         [TestMethod]
-        public async Task TestCheckAvailabilityUser1()
+        public async Task CheckAvailabilityUser1()
         {
             var steps = new List<BotTestCase>();
 
@@ -120,7 +122,7 @@ namespace BoatTrackerBot.Tests
         }
 
         [TestMethod]
-        public async Task TestCheckAvailabilityUser2()
+        public async Task CheckAvailabilityUser2()
         {
             var steps = new List<BotTestCase>();
 

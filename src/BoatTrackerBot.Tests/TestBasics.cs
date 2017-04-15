@@ -13,7 +13,7 @@ namespace BoatTrackerBot.Tests
         /// </summary>
         /// <returns>Task that completes when the test finishes.</returns>
         [TestMethod]
-        public async Task TestHelpMessages()
+        public async Task HelpMessages()
         {
             var steps = new List<BotTestCase>();
 
@@ -53,7 +53,7 @@ namespace BoatTrackerBot.Tests
         /// </summary>
         /// <returns>Task that completes when the test finishes.</returns>
         [TestMethod]
-        public async Task TestPermissionsUser1()
+        public async Task PermissionsUser1()
         {
             var steps = new List<BotTestCase>();
 
@@ -91,7 +91,7 @@ namespace BoatTrackerBot.Tests
         /// </summary>
         /// <returns>Task that completes when the test finishes.</returns>
         [TestMethod]
-        public async Task TestPermissionsUser2()
+        public async Task PermissionsUser2()
         {
             var steps = new List<BotTestCase>();
 
@@ -127,7 +127,7 @@ namespace BoatTrackerBot.Tests
         /// </summary>
         /// <returns>Task that completes when the test finishes.</returns>
         [TestMethod]
-        public async Task TestPermissionsUser3()
+        public async Task PermissionsUser3()
         {
             var steps = new List<BotTestCase>();
 
@@ -163,7 +163,7 @@ namespace BoatTrackerBot.Tests
         /// </summary>
         /// <returns>Task that completes when the test finishes.</returns>
         [TestMethod]
-        public async Task TestBoatNames()
+        public async Task BoatNames()
         {
             var steps = new List<BotTestCase>();
 
@@ -224,7 +224,7 @@ namespace BoatTrackerBot.Tests
         /// </summary>
         /// <returns>Task that completes when the test finishes.</returns>
         [TestMethod]
-        public async Task TestMyBoatForUser1()
+        public async Task MyBoatForUser1()
         {
             var steps = new List<BotTestCase>();
 
@@ -270,7 +270,7 @@ namespace BoatTrackerBot.Tests
         /// </summary>
         /// <returns>Task that completes when the test finishes.</returns>
         [TestMethod]
-        public async Task TestMyBoatForUser3()
+        public async Task MyBoatForUser3()
         {
             var steps = new List<BotTestCase>();
 
@@ -322,7 +322,7 @@ namespace BoatTrackerBot.Tests
         /// </summary>
         /// <returns>Task that completes when the test finishes.</returns>
         [TestMethod]
-        public async Task TestMyBoatForUser4()
+        public async Task MyBoatForUser4()
         {
             var steps = new List<BotTestCase>();
 
@@ -367,7 +367,7 @@ namespace BoatTrackerBot.Tests
         /// </summary>
         /// <returns>Task that completes when the test finishes.</returns>
         [TestMethod]
-        public async Task TestUserNames()
+        public async Task UserNames()
         {
             var steps = new List<BotTestCase>();
 
