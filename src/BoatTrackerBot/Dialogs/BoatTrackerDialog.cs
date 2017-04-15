@@ -166,7 +166,7 @@ namespace BoatTracker.Bot
 
             result.FixEntities();
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
-            var boatName = boatMatch.Item1?.Name();
+            var boatName = boatMatch?.Item1?.Name();
             var partnerMatch = await this.currentUserState.FindBestUserMatchAsync(result);
             var startDate = result.FindStartDate(this.currentUserState);
             var startTime = result.FindStartTime(this.currentUserState);
@@ -196,12 +196,12 @@ namespace BoatTracker.Bot
                 await context.PostAsync(boatMatch.Item2);
             }
 
-            if (boatMatch.Item1 != null && !await this.currentUserState.HasPermissionForResourceAsync(boatMatch.Item1))
+            if (boatMatch?.Item1 != null && !await this.currentUserState.HasPermissionForResourceAsync(boatMatch.Item1))
             {
                 await context.PostAsync($"I'm sorry, but you don't have permission to use the {boatName}.");
             }
 
-            if (boatMatch.Item1 != null && !boatMatch.Item1.IsAvailable())
+            if (boatMatch?.Item1 != null && !boatMatch.Item1.IsAvailable())
             {
                 await context.PostAsync($"I'm sorry, but the {boatName} is currently unavailable for use.");
             }
@@ -209,6 +209,14 @@ namespace BoatTracker.Bot
             if (result.ContainsUserNameEntity() && partnerMatch.Item1 == null)
             {
                 await context.PostAsync(partnerMatch.Item2);
+            }
+
+            if (boatMatch?.Item1 != null &&
+                partnerMatch.Item1 != null &&
+                !await this.currentUserState.HasPermissionForResourceAsync(boatMatch.Item1, partnerMatch.Item1.Id())
+                )
+            {
+                await context.PostAsync($"I'm sorry, but {partnerMatch.Item1.FullName()} doesn't have permission to use the {boatName}.");
             }
 
             var reservationForm = new FormDialog<ReservationRequest>(reservationRequest, ReservationRequest.BuildForm, FormOptions.PromptInStart, result.Entities);
@@ -287,9 +295,7 @@ namespace BoatTracker.Bot
             this.TrackIntent(context, nameof(this.ListBoats));
 
             result.FixEntities();
-            //
-            // Check for (and apply) a boat name filter
-            //
+
             var resources = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourcesAsync();
 
             var usableResources = resources.Where(boat => this.currentUserState.HasPermissionForResourceAsync(boat).Result);
@@ -350,7 +356,7 @@ namespace BoatTracker.Bot
                 return;
             }
 
-            if (boatMatch.Item1 != null && !await this.currentUserState.HasPermissionForResourceAsync(boatMatch.Item1))
+            if (boatMatch?.Item1 != null && !await this.currentUserState.HasPermissionForResourceAsync(boatMatch.Item1))
             {
                 await context.PostAsync($"I'm sorry, but you don't have permission to use the {boatMatch.Item1.Name()}.");
                 context.Wait(this.MessageReceived);
@@ -362,7 +368,7 @@ namespace BoatTracker.Bot
             IList<JToken> reservations = null;
             string filterDescription = string.Empty;
 
-            if (boatMatch.Item1 != null)
+            if (boatMatch?.Item1 != null)
             {
                 reservations = (await client.GetReservationsAsync(resourceId: boatMatch.Item1.ResourceId())).ToList();
 
@@ -449,12 +455,12 @@ namespace BoatTracker.Bot
 
             result.FixEntities();
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
-            long? boatId = boatMatch.Item1?.ResourceId();
+            long? boatId = boatMatch?.Item1?.ResourceId();
 
             //
             // If they did provide a boat name, make sure they have permission
             //
-            if (boatMatch.Item1 != null)
+            if (boatMatch?.Item1 != null)
             {
                 // Check that the user even has permission for the boat.
                 JToken res = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourceFromIdAsync(boatId.Value);
@@ -491,7 +497,7 @@ namespace BoatTracker.Bot
             {
                 case 0:
                     // Handle the (common) case where there's no prior reservation.
-                    await this.CreateReservationOnDemand(context, result, boatMatch.Item1);
+                    await this.CreateReservationOnDemand(context, result, boatMatch?.Item1);
                     return;
 
                 case 1:
@@ -602,7 +608,7 @@ namespace BoatTracker.Bot
             // active reservation for the user and they can simply say "i'm done".
 
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
-            long? boatId = boatMatch.Item1?.ResourceId();
+            long? boatId = boatMatch?.Item1?.ResourceId();
 
             var localTime = this.currentUserState.LocalTime();
             var client = await this.GetClient();
@@ -668,7 +674,7 @@ namespace BoatTracker.Bot
             //
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
 
-            if (boatMatch.Item1 != null)
+            if (boatMatch?.Item1 != null)
             {
                 reservations = reservations
                     .Where(r => r.ResourceId() == boatMatch.Item1.ResourceId())
@@ -735,7 +741,7 @@ namespace BoatTracker.Bot
             //
             var boatMatch = await this.currentUserState.FindBestResourceMatchAsync(result);
 
-            if (boatMatch.Item1 != null)
+            if (boatMatch?.Item1 != null)
             {
                 reservations = reservations
                     .Where(r => r.ResourceId() == boatMatch.Item1.ResourceId())

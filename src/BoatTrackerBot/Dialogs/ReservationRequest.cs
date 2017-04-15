@@ -132,7 +132,7 @@ namespace BoatTracker.Bot
             var boatName = (string)value;
             var boatMatch = await state.UserState.FindBestResourceMatchAsync(boatName);
 
-            if (boatMatch.Item1 != null)
+            if (boatMatch?.Item1 != null)
             {
                 if (!boatMatch.Item1.IsAvailable())
                 {
@@ -182,7 +182,7 @@ namespace BoatTracker.Bot
                 {
                     IsValid = false,
                     Value = null,
-                    Feedback = boatMatch.Item2
+                    Feedback = boatMatch?.Item2
                 };
             }
         }

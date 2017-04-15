@@ -46,12 +46,22 @@
             };
         }
 
-        internal static BotTestCase SignOut()
+        internal static IList<BotTestCase> SignOut()
         {
-            return new BotTestCase()
-            {
-                Action = "reset my account",
-                ExpectedReply = "Okay, by the time you read this",
+            return new List<BotTestCase>() {
+                /*
+                new BotTestCase()
+                {
+                    Action = "quit",
+                    ExpectedReply = ""
+                },
+                */
+
+                new BotTestCase()
+                {
+                    Action = "reset my account",
+                    ExpectedReply = "Okay, by the time you read this",
+                }
             };
         }
     }

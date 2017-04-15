@@ -17,7 +17,7 @@ namespace BoatTrackerBot.Tests
         {
             var steps = new List<BotTestCase>();
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             steps.AddRange(TestUtils.SignIn(TestUtils.User1));
 
@@ -53,15 +53,12 @@ namespace BoatTrackerBot.Tests
         /// </summary>
         /// <returns>Task that completes when the test finishes.</returns>
         [TestMethod]
-        public async Task TestPermissions()
+        public async Task TestPermissionsUser1()
         {
             var steps = new List<BotTestCase>();
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
-            //
-            // testuser1
-            //
             steps.AddRange(TestUtils.SignIn(TestUtils.User1));
 
             steps.Add(new BotTestCase
@@ -82,11 +79,24 @@ namespace BoatTrackerBot.Tests
                 ExpectedReply = "I'm sorry, but you don't have permission"
             });
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
-            //
-            // testuser2
-            //
+            steps.AddRange(TestUtils.SignOut());
+
+            await TestRunner.RunTestCases(steps, null, 0);
+        }
+
+        /// <summary>
+        /// Verify that boat access permissions work correctly.
+        /// </summary>
+        /// <returns>Task that completes when the test finishes.</returns>
+        [TestMethod]
+        public async Task TestPermissionsUser2()
+        {
+            var steps = new List<BotTestCase>();
+
+            steps.AddRange(TestUtils.SignOut());
+
             steps.AddRange(TestUtils.SignIn(TestUtils.User2));
 
             steps.Add(new BotTestCase
@@ -107,11 +117,22 @@ namespace BoatTrackerBot.Tests
                 ExpectedReply = "I'm sorry, but you don't have permission"
             });
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
-            //
-            // testuser3
-            //
+            await TestRunner.RunTestCases(steps, null, 0);
+        }
+
+        /// <summary>
+        /// Verify that boat access permissions work correctly.
+        /// </summary>
+        /// <returns>Task that completes when the test finishes.</returns>
+        [TestMethod]
+        public async Task TestPermissionsUser3()
+        {
+            var steps = new List<BotTestCase>();
+
+            steps.AddRange(TestUtils.SignOut());
+
             steps.AddRange(TestUtils.SignIn(TestUtils.User3));
 
             steps.Add(new BotTestCase
@@ -132,7 +153,7 @@ namespace BoatTrackerBot.Tests
                 ExpectedReply = "santa maria"
             });
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             await TestRunner.RunTestCases(steps, null, 0);
         }
@@ -146,7 +167,7 @@ namespace BoatTrackerBot.Tests
         {
             var steps = new List<BotTestCase>();
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             steps.AddRange(TestUtils.SignIn(TestUtils.User3));
 
@@ -192,7 +213,7 @@ namespace BoatTrackerBot.Tests
                 ExpectedReply = "I don't see any reservations for the Santa Maria on"
             });
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             await TestRunner.RunTestCases(steps, null, 0);
         }
@@ -207,7 +228,7 @@ namespace BoatTrackerBot.Tests
         {
             var steps = new List<BotTestCase>();
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             //
             // testuser1 doesn't own anything
@@ -238,7 +259,7 @@ namespace BoatTrackerBot.Tests
                 ExpectedReply = "I'm sorry, but I don't see a double that you own in your club's boat list."
             });
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             await TestRunner.RunTestCases(steps, null, 0);
         }
@@ -253,7 +274,7 @@ namespace BoatTrackerBot.Tests
         {
             var steps = new List<BotTestCase>();
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             //
             // testuser3 own one single
@@ -290,7 +311,7 @@ namespace BoatTrackerBot.Tests
                 ExpectedReply = "I'm sorry, but I don't see a 2x that you own in your club's boat list."
             });
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             await TestRunner.RunTestCases(steps, null, 0);
         }
@@ -305,7 +326,7 @@ namespace BoatTrackerBot.Tests
         {
             var steps = new List<BotTestCase>();
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             //
             // testuser4 owns two singles
@@ -336,7 +357,83 @@ namespace BoatTrackerBot.Tests
                 ExpectedReply = "I'm sorry, but I don't see a double that you own in your club's boat list."
             });
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
+
+            await TestRunner.RunTestCases(steps, null, 0);
+        }
+
+        /// <summary>
+        /// Verify that naming users works correctly.
+        /// </summary>
+        /// <returns>Task that completes when the test finishes.</returns>
+        [TestMethod]
+        public async Task TestUserNames()
+        {
+            var steps = new List<BotTestCase>();
+
+            steps.AddRange(TestUtils.SignOut());
+
+            steps.AddRange(TestUtils.SignIn(TestUtils.User2));
+
+            // Test full name
+            steps.Add(new BotTestCase
+            {
+                Action = "reserve the santa maria next friday at 9am for 1 hour with Test User4",
+                ExpectedReply = "You want to reserve the Santa Maria with Test User4 on Friday"
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = "quit",
+                ExpectedReply = "Okay, I'm aborting your reservation request"
+            });
+
+            // Test partial name (unique)
+            steps.Add(new BotTestCase
+            {
+                Action = "reserve the santa maria next friday at 9am for 1 hour with User4",
+                ExpectedReply = "You want to reserve the Santa Maria with Test User4 on Friday"
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = "quit",
+                ExpectedReply = "Okay, I'm aborting your reservation request"
+            });
+
+            // Test partial name (not unique)
+            steps.Add(new BotTestCase
+            {
+                Action = "reserve the santa maria next friday at 9am for 1 hour with Test",
+                ExpectedReply = "I think you meant one of these users ('Test User1', 'Test User2', 'Test User3', 'Test User4'). Can you be more specific?"
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = "User4",
+                ExpectedReply = "You want to reserve the Santa Maria with Test User4 on Friday"
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = "quit",
+                ExpectedReply = "Okay, I'm aborting your reservation request"
+            });
+
+            // Test partial name (no permission)
+            steps.Add(new BotTestCase
+            {
+                Action = "reserve the santa maria next friday at 9am for 1 hour with User1",
+                ExpectedReply = "I'm sorry, but Test User1 doesn't have permission to use the Santa Maria."
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = "quit",
+                ExpectedReply = "Okay, I'm aborting your reservation request"
+            });
+
+            steps.AddRange(TestUtils.SignOut());
 
             await TestRunner.RunTestCases(steps, null, 0);
         }

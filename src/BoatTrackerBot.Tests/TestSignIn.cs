@@ -17,16 +17,16 @@ namespace BoatTrackerBot.Tests
         {
             var steps = new List<BotTestCase>();
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             steps.AddRange(TestUtils.SignIn(TestUtils.User1));
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             steps.AddRange(TestUtils.SignIn(TestUtils.User2));
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             steps.AddRange(TestUtils.SignIn(TestUtils.User3));
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             await TestRunner.RunTestCases(steps, null, 0);
         }
@@ -40,7 +40,7 @@ namespace BoatTrackerBot.Tests
         {
             var steps = new List<BotTestCase>();
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             steps.Add(new BotTestCase
             {
@@ -78,7 +78,7 @@ namespace BoatTrackerBot.Tests
         {
             var steps = new List<BotTestCase>();
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             steps.Add(new BotTestCase
             {
@@ -116,7 +116,7 @@ namespace BoatTrackerBot.Tests
         {
             var steps = new List<BotTestCase>();
 
-            steps.Add(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignOut());
 
             steps.Add(new BotTestCase
             {

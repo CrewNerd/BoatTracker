@@ -72,6 +72,8 @@
     <Compile Include="ContextExtensions.cs" />
     <Compile Include="General.cs" />
     <Compile Include="TestBasics.cs" />
+    <Compile Include="TestIntentCheckBoatAvailability.cs" />
+    <Compile Include="TestIntentListBoats.cs" />
     <Compile Include="TestRunner.cs" />
     <Compile Include="TestSignIn.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

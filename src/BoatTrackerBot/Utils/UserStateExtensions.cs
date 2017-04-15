@@ -265,7 +265,7 @@ namespace BoatTracker.Bot.Utils
 
             if (entityWords.Count == 0)
             {
-                return new Tuple<JToken, string>(null, "I'm sorry, but I didn't see anything that looked like a boat name.");
+                return null;
             }
 
             // If the boats are named sensibly, there should be only one perfect match.
