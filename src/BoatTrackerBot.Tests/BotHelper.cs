@@ -72,11 +72,17 @@
                 iterations++;
             }
 
+            bool exceptionInBot = false;
             foreach (var msg in messages)
             {
                 General.testContext.WriteLine("Received: {0}", msg);
-                Assert.IsFalse(msg.Contains("Sorry, my bot code"));
+                if (msg.Contains("Sorry, my bot code"))
+                {
+                    exceptionInBot = true;
+                }
             }
+
+            Assert.IsFalse(exceptionInBot);
 
             resultHandler(messages);
         }

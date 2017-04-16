@@ -72,6 +72,7 @@
     <Compile Include="ContextExtensions.cs" />
     <Compile Include="General.cs" />
     <Compile Include="TestBasics.cs" />
+    <Compile Include="TestIntentCancelReservation.cs" />
     <Compile Include="TestIntentCheckBoatAvailability.cs" />
     <Compile Include="TestIntentCheckReservations.cs" />
     <Compile Include="TestIntentListBoats.cs" />

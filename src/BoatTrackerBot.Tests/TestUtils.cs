@@ -64,5 +64,31 @@
                 }
             };
         }
+
+        internal static IList<BotTestCase> CreateTwoReservations()
+        {
+            return new List<BotTestCase>() {
+                new BotTestCase
+                {
+                    Action = "reserve the pinta next friday at 9am for 2 hours",
+                    ExpectedReply = "You want to reserve the Pinta on Friday"
+                },
+                new BotTestCase
+                {
+                    Action = "y",
+                    ExpectedReply = "Okay, you're all set! When it's time"
+                },
+                new BotTestCase
+                {
+                    Action = "reserve the santa maria next friday at 2pm for 2 hours with test user2",
+                    ExpectedReply = "You want to reserve the Santa Maria with Test User2 on Friday"
+                },
+                new BotTestCase
+                {
+                    Action = "y",
+                    ExpectedReply = "Okay, you're all set! When it's time"
+                }
+            };
+        }
     }
 }

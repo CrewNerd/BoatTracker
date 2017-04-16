@@ -16,36 +16,8 @@ namespace BoatTrackerBot.Tests
             var steps = new List<BotTestCase>();
 
             steps.AddRange(TestUtils.SignOut());
-
-            //
-            // Make a couple of reservations
-            //
             steps.AddRange(TestUtils.SignIn(TestUtils.User4));
-
-            steps.Add(new BotTestCase
-            {
-                Action = "reserve the pinta next friday at 9am for 2 hours",
-                ExpectedReply = "You want to reserve the Pinta on Friday"
-            });
-
-            steps.Add(new BotTestCase
-            {
-                Action = "y",
-                ExpectedReply = "Okay, you're all set! When it's time"
-            });
-
-            steps.Add(new BotTestCase
-            {
-                Action = "reserve the santa maria next friday at 2pm for 2 hours with test user2",
-                ExpectedReply = "You want to reserve the Santa Maria with Test User2 on Friday"
-            });
-
-            steps.Add(new BotTestCase
-            {
-                Action = "y",
-                ExpectedReply = "Okay, you're all set! When it's time"
-            });
-
+            steps.AddRange(TestUtils.CreateTwoReservations());
             steps.AddRange(TestUtils.SignOut());
 
             TestRunner.RunTestCases(steps, null, 0).Wait();
