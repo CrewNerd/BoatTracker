@@ -8,6 +8,11 @@ through the DirectLine API and verify all major areas of the bot.
 
 Requirements & assumptions:
 
+* Club setup
+  * Club hours 00:15AM - 11:14PM
+  * Minimum duration: 30 minutes
+  * Maximum duration: 4 hours
+  * NOTE: some unit tests will not work from 11:15pm to 12:15am each day
 * User accounts
     * testuser1
       * Member of the novice group
@@ -39,3 +44,7 @@ Requirements & assumptions:
     * shadowfax
       * private 1x
       * owned by testuser4
+    * lemon
+      * club 1x
+      * novice, advanced
+      * boat status is "unavailable"

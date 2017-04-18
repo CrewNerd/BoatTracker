@@ -144,7 +144,11 @@ namespace BoatTracker.Bot.Utils
                 {
                     var when = span.Start ?? span.End;
 
-                    if (when.Value.HasDate())
+                    // If the user gives a time without a date, it will look like today's
+                    // date with the specified time. This is okay if the time is in the
+                    // future. If the time is in the past, then don't let the date default
+                    // to today.
+                    if (when.Value.HasDate() && when.Value > userState.LocalTime())
                     {
                         return when.Value.Date;
                     }

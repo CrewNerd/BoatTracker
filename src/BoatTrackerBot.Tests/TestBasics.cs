@@ -175,7 +175,7 @@ namespace BoatTrackerBot.Tests
             steps.Add(new BotTestCase
             {
                 Action = "is the pinta free tomorrow",
-                ExpectedReply = "I don't see any reservations for the Pinta on"
+                ExpectedReply = "I don't see any reservations for the Pinta"
             });
 
             // First alias
@@ -189,7 +189,7 @@ namespace BoatTrackerBot.Tests
             steps.Add(new BotTestCase
             {
                 Action = "is the pinte free tomorrow",
-                ExpectedReply = "I don't see any reservations for the Pinta on"
+                ExpectedReply = "I don't see any reservations for the Pinta"
             });
 
             // unknown boat name
@@ -203,14 +203,14 @@ namespace BoatTrackerBot.Tests
             steps.Add(new BotTestCase
             {
                 Action = "is the santa free tomorrow",
-                ExpectedReply = "I don't see any reservations for the Santa Maria on"
+                ExpectedReply = "I don't see any reservations for the Santa Maria"
             });
 
             // other word of a multi-word name
             steps.Add(new BotTestCase
             {
                 Action = "is the maria free tomorrow",
-                ExpectedReply = "I don't see any reservations for the Santa Maria on"
+                ExpectedReply = "I don't see any reservations for the Santa Maria"
             });
 
             steps.AddRange(TestUtils.SignOut());
@@ -284,7 +284,7 @@ namespace BoatTrackerBot.Tests
             steps.Add(new BotTestCase
             {
                 Action = "is my boat free tomorrow",
-                ExpectedReply = "I don't see any reservations for the Nina on"
+                ExpectedReply = "I don't see any reservations for the Nina"
             });
 
             steps.Add(new BotTestCase

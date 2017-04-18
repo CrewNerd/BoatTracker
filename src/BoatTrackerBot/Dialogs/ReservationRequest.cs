@@ -288,7 +288,7 @@ namespace BoatTracker.Bot
                 {
                     IsValid = false,
                     Value = null,
-                    Feedback = $"Reservations must start on an even 15-minute slot."
+                    Feedback = "Reservations must start on an even 15-minute slot."
                 });
             }
 
@@ -349,7 +349,7 @@ namespace BoatTracker.Bot
                 {
                     IsValid = false,
                     Value = null,
-                    Feedback = $"Reservations must last for quarter-hour increments."
+                    Feedback = "Reservations must last for quarter-hour increments."
                 };
             }
 
