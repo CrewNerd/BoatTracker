@@ -72,6 +72,15 @@ namespace BoatTracker.Bot
                 return;
             }
 
+            // We special-case "quit" since it's how we bail out of forms. If the user
+            // is logged out, we don't want a "quit" to trigger the login dialog.
+            if (result.Query.Equals("quit", StringComparison.OrdinalIgnoreCase))
+            {
+                await context.PostAsync("Okay");
+                context.Wait(this.MessageReceived);
+                return;
+            }
+
             if (!this.CheckUserIsRegistered(context)) { return; }
 
             this.TrackIntent(context, nameof(this.None));
@@ -112,6 +121,13 @@ namespace BoatTracker.Bot
                 {
                     await context.PostAsync($"Cache refresh failed: {ex.Message}");
                 }
+            }
+            else if (msg.Equals("logout"))
+            {
+                context.UserData.Clear();
+                await context.FlushAsync(CancellationToken.None);
+
+                await context.PostAsync("Okay, by the time you read this it will be just like we've never met :) Say anything to start the sign-in process all over again.");
             }
             else if (msg.StartsWith("CancelReservation "))
             {

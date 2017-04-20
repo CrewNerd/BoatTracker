@@ -49,17 +49,17 @@
         internal static IList<BotTestCase> SignOut()
         {
             return new List<BotTestCase>() {
-                /*
+                // Bail out of any form that we're in. Ignored otherwise.
                 new BotTestCase()
                 {
                     Action = "quit",
                     ExpectedReply = ""
                 },
-                */
 
+                // This works whether we're signed in or not.
                 new BotTestCase()
                 {
-                    Action = "reset my account",
+                    Action = "#!logout",
                     ExpectedReply = "Okay, by the time you read this",
                 }
             };
