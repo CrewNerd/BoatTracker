@@ -2,7 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using System.Threading.Tasks;
 
     internal static class TestUtils
     {
@@ -65,7 +65,7 @@
             };
         }
 
-        internal static IList<BotTestCase> CreateTwoReservations()
+        internal static IList<BotTestCase> CreateTestReservations()
         {
             return new List<BotTestCase>() {
                 new BotTestCase
@@ -89,6 +89,30 @@
                     ExpectedReply = "Okay, you're all set! When it's time"
                 }
             };
+        }
+
+        /// <summary>
+        /// Return a time string appropriate for a reservation starting now. We
+        /// have 15 minutes before the reservation is removed, so as long as we
+        /// have more than a minute left, start the reservation at the prior
+        /// quarter-hour. Otherwise, just wait one minute so we're in the next
+        /// quarter-hour with plenty of time.
+        /// </summary>
+        /// <returns></returns>
+        internal static async Task<string> TimeOfCurrentReservation()
+        {
+            var now = DateTime.Now;
+
+            var minutesSinceQuarterHour = now.Minute % 15;
+
+            if (minutesSinceQuarterHour <  14)
+            {
+                var t = now - TimeSpan.FromMinutes(minutesSinceQuarterHour);
+                return $"on {t.Month}/{t.Day} at {t.ToShortTimeString()}";
+            }
+
+            await Task.Delay(TimeSpan.FromMinutes(1));
+            return await TimeOfCurrentReservation();
         }
     }
 }

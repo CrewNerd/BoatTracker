@@ -21,6 +21,38 @@ namespace BoatTrackerBot.Tests
         }
 
         [TestMethod]
+        public async Task AllWeekdays()
+        {
+            var steps = new List<BotTestCase>();
+
+            steps.AddRange(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignIn(TestUtils.User4));
+
+            var weekdays = new[] { "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday" };
+
+            foreach (var day in weekdays)
+            {
+                steps.Add(new BotTestCase
+                {
+                    Action = $"reserve the pinta next {day} at 5am for 1 hour",
+                    ExpectedReply = "You want to reserve the Pinta on"
+                });
+
+                steps.Add(new BotTestCase
+                {
+                    Action = "y",
+                    ExpectedReply = "Okay, you're all set! When it's time for your reservation"
+                });
+            }
+
+            steps.AddRange(TestUtils.SignOut());
+
+            await TestRunner.RunTestCases(steps, null, 0);
+
+            TestRunner.EnsureAllReservationsCleared(General.testContext).Wait();
+        }
+
+        [TestMethod]
         public async Task MissingBoatSlot()
         {
             var steps = new List<BotTestCase>();

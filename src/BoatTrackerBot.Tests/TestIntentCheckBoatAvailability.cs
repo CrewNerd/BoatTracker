@@ -9,7 +9,7 @@ namespace BoatTrackerBot.Tests
     public class TestIntentCheckBoatAvailability
     {
         [ClassInitialize]
-        public static void CreateReservations(TestContext context)
+        public static void Initialize(TestContext context)
         {
             TestRunner.EnsureAllReservationsCleared(context).Wait();
 
@@ -17,14 +17,14 @@ namespace BoatTrackerBot.Tests
 
             steps.AddRange(TestUtils.SignOut());
             steps.AddRange(TestUtils.SignIn(TestUtils.User4));
-            steps.AddRange(TestUtils.CreateTwoReservations());
+            steps.AddRange(TestUtils.CreateTestReservations());
             steps.AddRange(TestUtils.SignOut());
 
             TestRunner.RunTestCases(steps, null, 0).Wait();
         }
 
         [ClassCleanup]
-        public static void RemoveReservations()
+        public static void Cleanup()
         {
             TestRunner.EnsureAllReservationsCleared(General.testContext).Wait();
         }

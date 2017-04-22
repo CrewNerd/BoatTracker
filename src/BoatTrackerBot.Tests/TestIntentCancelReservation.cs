@@ -9,7 +9,7 @@ namespace BoatTrackerBot.Tests
     public class TestIntentCancelReservation
     {
         [ClassCleanup]
-        public static void RemoveReservations()
+        public static void Cleanup()
         {
             TestRunner.EnsureAllReservationsCleared(General.testContext).Wait();
         }
@@ -22,7 +22,7 @@ namespace BoatTrackerBot.Tests
             var steps = new List<BotTestCase>();
             steps.AddRange(TestUtils.SignOut());
             steps.AddRange(TestUtils.SignIn(TestUtils.User4));
-            steps.AddRange(TestUtils.CreateTwoReservations());
+            steps.AddRange(TestUtils.CreateTestReservations());
 
             steps.Add(new BotTestCase
             {
@@ -151,7 +151,7 @@ namespace BoatTrackerBot.Tests
             var steps = new List<BotTestCase>();
             steps.AddRange(TestUtils.SignOut());
             steps.AddRange(TestUtils.SignIn(TestUtils.User4));
-            steps.AddRange(TestUtils.CreateTwoReservations());
+            steps.AddRange(TestUtils.CreateTestReservations());
 
             steps.Add(new BotTestCase
             {

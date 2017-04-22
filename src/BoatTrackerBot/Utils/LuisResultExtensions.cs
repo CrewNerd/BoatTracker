@@ -120,8 +120,10 @@ namespace BoatTracker.Bot.Utils
                 if (DateTime.TryParse(builtinDate.Entity, out date))
                 {
                     date = date.Date;
+
+                    var localNow = userState.ConvertToLocalTime(DateTime.UtcNow);
                     // Only accept dates in the reasonably near future.
-                    if (date >= DateTime.Now.Date && date <= DateTime.Now.Date + maxDaysInFuture)
+                    if (date >= localNow.Date && date <= localNow.Date + maxDaysInFuture)
                     {
                         return date;
                     }
