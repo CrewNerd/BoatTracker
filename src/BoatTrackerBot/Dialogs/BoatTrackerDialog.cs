@@ -562,6 +562,11 @@ namespace BoatTracker.Bot
 
             var partnerMatch = await this.currentUserState.FindBestUserMatchAsync(result);
 
+            if (result.ContainsUserNameEntity() && partnerMatch?.Item2 != null)
+            {
+                await context.PostAsync(partnerMatch.Item2);
+            }
+
             ReservationRequest reservationRequest;
 
             if (startDateEntity.HasValue || startTimeEntity.HasValue)

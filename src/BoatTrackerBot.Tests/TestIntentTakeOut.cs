@@ -69,5 +69,107 @@ namespace BoatTrackerBot.Tests
 
             TestRunner.EnsureAllReservationsCleared(General.testContext).Wait();
         }
+
+        [TestMethod]
+        public async Task TakeOutNowWithNoReservation()
+        {
+            var steps = new List<BotTestCase>();
+
+            steps.AddRange(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignIn(TestUtils.User4));
+
+            steps.Add(new BotTestCase
+            {
+                Action = $"take out the pinta for 30 minutes",
+                ExpectedReply = "You don't have a reservation, but I can create one for you now.",
+                Verified = (reply) =>
+                {
+                    Assert.IsTrue(reply.Contains("You want to reserve the Pinta on"));
+                }
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = "quit",
+                ExpectedReply = "Okay, I'm aborting your reservation request."
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = $"take out the santa maria for 30 minutes with test user2",
+                ExpectedReply = "You don't have a reservation, but I can create one for you now.",
+                Verified = (reply) =>
+                {
+                    Assert.IsTrue(reply.Contains("You want to reserve the Santa Maria with Test User2 on"));
+                }
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = "quit",
+                ExpectedReply = "Okay, I'm aborting your reservation request.",
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = "take out the santa maria for 30 minutes with donald trump",
+                ExpectedReply = "You don't have a reservation, but I can create one for you now.",
+                Verified = (reply) =>
+                {
+                    Assert.IsTrue(reply.Contains("Who are you rowing with?"));
+                }
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = "quit",
+                ExpectedReply = "Okay, I'm aborting your reservation request.",
+            });
+
+            steps.AddRange(TestUtils.SignOut());
+
+            await TestRunner.RunTestCases(steps, null, 0);
+
+            TestRunner.EnsureAllReservationsCleared(General.testContext).Wait();
+        }
+
+        [TestMethod]
+        public async Task TakeOutLaterWithNoReservation()
+        {
+            var steps = new List<BotTestCase>();
+
+            steps.AddRange(TestUtils.SignOut());
+            steps.AddRange(TestUtils.SignIn(TestUtils.User4));
+
+            steps.Add(new BotTestCase
+            {
+                Action = $"take out the pinta next thursday for 30 minutes",
+                ExpectedReply = "What time do you want to start?",
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = "quit",
+                ExpectedReply = "Okay, I'm aborting your reservation request."
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = $"take out the santa maria at 11:15pm for 30 minutes with test user2",
+                ExpectedReply = "You want to reserve the Santa Maria with Test User2 on",
+            });
+
+            steps.Add(new BotTestCase
+            {
+                Action = "quit",
+                ExpectedReply = "Okay, I'm aborting your reservation request.",
+            });
+
+            steps.AddRange(TestUtils.SignOut());
+
+            await TestRunner.RunTestCases(steps, null, 0);
+
+            TestRunner.EnsureAllReservationsCleared(General.testContext).Wait();
+        }
     }
 }
