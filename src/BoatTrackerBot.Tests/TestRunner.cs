@@ -88,7 +88,7 @@
 
             await client.SignInAsync(context.GetBotUsername(), context.GetBotPassword());
 
-            var reservations = await client.GetReservationsAsync();
+            var reservations = await client.GetReservationsAsync(start: DateTime.Now - TimeSpan.FromMinutes(30));
 
             foreach (var r in reservations)
             {
