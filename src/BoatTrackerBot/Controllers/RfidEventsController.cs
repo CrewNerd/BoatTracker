@@ -7,75 +7,95 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+
 using BoatTracker.BookedScheduler;
 using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.DataObjects;
 using BoatTracker.Bot.Utils;
-
-using Microsoft.ApplicationInsights;
-using Newtonsoft.Json.Linq;
 
 namespace BoatTracker.Bot.Controllers
 {
     [Route("api/rfid/events")]
     public class RfidEventsController : ApiController
     {
-        private ClubInfo currentClub;
-        private BookedSchedulerCache.BookedSchedulerCacheEntry bsCache;
         private TelemetryClient telemetryClient;
 
         [ResponseType((typeof(void)))]
-        public async Task<HttpResponseMessage> Post([FromBody]RfidEvents rfidEvents)
+        public async Task<HttpResponseMessage> Post()
         {
-            this.currentClub = this.ValidateRequest();
-            this.bsCache = BookedSchedulerCache.Instance[this.currentClub.Id];
-            this.telemetryClient = new TelemetryClient();
-
-            if (rfidEvents == null)
+            try
             {
-                return new HttpResponseMessage(HttpStatusCode.BadRequest);
-            }
+                this.telemetryClient = new TelemetryClient();
+                var env = EnvironmentDefinition.Instance;
 
-            foreach (var ev in rfidEvents.Events)
-            {
-                if (!await this.bsCache.IsEventRedundantAsync(ev))
+                var body = await this.Request.Content.ReadAsStringAsync();
+                var rfidEvents = JsonConvert.DeserializeObject<List<RfidEvent>>(body);
+
+                foreach (var ev in rfidEvents)
                 {
-                    await this.ProcessEvent(ev);
-                }
-            }
+                    var clubId = ev.Location.ToLower();
 
-            return new HttpResponseMessage(HttpStatusCode.OK);
+                    if (string.IsNullOrEmpty(clubId) || !env.MapClubIdToClubInfo.ContainsKey(clubId))
+                    {
+                        this.telemetryClient.TrackTrace($"Invalid RFID location: {clubId}", SeverityLevel.Error);
+                    }
+
+                    var cache = BookedSchedulerCache.Instance[clubId];
+
+                    if (!await cache.IsEventRedundantAsync(ev))
+                    {
+                        await this.ProcessEvent(cache, ev);
+                    }
+                }
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                this.telemetryClient.TrackException(ex);
+                throw;
+            }
         }
 
-        private async Task ProcessEvent(RfidEvent ev)
+        private async Task ProcessEvent(BookedSchedulerCache.BookedSchedulerCacheEntry cache, RfidEvent ev)
         {
-            var boat = await this.bsCache.GetResourceFromRfidTagAsync(ev.Id);
-            var makerChannelKey = (await this.bsCache.GetBotUserAsync()).MakerChannelKey();
+            var boat = await cache.GetResourceFromRfidTagAsync(ev.EPC);
+            var makerChannelKey = (await cache.GetBotUserAsync()).MakerChannelKey();
 
-            string doorName = "Unknown";
-
-            if (ev.Antenna < this.currentClub.DoorNames.Count)
-            {
-                doorName = this.currentClub.DoorNames[ev.Antenna];
-            }
+            string doorName = ev.ReadZone;
 
             this.LogBoatEvent(boat, doorName, ev);
 
-            if (boat == null)
+            if (boat != null)
             {
-                await this.SendIftttTrigger(makerChannelKey, "new_tag", ev.Timestamp.Value.ToString(), ev.Id, doorName);
-                return;
+                var iftttEvent = ev.Direction == "OUT" ? "boat_out" : "boat_in";
+
+                await this.SendIftttTrigger(ev.Location, makerChannelKey, iftttEvent, ev.ReadTime.Value.ToString(), boat.Name(), doorName);
+
+                //
+                // TODO: Looks for a reservation to see if we can just annotate it with in/out times.
+                // Otherwise, we need to create a reservation with an "unknown" rower to log the usage.
+                //
             }
-
-            await this.SendIftttTrigger(makerChannelKey, ev.EventType, ev.Timestamp.Value.ToString(), boat.Name(), doorName);
-
-            //
-            // TODO: Looks for a reservation to see if we can just annotate it with in/out times.
-            // Otherwise, we need to create a reservation with an "unknown" rower to log the usage.
-            //
+            else
+            {
+                // Tag isn't associated with a boat yet.
+                await this.SendIftttTrigger(ev.Location, makerChannelKey, "new_tag", ev.ReadTime.Value.ToString(), ev.EPC, doorName);
+            }
         }
 
-        private async Task SendIftttTrigger(string channelKey, string eventName, string data1 = null, string data2 = null, string data3 = null)
+        private async Task SendIftttTrigger(
+            string clubId,
+            string channelKey,
+            string eventName,
+            string data1 = null,
+            string data2 = null,
+            string data3 = null)
         {
             if (!string.IsNullOrEmpty(channelKey))
             {
@@ -109,7 +129,7 @@ namespace BoatTracker.Bot.Controllers
                         ex,
                         new Dictionary<string, string>
                         {
-                            ["clubId"] = this.currentClub.Id,
+                            ["clubId"] = clubId,
                             ["eventName"] = eventName
                         });
                 }
@@ -157,12 +177,12 @@ namespace BoatTracker.Bot.Controllers
             if (boat != null)
             {
                 this.telemetryClient.TrackEvent(
-                    ev.EventType,
+                    ev.Direction,
                     new Dictionary<string, string>
                     {
-                        ["ClubId"] = this.currentClub.Id,
-                        ["Timestamp"] = ev.Timestamp.Value.ToString(),
-                        ["TagId"] = ev.Id,
+                        ["ClubId"] = ev.Location,
+                        ["Timestamp"] = ev.ReadTime.Value.ToString(),
+                        ["TagId"] = ev.EPC,
                         ["BoatName"] = boat.Name(),
                         ["DoorName"] = doorName
                     });
@@ -173,10 +193,10 @@ namespace BoatTracker.Bot.Controllers
                     "new_tag",
                     new Dictionary<string, string>
                     {
-                        ["ClubId"] = this.currentClub.Id,
-                        ["Timestamp"] = ev.Timestamp.Value.ToString(),
+                        ["ClubId"] = ev.Location,
+                        ["Timestamp"] = ev.ReadTime.Value.ToString(),
                         ["DoorName"] = doorName,
-                        ["TagId"] = ev.Id,
+                        ["TagId"] = ev.EPC,
                     });
             }
         }

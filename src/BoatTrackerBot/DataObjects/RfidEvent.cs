@@ -1,25 +1,34 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 
 namespace BoatTracker.Bot.DataObjects
 {
     public class RfidEvent
     {
-        public const string EventTypeIn = "boat_in";
-        public const string EventTypeOut = "boat_out";
+        public string EPC { get; set; }
 
-        [JsonProperty("timestamp", ItemConverterType = typeof(JavaScriptDateTimeConverter))]
-        public DateTime? Timestamp { get; set; }
+        public DateTime? ReadTime { get; set; }
 
-        [JsonProperty("antenna")]
-        public int Antenna { get; set; }
+        public string AntennaPortNumber { get; set; }
 
-        [JsonProperty("id")]
-        public string Id { get; set; }
+        public string RSSI { get; set; }
 
-        [JsonProperty("eventType")]
-        public string EventType { get; set; }
+        public string ReadCount { get; set; }
+
+        public string HostName { get; set; }
+
+        public string Direction { get; set; }
+
+        public string Location { get; set; }
+
+        public string ReadZone { get; set; }
+
+        public string Process { get; set; }
+
+        [JsonExtensionData(ReadData=true)]
+        public IDictionary<string, JToken> Extras { get; }
     }
 }

@@ -243,7 +243,6 @@
     <Compile Include="Controllers\ControlApiController.cs" />
     <Compile Include="Controllers\DebugWarmUpController.cs" />
     <Compile Include="DataObjects\RfidEvent.cs" />
-    <Compile Include="DataObjects\RfidEvents.cs" />
     <Compile Include="DataObjects\UserState.cs" />
     <Compile Include="Controllers\RfidEventsController.cs" />
     <Compile Include="Dialogs\BoatTrackerDialog.cs" />

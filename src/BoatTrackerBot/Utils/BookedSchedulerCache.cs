@@ -244,12 +244,12 @@ namespace BoatTracker.Bot.Utils
             /// <returns>True if the event is redundant</returns>
             public async Task<bool> IsEventRedundantAsync(RfidEvent ev)
             {
-                if (!ev.Timestamp.HasValue)
+                if (!ev.ReadTime.HasValue)
                 {
-                    ev.Timestamp = DateTime.Now;
+                    ev.ReadTime = DateTime.Now;
                 }
 
-                var boat = await this.GetResourceFromRfidTagAsync(ev.Id);
+                var boat = await this.GetResourceFromRfidTagAsync(ev.EPC);
 
                 if (boat == null)
                 {
@@ -269,12 +269,12 @@ namespace BoatTracker.Bot.Utils
                 {
                     isRedundant = false;
                 }
-                else if (lastEvent.Timestamp.Value + EventLifetime < DateTime.Now)
+                else if (lastEvent.ReadTime.Value + EventLifetime < DateTime.Now)
                 {
                     // If we haven't seen an event for this boat in a while, this isn't redundant
                     isRedundant = false;
                 }
-                else if (lastEvent.EventType != ev.EventType || lastEvent.Antenna != ev.Antenna)
+                else if (lastEvent.Direction != ev.Direction || lastEvent.ReadZone != ev.ReadZone)
                 {
                     // If the door or direction are different, this is a new event
                     isRedundant = false;
