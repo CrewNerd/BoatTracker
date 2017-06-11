@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
@@ -77,6 +77,11 @@ namespace BoatTracker.Bot.Controllers
 
                 await this.SendIftttTrigger(ev.Location, makerChannelKey, iftttEvent, ev.ReadTime.Value.ToString(), boat.Name(), doorName);
 
+                if (boat.IsPrivate())
+                {
+                    await this.NotifyBoatOwners(cache, boat, ev);
+                }
+
                 //
                 // TODO: Looks for a reservation to see if we can just annotate it with in/out times.
                 // Otherwise, we need to create a reservation with an "unknown" rower to log the usage.
@@ -87,6 +92,37 @@ namespace BoatTracker.Bot.Controllers
                 // Tag isn't associated with a boat yet.
                 await this.SendIftttTrigger(ev.Location, makerChannelKey, "new_tag", ev.ReadTime.Value.ToString(), ev.EPC, doorName);
             }
+        }
+
+        private async Task NotifyBoatOwners(BookedSchedulerCache.BookedSchedulerCacheEntry cache, JToken boat, RfidEvent ev)
+        {
+            var iftttEvent = ev.Direction == "OUT" ? "boat_out" : "boat_in";
+
+            var botUserState = await cache.GetBotUserStateAsync();
+
+            // We consider anyone who has permission to use a private boat to be an owner.
+            var owners = (await cache.GetUsersAsync())
+                .Where(u => botUserState.HasPermissionForResourceAsync(boat, u.Id()).Result);
+
+            foreach (var owner in owners)
+            {
+                if (owner.Id() == botUserState.UserId)
+                {
+                    // Skip the botUser since they will appear to be an owner of everything, and we handle
+                    // them separately anyway.
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(owner.MakerChannelKey()))
+                {
+                    await this.SendIftttTrigger(ev.Location, owner.MakerChannelKey(), iftttEvent, ev.ReadTime.Value.ToString(), boat.Name(), ev.ReadZone);
+                }
+            }
+
+            //
+            // TODO: Send a proactive message to each user as well.
+            // https://docs.microsoft.com/en-us/bot-framework/dotnet/bot-builder-dotnet-proactive-messages
+            //
         }
 
         private async Task SendIftttTrigger(
@@ -136,6 +172,7 @@ namespace BoatTracker.Bot.Controllers
             }
         }
 
+#if false
         private ClubInfo ValidateRequest()
         {
             if (this.Request.Headers.Authorization.Scheme.ToLower() != "basic")
@@ -171,6 +208,7 @@ namespace BoatTracker.Bot.Controllers
 
             return clubInfo;
         }
+#endif
 
         private void LogBoatEvent(JToken boat, string doorName, RfidEvent ev)
         {
