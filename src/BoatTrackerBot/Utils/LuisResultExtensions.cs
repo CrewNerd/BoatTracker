@@ -264,7 +264,7 @@ namespace BoatTracker.Bot.Utils
 
         public static bool IsStartTimeNow(this LuisResult result)
         {
-            return result.Entities.Any(e => e.Resolution != null && e.Resolution.ContainsKey("time") && e.Resolution["time"] == "PRESENT_REF");
+            return result.Entities.Any(e => e.Resolution != null && e.Resolution.ContainsKey("time") && ((string)e.Resolution["time"]) == "PRESENT_REF");
         }
 
         /// <summary>
@@ -282,7 +282,7 @@ namespace BoatTracker.Bot.Utils
             {
                 if (entity.Type == EntityBuiltinDuration && entity.Resolution.ContainsKey("duration"))
                 {
-                    var duration = System.Xml.XmlConvert.ToTimeSpan(entity.Resolution["duration"]);
+                    var duration = System.Xml.XmlConvert.ToTimeSpan((string)entity.Resolution["duration"]);
 
                     if (maxDuration == null || duration > maxDuration.Value)
                     {

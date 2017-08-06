@@ -36,3 +36,5 @@
 /src/BoatTrackerBot.Tests/bin/Debug
 /src/BoatTrackerBot.Tests/obj/Debug
 /src/BoatTrackerBot.Tests/BoatTrackerBotTests.runsettings
+/src/BoatTrackerBot.Tests/bin/Release
+/src/BoatTrackerBot.Tests/obj/Release

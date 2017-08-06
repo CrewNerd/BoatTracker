@@ -14,6 +14,8 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Connector;
 
+using Activity = Microsoft.Bot.Connector.Activity;
+
 namespace BoatTracker.Bot
 {
     [BotAuthentication]
