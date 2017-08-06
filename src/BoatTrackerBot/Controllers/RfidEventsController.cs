@@ -30,6 +30,9 @@ namespace BoatTracker.Bot.Controllers
         {
             try
             {
+                // throws an exception if the authorization header is invalid
+                this.ValidateRequest();
+
                 this.telemetryClient = new TelemetryClient();
                 var env = EnvironmentDefinition.Instance;
 
@@ -172,7 +175,6 @@ namespace BoatTracker.Bot.Controllers
             }
         }
 
-#if false
         private ClubInfo ValidateRequest()
         {
             if (this.Request.Headers.Authorization.Scheme.ToLower() != "basic")
@@ -180,7 +182,7 @@ namespace BoatTracker.Bot.Controllers
                 throw new HttpResponseException(HttpStatusCode.Unauthorized);
             }
 
-            var authParam = Encoding.UTF8.GetString(Convert.FromBase64String(this.Request.Headers.Authorization.Parameter));
+            var authParam = this.Request.Headers.Authorization.Parameter;
 
             if (!authParam.Contains(":"))
             {
@@ -208,7 +210,6 @@ namespace BoatTracker.Bot.Controllers
 
             return clubInfo;
         }
-#endif
 
         private void LogBoatEvent(JToken boat, string doorName, RfidEvent ev)
         {
