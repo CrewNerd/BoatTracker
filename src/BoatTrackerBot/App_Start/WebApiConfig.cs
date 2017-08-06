@@ -3,6 +3,7 @@ using System.Web.Http;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using Microsoft.Bot.Connector;
 
 namespace BoatTracker.Bot
 {
@@ -25,6 +26,9 @@ namespace BoatTracker.Bot
 
             // Web API routes
             config.MapHttpAttributeRoutes();
+
+            // Needed to make pro-active bot messages work.
+            MicrosoftAppCredentials.TrustServiceUrl(@"https://facebook.botframework.com", DateTime.MaxValue);
         }
     }
 }

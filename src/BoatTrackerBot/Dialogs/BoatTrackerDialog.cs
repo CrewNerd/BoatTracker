@@ -1001,7 +1001,7 @@ namespace BoatTracker.Bot
 
         private void UpdateBotUserEntity(IDialogContext context)
         {
-            BotUserEntity botUserEntity = new BotUserEntity(this.currentUserState.ClubId, this.currentUserState.UserId)
+            BotUserEntity botUserEntity = new BotUserEntity(this.currentUserState.ClubId.ToLower(), this.currentUserState.UserId)
             {
                 ToId = context.Activity.From.Id,
                 ToName = context.Activity.From.Name,

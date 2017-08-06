@@ -175,8 +175,13 @@ namespace BoatTracker.Bot.Utils
         /// <param name="userState">The state for the calling user</param>
         /// <param name="resource">The resource that they want to access</param>
         /// <param name="partnerUserId">If given, check permission for this user.</param>
+        /// <param name="directPermissionOnly">If true, don't consider permission via group membership.</param>
         /// <returns>Task that completes with true if the user has permission for the resource.</returns>
-        public static async Task<bool> HasPermissionForResourceAsync(this UserState userState, JToken resource, long? partnerUserId = null)
+        public static async Task<bool> HasPermissionForResourceAsync(
+            this UserState userState,
+            JToken resource,
+            long? partnerUserId = null,
+            bool directPermissionOnly = false)
         {
             var cache = BookedSchedulerCache.Instance[userState.ClubId];
             var user = await cache.GetUserAsync(partnerUserId ?? userState.UserId);
@@ -192,18 +197,21 @@ namespace BoatTracker.Bot.Utils
                 return true;
             }
 
-            // See if any of the user's group memberships grant permission to the resource
-            foreach (var group in user.Value<JArray>("groups"))
+            if (!directPermissionOnly)
             {
-                var groupNode = await cache.GetGroupAsync(group.Id());
-
-                var okByGroup = groupNode
-                    .Value<JArray>("permissions")
-                    .Any(r => r.Value<string>().EndsWith($"/{resourceId}"));
-
-                if (okByGroup)
+                // See if any of the user's group memberships grant permission to the resource
+                foreach (var group in user.Value<JArray>("groups"))
                 {
-                    return true;
+                    var groupNode = await cache.GetGroupAsync(group.Id());
+
+                    var okByGroup = groupNode
+                        .Value<JArray>("permissions")
+                        .Any(r => r.Value<string>().EndsWith($"/{resourceId}"));
+
+                    if (okByGroup)
+                    {
+                        return true;
+                    }
                 }
             }
 

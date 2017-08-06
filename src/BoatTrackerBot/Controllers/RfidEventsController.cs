@@ -9,6 +9,8 @@ using System.Web.Http.Description;
 
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.Bot.Connector;
+using Microsoft.WindowsAzure.Storage.Table;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -78,7 +80,7 @@ namespace BoatTracker.Bot.Controllers
             {
                 var iftttEvent = ev.Direction == "OUT" ? "boat_out" : "boat_in";
 
-                await this.SendIftttTrigger(ev.Location, makerChannelKey, iftttEvent, ev.ReadTime.Value.ToString(), boat.Name(), doorName);
+                await this.SendIftttTriggerAsync(ev.Location, makerChannelKey, iftttEvent, ev.ReadTime.Value.ToString(), boat.Name(), doorName);
 
                 if (boat.IsPrivate())
                 {
@@ -93,7 +95,7 @@ namespace BoatTracker.Bot.Controllers
             else
             {
                 // Tag isn't associated with a boat yet.
-                await this.SendIftttTrigger(ev.Location, makerChannelKey, "new_tag", ev.ReadTime.Value.ToString(), ev.EPC, doorName);
+                await this.SendIftttTriggerAsync(ev.Location, makerChannelKey, "new_tag", ev.ReadTime.Value.ToString(), ev.EPC, doorName);
             }
         }
 
@@ -105,7 +107,7 @@ namespace BoatTracker.Bot.Controllers
 
             // We consider anyone who has permission to use a private boat to be an owner.
             var owners = (await cache.GetUsersAsync())
-                .Where(u => botUserState.HasPermissionForResourceAsync(boat, u.Id()).Result);
+                .Where(u => botUserState.HasPermissionForResourceAsync(boat, u.Id(), directPermissionOnly: true).Result);
 
             foreach (var owner in owners)
             {
@@ -118,17 +120,21 @@ namespace BoatTracker.Bot.Controllers
 
                 if (!string.IsNullOrEmpty(owner.MakerChannelKey()))
                 {
-                    await this.SendIftttTrigger(ev.Location, owner.MakerChannelKey(), iftttEvent, ev.ReadTime.Value.ToString(), boat.Name(), ev.ReadZone);
+                    await this.SendIftttTriggerAsync(ev.Location, owner.MakerChannelKey(), iftttEvent, ev.ReadTime.Value.ToString(), boat.Name(), ev.ReadZone);
+                }
+
+                try
+                {
+                    await this.SendBotMessageAsync(cache.ClubId, owner.Id(), boat, ev);
+                }
+                catch (Exception ex)
+                {
+                    this.telemetryClient.TrackException(ex);
                 }
             }
-
-            //
-            // TODO: Send a proactive message to each user as well.
-            // https://docs.microsoft.com/en-us/bot-framework/dotnet/bot-builder-dotnet-proactive-messages
-            //
         }
 
-        private async Task SendIftttTrigger(
+        private async Task SendIftttTriggerAsync(
             string clubId,
             string channelKey,
             string eventName,
@@ -175,6 +181,45 @@ namespace BoatTracker.Bot.Controllers
             }
         }
 
+        private async Task SendBotMessageAsync(
+            string clubId,
+            long userId,
+            JToken boat,
+            RfidEvent ev)
+        {
+            var table = EnvironmentDefinition.Instance.TableObject;
+
+            var retrieveOperation = TableOperation.Retrieve<BotUserEntity>(clubId.ToLower(), userId.ToString());
+
+            TableResult retrievedResult = await table.ExecuteAsync(retrieveOperation);
+
+            if (retrievedResult.Result != null)
+            {
+                BotUserEntity botUser = (BotUserEntity)retrievedResult.Result;
+
+                var userAccount = new ChannelAccount(botUser.ToId, botUser.ToName);
+                var botAccount = new ChannelAccount(botUser.FromId, botUser.FromName);
+                var connector = new ConnectorClient(new Uri(botUser.ServiceUrl));
+
+                // Create a new message.
+                IMessageActivity message = Activity.CreateMessageActivity();
+                message.ChannelId = botUser.ChannelId;
+
+                // Set the address-related properties in the message and send the message.
+                message.From = botAccount;
+                message.Recipient = userAccount;
+                message.Conversation = new ConversationAccount(id: botUser.ConversationId);
+                var direction = ev.Direction == "OUT" ? "leaving" : "entering";
+                message.Text = $"FYI: Your boat ({boat.Name()}) was just seen {direction} through {ev.ReadZone}.";
+                message.Locale = "en-us";
+                await connector.Conversations.SendToConversationAsync((Activity)message, botUser.ConversationId);
+            }
+            else
+            {
+                this.telemetryClient.TrackTrace($"Unable to find BotUser for '{clubId}/{userId}");
+            }
+        }
+            
         private ClubInfo ValidateRequest()
         {
             if (this.Request.Headers.Authorization.Scheme.ToLower() != "basic")

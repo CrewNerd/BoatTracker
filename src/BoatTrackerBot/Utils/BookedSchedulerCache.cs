@@ -149,6 +149,8 @@ namespace BoatTracker.Bot.Utils
 
             public bool IsInitialized { get; set; }
 
+            public string ClubId { get { return this.clubId; } }
+
             #region Cache accessor methods
 
             public async Task<JArray> GetResourcesAsync()
