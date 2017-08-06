@@ -15,6 +15,7 @@ using Microsoft.Bot.Builder.FormFlow;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
 using Microsoft.Bot.Connector;
+using Microsoft.WindowsAzure.Storage.Table;
 
 using Newtonsoft.Json.Linq;
 
@@ -982,6 +983,10 @@ namespace BoatTracker.Bot
                 {
                     // The user is fully registered
                     this.currentUserState = userState;
+
+                    // Save the information needed to initiate a conversation later.
+                    this.UpdateBotUserEntity(context);
+
                     return true;
                 }
             }
@@ -992,6 +997,25 @@ namespace BoatTracker.Bot
             var signInForm = new FormDialog<SignInForm>(new SignInForm(), SignInForm.BuildForm, FormOptions.PromptInStart);
             context.Call(signInForm, this.SignInComplete);
             return false;
+        }
+
+        private void UpdateBotUserEntity(IDialogContext context)
+        {
+            BotUserEntity botUserEntity = new BotUserEntity(this.currentUserState.ClubId, this.currentUserState.UserId)
+            {
+                ToId = context.Activity.From.Id,
+                ToName = context.Activity.From.Name,
+                FromId = context.Activity.Recipient.Id,
+                FromName = context.Activity.Recipient.Name,
+                ServiceUrl = context.Activity.ServiceUrl,
+                ChannelId = context.Activity.ChannelId,
+                ConversationId = context.Activity.Conversation.Id
+            };
+
+            // We overwrite the row each time, and we don't retry on failures. This is all best-effort
+            // since we get many opportunities to save this slowly-changing data.
+            TableOperation insertOrReplaceOperation = TableOperation.InsertOrReplace(botUserEntity);
+            var result = EnvironmentDefinition.Instance.TableObject.Execute(insertOrReplaceOperation);
         }
 
         private async Task SignInComplete(IDialogContext context, IAwaitable<SignInForm> result)

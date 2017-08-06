@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 
 using Microsoft.Azure;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Table;
 
 using Newtonsoft.Json;
 
@@ -22,6 +24,7 @@ namespace BoatTracker.Bot.Configuration
         private const string SendGridApiKeyKey = "SendGridApiKey";
         private const string SecurityKeyKey = "SecurityKey";
         private const string ServiceHostKey = "ServiceHost";
+        private const string StorageConnectionStringKey = "StorageConnectionString";
 
         /// <summary>
         /// Initializes static members of the <see cref="EnvironmentDefinition"/> class.
@@ -55,6 +58,28 @@ namespace BoatTracker.Bot.Configuration
             get
             {
                 return CloudConfigurationManager.GetSetting(LuisSubscriptionKeyKey, false);
+            }
+        }
+
+        public virtual string StorageConnectionString
+        {
+            get
+            {
+                return CloudConfigurationManager.GetSetting(StorageConnectionStringKey, false);
+            }
+        }
+
+        public virtual CloudTable TableObject
+        {
+            get
+            {
+                CloudStorageAccount storageAccount = CloudStorageAccount.Parse(this.StorageConnectionString);
+
+                CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+
+                CloudTable table = tableClient.GetTableReference(this.IsDevelopment ? "botusersdev" : "botusers");
+
+                return table;
             }
         }
 
