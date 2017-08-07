@@ -21,6 +21,7 @@ namespace BoatTracker.Bot.DataObjects
 
         public string FromName { get; set; }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1056:UriPropertiesShouldNotBeStrings")]
         public string ServiceUrl { get; set; }
 
         public string ChannelId { get; set; }

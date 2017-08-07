@@ -119,7 +119,7 @@ namespace BoatTracker.Bot.Utils
         {
             private static readonly TimeSpan CacheTimeout = TimeSpan.FromHours(8);
             private static readonly TimeSpan CacheRetryTime = TimeSpan.FromMinutes(10);
-            private static readonly TimeSpan EventLifetime = TimeSpan.FromSeconds(15);
+            private static readonly TimeSpan EventLifetime = TimeSpan.FromSeconds(30);
 
             private long refreshInProgress = 0;
 

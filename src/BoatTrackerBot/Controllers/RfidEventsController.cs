@@ -236,7 +236,7 @@ namespace BoatTracker.Bot.Controllers
 
             var authParams = authParam.Split(':');
 
-            var clubId = authParams[0];
+            var clubId = authParams[0].ToLower();
             var password = authParams[1];
 
             var env = EnvironmentDefinition.Instance;
