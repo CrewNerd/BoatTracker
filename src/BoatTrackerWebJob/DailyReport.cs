@@ -41,7 +41,7 @@ namespace BoatTrackerWebJob
             {
                 var clubInfo = env.MapClubIdToClubInfo[clubId];
 
-                if (clubInfo.DailyReportGmtHour == utcNow.Hour)
+                if (clubInfo.DailyReportGmtHour == utcNow.Hour || env.IsLocal)
                 {
                     log.WriteLine($"Starting daily report for club: {clubId}");
 
@@ -82,6 +82,24 @@ namespace BoatTrackerWebJob
 
             await client.SignInAsync(clubInfo.UserName, clubInfo.Password);
 
+            var body = new StringBuilder();
+
+            body.AppendLine($"<h2>BoatTracker Daily Report for: {clubInfo.Name}</h2>");
+
+            await BuildReservationsReport(body, client, clubId, log);
+            await BuildResourcesReport(body, client, clubInfo, log);
+
+            log.Write(body.ToString());
+
+            await SendDailyReportEmail(
+                log,
+                clubInfo,
+                $"BoatTracker daily report for {clubInfo.Name}" + (EnvironmentDefinition.Instance.IsDevelopment ? " (DEV)" : string.Empty),
+                body.ToString());
+        }
+
+        private static async Task BuildReservationsReport(StringBuilder body, BookedSchedulerRetryClient client, string clubId, TextWriter log)
+        {
             // Get all reservations for the last day
             var reservations = await client.GetReservationsAsync(start: DateTime.UtcNow - TimeSpan.FromDays(1), end: DateTime.UtcNow);
 
@@ -178,41 +196,75 @@ namespace BoatTrackerWebJob
                 }
             }
 
-            await client.SignOutAsync();
-
-            var body = new StringBuilder();
-
-            body.AppendLine($"<h2>BoatTracker Daily Report for: {clubInfo.Name}</h2>");
             body.AppendLine($"<p>Total reservations: {reservations.Count}</p>");
 
-            AddReservationsToReport(body, compliant, "Compliant reservations");
-            AddReservationsToReport(body, abandoned, "Unused reservations");
-            AddReservationsToReport(body, failedToCheckOut, "Unclosed reservations");
-            AddReservationsToReport(body, unknownParticipants, "Incomplete rosters");
-            AddReservationsToReport(body, withGuest, "Guest rowers");
-            AddReservationsToReport(body, upcomingWithGuest, "Upcoming guest rowers");
+            AddSectionToReport(body, compliant, "Compliant reservations");
+            AddSectionToReport(body, abandoned, "Unused reservations");
+            AddSectionToReport(body, failedToCheckOut, "Unclosed reservations");
+            AddSectionToReport(body, unknownParticipants, "Incomplete rosters");
+            AddSectionToReport(body, withGuest, "Guest rowers");
+            AddSectionToReport(body, upcomingWithGuest, "Upcoming guest rowers");
+        }
 
-            log.Write(body.ToString());
+        private static async Task BuildResourcesReport(StringBuilder body, BookedSchedulerRetryClient client, ClubInfo clubInfo, TextWriter log)
+        {
+            var resources = await client.GetResourcesAsync();
 
-            await SendDailyReportEmail(
-                log,
-                clubInfo,
-                $"BoatTracker daily report for {clubInfo.Name}" + (EnvironmentDefinition.Instance.IsDevelopment ? " (DEV)" : string.Empty),
-                body.ToString());
+            var noCapacity = new List<string>();
+            var requiresCheckInNotSet = new List<string>();
+#if false
+            var invalidMinimumReservation = new List<string>();
+#endif
+
+            foreach (var resource in resources)
+            {
+                var name = resource.Name();
+
+                var capacity = resource["maxParticipants"];
+                if (capacity == null || string.IsNullOrEmpty(capacity.Value<string>()))
+                {
+                    noCapacity.Add(name);
+                }
+
+                var requiresCheckIn = resource["requiresCheckIn"];
+                if (requiresCheckIn == null || requiresCheckIn.Value<int>() == 0)
+                {
+                    requiresCheckInNotSet.Add(name);
+                }
+
+#if false
+                var minLength = resource["minLength"];
+                if (minLength == null || !minLength.Value<string>().StartsWith(clubInfo.MinimumDuration.Minutes.ToString()))
+                {
+                    invalidMinimumReservation.Add(name);
+                }
+#endif
+            }
+
+            if (noCapacity.Count() > 0 || /* invalidMinimumReservation.Count() > 0 || */ requiresCheckInNotSet.Count() > 0)
+            {
+                body.AppendLine("<br/><p>Boat configuration warnings:</p>");
+
+                AddSectionToReport(body, noCapacity, "No configured capacity");
+                AddSectionToReport(body, requiresCheckInNotSet, "Requires checkin/checkout not set");
+#if false
+                AddSectionToReport(body, invalidMinimumReservation, "Minimum reservation time doesn't match club setting:");
+#endif
+            }
         }
 
         /// <summary>
         /// Adds a set of reservations to the email body we're building.
         /// </summary>
         /// <param name="sb">Buffer containing the generated email body.</param>
-        /// <param name="reservationList">The set of reservation descriptions to be added.</param>
+        /// <param name="itemList">The set of reservation descriptions to be added.</param>
         /// <param name="listName">The name of the list.</param>
-        private static void AddReservationsToReport(StringBuilder sb, List<string> reservationList, string listName)
+        private static void AddSectionToReport(StringBuilder sb, List<string> itemList, string listName)
         {
-            if (reservationList.Count > 0)
+            if (itemList.Count > 0)
             {
-                sb.AppendLine($"<p>{listName} ({reservationList.Count}):<br/>");
-                foreach (var s in reservationList)
+                sb.AppendLine($"<p>{listName} ({itemList.Count}):<br/>");
+                foreach (var s in itemList)
                 {
                     sb.AppendLine(s);
                     sb.AppendLine("<br/>");
@@ -275,7 +327,7 @@ namespace BoatTrackerWebJob
             }
         }
 
-        #region Timezone helpers
+#region Timezone helpers
 
         private static DateTime ConvertToLocalTime(JToken user, DateTime dateTime)
         {
@@ -299,6 +351,6 @@ namespace BoatTrackerWebJob
             return offset;
         }
 
-        #endregion
+#endregion
     }
 }
