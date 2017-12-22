@@ -52,7 +52,7 @@ namespace BoatTracker.Bot.Controllers
 
                     var cache = BookedSchedulerCache.Instance[clubId];
 
-                    if (!await cache.IsEventRedundantAsync(ev))
+                    if (!await cache.IsEventRedundantAsync(ev, this.telemetryClient))
                     {
                         await this.ProcessEvent(cache, ev);
                     }

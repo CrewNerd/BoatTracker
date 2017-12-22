@@ -11,6 +11,7 @@ using BoatTracker.Bot.Configuration;
 using BoatTracker.Bot.DataObjects;
 
 using Newtonsoft.Json.Linq;
+using Microsoft.ApplicationInsights;
 
 namespace BoatTracker.Bot.Utils
 {
@@ -119,7 +120,7 @@ namespace BoatTracker.Bot.Utils
         {
             private static readonly TimeSpan CacheTimeout = TimeSpan.FromHours(8);
             private static readonly TimeSpan CacheRetryTime = TimeSpan.FromMinutes(10);
-            private static readonly TimeSpan EventLifetime = TimeSpan.FromSeconds(30);
+            private static readonly TimeSpan EventLifetime = TimeSpan.FromSeconds(60);
 
             private long refreshInProgress = 0;
 
@@ -237,6 +238,8 @@ namespace BoatTracker.Bot.Utils
 
             #region Event handling methods
 
+            private static SemaphoreSlim serializeEventCache = new SemaphoreSlim(1);
+
             /// <summary>
             /// It will be common to get two events for the same boat close together since we
             /// normally have two tags per boat. We want to make sure we only process the first
@@ -244,12 +247,9 @@ namespace BoatTracker.Bot.Utils
             /// </summary>
             /// <param name="ev">An incoming event</param>
             /// <returns>True if the event is redundant</returns>
-            public async Task<bool> IsEventRedundantAsync(RfidEvent ev)
+            public async Task<bool> IsEventRedundantAsync(RfidEvent ev, TelemetryClient telemetryClient)
             {
-                if (!ev.ReadTime.HasValue)
-                {
-                    ev.ReadTime = DateTime.Now;
-                }
+                ev.ReadTime = DateTime.Now;
 
                 var boat = await this.GetResourceFromRfidTagAsync(ev.EPC);
 
@@ -257,34 +257,50 @@ namespace BoatTracker.Bot.Utils
                 {
                     // If the tag isn't associated with a boat, it can't be redundant
                     // but we also don't want to cache it.
+                    telemetryClient.TrackTrace($"IsEventRedundant: Unknown ID ({ev.EPC})");
                     return false;
                 }
 
                 var boatId = boat.ResourceId();
-
                 RfidEvent lastEvent;
+                bool isRedundant;
 
-                bool isRedundant = true;
+                await serializeEventCache.WaitAsync();
 
-                // If no event for this boat, this isn't redundant
-                if (!this.mapResourceIdToLastEvent.TryGetValue(boatId, out lastEvent))
+                try
                 {
-                    isRedundant = false;
-                }
-                else if (lastEvent.ReadTime.Value + EventLifetime < DateTime.Now)
-                {
-                    // If we haven't seen an event for this boat in a while, this isn't redundant
-                    isRedundant = false;
-                }
-                else if (lastEvent.Direction != ev.Direction || lastEvent.ReadZone != ev.ReadZone)
-                {
-                    // If the door or direction are different, this is a new event
-                    isRedundant = false;
-                }
+                    // If no event for this boat, this isn't redundant
+                    if (!this.mapResourceIdToLastEvent.TryGetValue(boatId, out lastEvent))
+                    {
+                        telemetryClient.TrackTrace($"IsEventRedundant(false): no cached events (boat={boat.Name()})");
+                        isRedundant = false;
+                    }
+                    else if (lastEvent.ReadTime.Value + EventLifetime < DateTime.Now)
+                    {
+                        telemetryClient.TrackTrace($"IsEventRedundant(false): prior event is out of date ({boat.Name()} @ {lastEvent.ReadTime})");
+                        // If we haven't seen an event for this boat in a while, this isn't redundant
+                        isRedundant = false;
+                    }
+                    else if (lastEvent.Direction != ev.Direction || lastEvent.ReadZone != ev.ReadZone)
+                    {
+                        // If the door or direction are different, this is a new event
+                        telemetryClient.TrackTrace($"IsEventRedundant(false): prior event is different (boat={boat.Name()}, zone={lastEvent.ReadZone}, dir={lastEvent.Direction})");
+                        isRedundant = false;
+                    }
+                    else
+                    {
+                        telemetryClient.TrackTrace($"IsEventRedundant(true): boat={boat.Name()}, dir={lastEvent.Direction}");
+                        isRedundant = true;
+                    }
 
-                if (!isRedundant)
+                    if (!isRedundant)
+                    {
+                        this.mapResourceIdToLastEvent.TryAdd(boatId, ev);
+                    }
+                }
+                finally
                 {
-                    this.mapResourceIdToLastEvent.TryAdd(boatId, ev);
+                    serializeEventCache.Release();
                 }
 
                 return isRedundant;
