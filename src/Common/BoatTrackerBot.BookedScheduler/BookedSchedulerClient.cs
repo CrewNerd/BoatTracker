@@ -575,16 +575,21 @@ namespace BoatTracker.BookedScheduler
 
                     try
                     {
-                        var resp = JToken.Parse(await response.Content.ReadAsStringAsync());
+                        var respBody = await response.Content.ReadAsStringAsync();
 
-                        foreach (var error in resp["errors"])
+                        if (!respBody.StartsWith("<"))
                         {
-                            errors += error.Value<string>() + " ";
-                        }
+                            var resp = JToken.Parse(await response.Content.ReadAsStringAsync());
 
-                        if (!string.IsNullOrEmpty(errors))
-                        {
-                            message = errors;
+                            foreach (var error in resp["errors"])
+                            {
+                                errors += error.Value<string>() + " ";
+                            }
+
+                            if (!string.IsNullOrEmpty(errors))
+                            {
+                                message = errors;
+                            }
                         }
                     }
                     catch (Exception)

@@ -315,6 +315,13 @@ namespace BoatTracker.Bot
 
             var resources = await BookedSchedulerCache.Instance[this.currentUserState.ClubId].GetResourcesAsync();
 
+            if (resources == null)
+            {
+                await context.PostAsync("I can't seem to load your club's boat list right now. Please try again later.");
+                context.Wait(this.MessageReceived);
+                return;
+            }
+
             var usableResources = resources.Where(boat => this.currentUserState.HasPermissionForResourceAsync(boat).Result);
 
             var capacity = result.BoatCapacity();

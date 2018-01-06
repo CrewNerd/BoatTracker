@@ -58,16 +58,16 @@
             return botMessages.Last();
         }
 
-        public async Task WaitForLongRunningOperations(Action<IList<string>> resultHandler, int operationsToWait, int delayBetweenPoolingInSeconds = 4)
+        public async Task WaitForLongRunningOperations(Action<IList<string>> resultHandler, int operationsToWait, int delayBetweenPollingInSeconds = 4)
         {
             var currentWatermark = watermark;
             var messages = await AllBotMessagesSinceWatermark(currentWatermark).ConfigureAwait(false);
             var iterations = 0;
-            var maxIterations = (5 * 60) / delayBetweenPoolingInSeconds;
+            var maxIterations = (5 * 60) / delayBetweenPollingInSeconds;
 
             while (iterations < maxIterations && messages.Count < operationsToWait)
             {
-                await Task.Delay(TimeSpan.FromSeconds(delayBetweenPoolingInSeconds)).ConfigureAwait(false);
+                await Task.Delay(TimeSpan.FromSeconds(delayBetweenPollingInSeconds)).ConfigureAwait(false);
                 messages = await AllBotMessagesSinceWatermark(currentWatermark);
                 iterations++;
             }
@@ -82,7 +82,7 @@
                 }
             }
 
-            Assert.IsFalse(exceptionInBot);
+            Assert.IsFalse(exceptionInBot, "Bot threw an exception");
 
             resultHandler(messages);
         }
