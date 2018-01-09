@@ -83,6 +83,14 @@ namespace BoatTracker.Bot.Configuration
             }
         }
 
+        public virtual string BotStateTableName
+        {
+            get
+            {
+                return this.IsDevelopment ? "botstatedev" : "botstate";
+            }
+        }
+
         /// <summary>
         /// Gets the API key for SendGrid
         /// </summary>
