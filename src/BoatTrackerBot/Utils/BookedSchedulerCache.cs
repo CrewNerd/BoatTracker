@@ -416,6 +416,10 @@ namespace BoatTracker.Bot.Utils
 
                     // Schedule the next cache refresh
                     this.refreshTime = DateTime.Now + CacheTimeout;
+
+                    // If we didn't initialize successfully on startup, make sure any successful
+                    // refresh takes care of this.
+                    this.IsInitialized = true;
                 }
                 catch (Exception)
                 {

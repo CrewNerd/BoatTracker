@@ -190,6 +190,7 @@ namespace BoatTracker.Bot.Models
             if (!BookedSchedulerCache.Instance[this.ClubId].IsInitialized)
             {
                 this.Reservations = new JArray();
+                this.BotUserState = new UserState { ClubId = this.ClubId, UserId = 1 };
                 return $"Please wait while the BoatTracker service initializes. This page will automatically refresh in one minute.";
             }
 

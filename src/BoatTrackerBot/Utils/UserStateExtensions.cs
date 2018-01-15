@@ -626,6 +626,11 @@ namespace BoatTracker.Bot.Utils
 
         public static TimeSpan LocalOffsetForDate(this UserState userState, DateTime date)
         {
+            if (!BookedSchedulerCache.Instance[userState.ClubId].IsInitialized)
+            {
+                return TimeSpan.Zero;
+            }
+
             var user = BookedSchedulerCache.Instance[userState.ClubId].GetUserAsync(userState.UserId).Result;
 
             var mappings = TzdbDateTimeZoneSource.Default.WindowsMapping.MapZones;
