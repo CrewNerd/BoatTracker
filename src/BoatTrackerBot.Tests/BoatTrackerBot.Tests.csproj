@@ -88,6 +88,9 @@
     <None Include="BoatTrackerBotTests.runsettings">
       <SubType>Designer</SubType>
     </None>
+    <None Include="BoatTrackerBotTestsProd.runsettings">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
