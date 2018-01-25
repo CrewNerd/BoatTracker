@@ -56,6 +56,24 @@
                     ExpectedReply = ""
                 },
 
+                new BotTestCase()
+                {
+                    Action = "quit",
+                    ExpectedReply = ""
+                },
+
+                new BotTestCase()
+                {
+                    Action = "quit",
+                    ExpectedReply = ""
+                },
+
+                new BotTestCase()
+                {
+                    Action = "quit",
+                    ExpectedReply = ""
+                },
+
                 // This works whether we're signed in or not.
                 new BotTestCase()
                 {

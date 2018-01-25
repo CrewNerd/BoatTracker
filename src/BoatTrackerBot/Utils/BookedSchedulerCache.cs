@@ -128,9 +128,9 @@ namespace BoatTracker.Bot.Utils
 
             private JArray resources;
 
-            private Dictionary<long, JToken> userMap;
+            private Dictionary<long, JToken> userMap = new Dictionary<long, JToken>();
 
-            private Dictionary<long, JToken> groupMap;
+            private Dictionary<long, JToken> groupMap = new Dictionary<long, JToken>();
 
 #if UNUSED
             private JArray schedules;
@@ -227,11 +227,23 @@ namespace BoatTracker.Bot.Utils
             {
                 var botUser = await this.GetBotUserAsync();
 
-                return new UserState
+                if (botUser != null)
                 {
-                    ClubId = this.clubId,
-                    UserId = botUser.Id()
-                };
+                    return new UserState
+                    {
+                        ClubId = this.clubId,
+                        UserId = botUser.Id()
+                    };
+                }
+                else
+                {
+                    // dummy data if we aren't initialized yet...
+                    return new UserState
+                    {
+                        ClubId = this.clubId,
+                        UserId = 1
+                    };
+                }
             }
 
             #endregion

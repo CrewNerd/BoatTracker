@@ -30,6 +30,9 @@
 
             foreach (var step in steps)
             {
+                // Act at slightly more human-like speed
+                await Task.Delay(1000);
+
                 await General.BotHelper.SendMessageNoReply(step.Action);
 
                 Action<IList<string>> action = (replies) =>

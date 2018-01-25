@@ -54,6 +54,14 @@ namespace BoatTracker.BookedScheduler
             }
         }
 
+        public long UserId
+        {
+            get
+            {
+                return this.sessionUserId;
+            }
+        }
+
         /// <summary>
         /// Gets a value indicating whether the session token has expired.
         /// </summary>

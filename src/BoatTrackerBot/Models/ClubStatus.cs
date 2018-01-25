@@ -187,22 +187,23 @@ namespace BoatTracker.Bot.Models
         {
             var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.ClubId];
 
-            if (!BookedSchedulerCache.Instance[this.ClubId].IsInitialized)
-            {
-                this.Reservations = new JArray();
-                this.BotUserState = new UserState { ClubId = this.ClubId, UserId = 1 };
-                return $"Please wait while the BoatTracker service initializes. This page will automatically refresh in one minute.";
-            }
-
-            // We only need the timezone for the user.
-            this.BotUserState = await BookedSchedulerCache.Instance[this.ClubId].GetBotUserStateAsync();
-
-            BookedSchedulerRetryClient client = null;
+            BookedSchedulerClient client = null;
 
             try
             {
-                client = new BookedSchedulerRetryClient(this.ClubId, true);
+                client = new BookedSchedulerClient(clubInfo.Url);
                 await client.SignInAsync(clubInfo.UserName, clubInfo.Password);
+
+                // We only need the timezone for the user.
+                this.BotUserState = new UserState
+                {
+                    ClubId = this.ClubId,
+                    UserId = client.UserId,
+                    TimeZone = string.Empty    // gets filled in from the user's profile below.
+                };
+
+                var user = await client.GetUserAsync(client.UserId);
+                this.BotUserState.TimeZone = user.Timezone();
 
                 string message = null;
 

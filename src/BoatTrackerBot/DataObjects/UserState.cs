@@ -13,6 +13,8 @@ namespace BoatTracker.Bot.DataObjects
 
         public bool HelpMessageShown { get; set; }
 
+        public string TimeZone { get; set; }
+
         public bool IsComplete
         {
             get
