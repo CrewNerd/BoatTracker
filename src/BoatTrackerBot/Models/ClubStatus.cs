@@ -107,25 +107,32 @@ namespace BoatTracker.Bot.Models
         {
             get
             {
-                var localTime = this.BotUserState.LocalTime();
+                if (this.Reservations.Count > 0)
+                {
+                    var localTime = this.BotUserState.LocalTime();
 
-                return this.Reservations
-                    .Where(r =>
-                    {
-                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.StartDate());
-                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.EndDate());
+                    return this.Reservations
+                        .Where(r =>
+                        {
+                            var startDateTime = this.BotUserState.ConvertToLocalTime(r.StartDate());
+                            var endDateTime = this.BotUserState.ConvertToLocalTime(r.EndDate());
 
-                        // TODO: This assumes that everyone uses the 15-minute expiration time, but this can
-                        // be configured separately for each reservation. We should pull the expiration from
-                        // the resource and use that here. Check to see if the value gets put in the reservation
-                        // since that would make life a lot simpler here. Maybe make this a per-club setting.
+                            // TODO: This assumes that everyone uses the 15-minute expiration time, but this can
+                            // be configured separately for each reservation. We should pull the expiration from
+                            // the resource and use that here. Check to see if the value gets put in the reservation
+                            // since that would make life a lot simpler here. Maybe make this a per-club setting.
 
-                        return
-                            localTime.Date == startDateTime.Date &&                     // current day
-                            r.CheckInDate() == null &&                                  // not checked in
-                            localTime < startDateTime + TimeSpan.FromMinutes(15) &&     // not expired
-                            startDateTime < localTime + TimeSpan.FromHours(4);          // < 4 hours in future
-                    });
+                            return
+                                localTime.Date == startDateTime.Date &&                     // current day
+                                r.CheckInDate() == null &&                                  // not checked in
+                                localTime < startDateTime + TimeSpan.FromMinutes(15) &&     // not expired
+                                startDateTime < localTime + TimeSpan.FromHours(4);          // < 4 hours in future
+                        });
+                }
+                else
+                {
+                    return this.Reservations;
+                }
             }
         }
 
@@ -136,19 +143,26 @@ namespace BoatTracker.Bot.Models
         {
             get
             {
-                var localTime = this.BotUserState.LocalTime();
+                if (this.Reservations.Count > 0)
+                {
+                    var localTime = this.BotUserState.LocalTime();
 
-                return this.Reservations
-                    .Where(r => r.CheckInDate().HasValue && !r.CheckOutDate().HasValue)
-                    .Where(r =>
-                    {
-                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.StartDate());
-                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.EndDate());
+                    return this.Reservations
+                        .Where(r => r.CheckInDate().HasValue && !r.CheckOutDate().HasValue)
+                        .Where(r =>
+                        {
+                            var startDateTime = this.BotUserState.ConvertToLocalTime(r.StartDate());
+                            var endDateTime = this.BotUserState.ConvertToLocalTime(r.EndDate());
 
-                        return
-                            startDateTime.Date == localTime.Date &&     // current day
-                            localTime < endDateTime;                    // not yet overdue
-                    });
+                            return
+                                startDateTime.Date == localTime.Date &&     // current day
+                                localTime < endDateTime;                    // not yet overdue
+                        });
+                }
+                else
+                {
+                    return this.Reservations;
+                }
             }
         }
 
@@ -159,19 +173,26 @@ namespace BoatTracker.Bot.Models
         {
             get
             {
-                var localTime = this.BotUserState.LocalTime();
+                if (this.Reservations.Count > 0)
+                {
+                    var localTime = this.BotUserState.LocalTime();
 
-                return this.Reservations
-                    .Where(r => r.CheckInDate().HasValue && !r.CheckOutDate().HasValue)
-                    .Where(r =>
-                    {
-                        var startDateTime = this.BotUserState.ConvertToLocalTime(r.StartDate());
-                        var endDateTime = this.BotUserState.ConvertToLocalTime(r.EndDate());
+                    return this.Reservations
+                        .Where(r => r.CheckInDate().HasValue && !r.CheckOutDate().HasValue)
+                        .Where(r =>
+                        {
+                            var startDateTime = this.BotUserState.ConvertToLocalTime(r.StartDate());
+                            var endDateTime = this.BotUserState.ConvertToLocalTime(r.EndDate());
 
-                        return
-                            startDateTime.Date == localTime.Date &&     // current day
-                            localTime > endDateTime;                    // overdue
+                            return
+                                startDateTime.Date == localTime.Date &&     // current day
+                                localTime > endDateTime;                    // overdue
                     });
+                }
+                else
+                {
+                    return this.Reservations;
+                }
             }
         }
 
