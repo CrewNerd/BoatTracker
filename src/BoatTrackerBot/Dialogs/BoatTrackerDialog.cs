@@ -1068,7 +1068,8 @@ namespace BoatTracker.Bot
                 UserState userState = new UserState
                 {
                     ClubId = signInForm.ClubInitials,
-                    UserId = user.Id()
+                    UserId = user.Id(),
+                    TimeZone = user.Timezone()
                 };
 
                 context.UserData.SetValue(UserState.PropertyName, userState);
