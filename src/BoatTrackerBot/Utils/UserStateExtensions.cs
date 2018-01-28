@@ -628,7 +628,7 @@ namespace BoatTracker.Bot.Utils
         {
             string timezone;
 
-            if (string.IsNullOrEmpty(userState.TimeZone))
+            if (userState == null || string.IsNullOrEmpty(userState.TimeZone))
             {
                 var user = BookedSchedulerCache.Instance[userState.ClubId].GetUserAsync(userState.UserId).Result;
                 timezone = user.Timezone();
