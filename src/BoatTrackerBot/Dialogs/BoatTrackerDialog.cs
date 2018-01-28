@@ -33,8 +33,6 @@ namespace BoatTracker.Bot
         [NonSerialized]
         private TelemetryClient telemetryClient;
 
-        private BookedSchedulerClient cachedClient;
-
         private string pendingReservationToCancel;
 
         private List<string> pendingReservationsToCancel;
@@ -141,6 +139,7 @@ namespace BoatTracker.Bot
                 string referenceNumber = msg.Split(' ')[1];
 
                 var client = await this.GetClient();
+
                 try
                 {
                     await client.DeleteReservationAsync(referenceNumber);
@@ -282,6 +281,7 @@ namespace BoatTracker.Bot
                         var updatedReservation = await client.GetReservationAsync(reservation.ReferenceNumber());
                         var endTime = this.currentUserState.ConvertToLocalTime(updatedReservation.EndDate());
                         await context.PostAsync($"Okay, you're checked in and clear to go. Your reservation ends at {endTime.ToShortTimeString()}. Be sure to text 'done rowing' when you get back."); 
+                        await this.WarnAboutBoatsOnWater(context, client, reservation);
                     }
                     else
                     {
@@ -531,7 +531,8 @@ namespace BoatTracker.Bot
                         var response = await client.CheckInReservationAsync(reservation.ReferenceNumber());
                         var updatedReservation = await client.GetReservationAsync(reservation.ReferenceNumber());
                         var endTime = this.currentUserState.ConvertToLocalTime(reservation.EndDate());
-                        await context.PostAsync($"Okay, you're all set to take out the {reservation.ResourceName()}. Your reservation ends at {endTime.ToShortTimeString()}. Be sure to text 'done rowing' when you return."); 
+                        await context.PostAsync($"Okay, you're all set to take out the {reservation.ResourceName()}. Your reservation ends at {endTime.ToShortTimeString()}. Be sure to text 'done rowing' when you return.");
+                        await this.WarnAboutBoatsOnWater(context, client, reservation);
                     }
                     catch (Exception ex)
                     {
@@ -546,6 +547,38 @@ namespace BoatTracker.Bot
             }
 
             context.Wait(this.MessageReceived);
+        }
+
+        private async Task WarnAboutBoatsOnWater(IDialogContext context, BookedSchedulerClient client, JToken myReservation)
+        {
+            var localTime = this.currentUserState.LocalTime();
+
+            //
+            // Get all reservations that started in the last few hours and see which ones are still on the water.
+            //
+            var reservations = (await client.GetReservationsAsync(
+                start: localTime - TimeSpan.FromHours(6)))
+                .ToList();
+
+            // Look for reservations starting within 15 minutes (plus or minus) of the current time that aren't already checked in.
+            var boatsOnTheWater = reservations
+                .Where(r => r.CheckInDate().HasValue && !r.CheckOutDate().HasValue && r.ReferenceNumber() != myReservation.ReferenceNumber())
+                .ToList();
+
+            switch (boatsOnTheWater.Count)
+            {
+                case 0:
+                    break;
+
+                case 1:
+                    await context.PostAsync($"Keep an eye out for the {boatsOnTheWater[0].ResourceName()}.");
+                    break;
+
+                default:
+                    var boatNames = string.Join(", ", boatsOnTheWater.Select(r => r.ResourceName()));
+                    await context.PostAsync($"Keep an eye out for these boats: {boatNames}");
+                    break;
+            }
         }
 
         private async Task CreateReservationOnDemand(IDialogContext context, LuisResult result, JToken boat)
@@ -1099,24 +1132,17 @@ namespace BoatTracker.Bot
         }
 
         /// <summary>
-        /// Gets a client object for the user's BookedScheduler instance. These are cached and reused.
+        /// Gets a client object for the user's BookedScheduler instance.
         /// </summary>
         /// <returns>A BookedSchedulerClient instance that is signed in and ready for use.</returns>
         private async Task<BookedSchedulerClient> GetClient()
         {
             var clubInfo = EnvironmentDefinition.Instance.MapClubIdToClubInfo[this.currentUserState.ClubId];
 
-            if (this.cachedClient == null)
-            {
-                this.cachedClient = new BookedSchedulerRetryClient(this.currentUserState.ClubId, true);
-            }
+            var client = new BookedSchedulerRetryClient(this.currentUserState.ClubId, true);
+            await client.SignInAsync(clubInfo.UserName, clubInfo.Password);
 
-            if (!this.cachedClient.IsSignedIn || this.cachedClient.IsSessionExpired)
-            {
-                await this.cachedClient.SignInAsync(clubInfo.UserName, clubInfo.Password);
-            }
-
-            return this.cachedClient;
+            return client;
         }
 
         private async Task ShowHelpMessage(IDialogContext context)
