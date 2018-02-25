@@ -628,7 +628,12 @@ namespace BoatTracker.Bot.Utils
         {
             string timezone;
 
-            if (userState == null || string.IsNullOrEmpty(userState.TimeZone))
+            if (userState == null)
+            {
+                // Worst case - just pick a default time zone so we don't NRE.
+                timezone = TzdbDateTimeZoneSource.Default.WindowsMapping.MapZones.First().TzdbIds.First();
+            }
+            else if (string.IsNullOrEmpty(userState.TimeZone))
             {
                 var user = BookedSchedulerCache.Instance[userState.ClubId].GetUserAsync(userState.UserId).Result;
                 timezone = user.Timezone();
