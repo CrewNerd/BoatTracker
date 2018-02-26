@@ -55,6 +55,17 @@ namespace BoatTracker.Bot
             }
         }
 
+        protected override LuisRequest ModifyLuisRequest(LuisRequest request)
+        {
+            // If we have the user info, we can process the request in their timezone.
+            if (this.currentUserState != null)
+            {
+                request.TimezoneOffset = this.currentUserState.LocalOffsetForDate(DateTime.Now).TotalMinutes;
+            }
+
+            return request;
+        }
+
         #region Intents
 
         [LuisIntent("")]

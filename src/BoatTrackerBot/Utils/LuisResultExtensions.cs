@@ -26,14 +26,6 @@ namespace BoatTracker.Bot.Utils
         private static readonly string[] SingleClassNames = { "single", "singles", "1x" };
         private static readonly string[] DoubleClassNames = { "double", "doubles", "2x" };
 
-        private static readonly string[] DateWords =
-        {
-            "tomorrow",
-            "next",
-            "last",
-            "week",
-        };
-
         /// <summary>
         /// Look for entities that were originally #NN and restore them.
         /// </summary>
@@ -41,43 +33,9 @@ namespace BoatTracker.Bot.Utils
         /// <returns>The repaired result</returns>
         public static LuisResult FixEntities(this LuisResult result, UserState userState)
         {
-            var parser = new Chronic.Parser(
-                new Chronic.Options
-                {
-                    Context = Chronic.Pointer.Type.Future,
-                    Clock = () =>
-                    {
-                        var utcNow = DateTime.UtcNow;
-                        var tzOffset = userState.LocalOffsetForDate(utcNow);
-
-                        return new DateTime((utcNow + tzOffset).Ticks, DateTimeKind.Unspecified);
-                    }
-                });
-
             foreach (var entity in result.Entities)
             {
                 entity.Entity = Regex.Replace(entity.Entity, "xyzzy(?<digits>[0-9]*)$", "#${digits}");
-
-                //
-                // Rewrite certain forms that are sensitive to the timezone
-                //
-                if (entity.Type == "builtin.datetime.date" && entity.Resolution.ContainsKey("date")) 
-                {
-                    if (DateWords.Any(w => entity.Entity.Contains(w)))
-                    {
-                        var span = parser.Parse(entity.Entity);
-
-                        if (span != null)
-                        {
-                            var when = span.Start ?? span.End;
-
-                            if (when.HasValue)
-                            {
-                                entity.Resolution["date"] = when.Value.ToString("yyyy-MM-dd");
-                            }
-                        }
-                    }
-                }
             }
 
             return result;
