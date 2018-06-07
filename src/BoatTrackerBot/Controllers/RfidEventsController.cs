@@ -212,7 +212,7 @@ namespace BoatTracker.Bot.Controllers
                 var direction = ev.Direction == "OUT" ? "leaving" : "entering";
                 message.Text = $"FYI: Your boat ({boat.Name()}) was just seen {direction} through {ev.ReadZone}.";
                 message.Locale = "en-us";
-                await connector.Conversations.SendToConversationAsync((Activity)message, botUser.ConversationId);
+                await connector.Conversations.SendToConversationAsync(botUser.ConversationId, (Activity)message);
             }
             else
             {

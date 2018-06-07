@@ -260,9 +260,18 @@ namespace BoatTracker.Bot
             {
                 request = await result;
             }
-            catch (FormCanceledException)
+            catch (FormCanceledException<ReservationRequest> ex)
             {
-                await context.PostAsync("Okay, I'm aborting your reservation request.");
+                if (ex.InnerException == null)
+                {
+                    await context.PostAsync("Okay, I'm aborting your reservation request.");
+                }
+                else
+                {
+                    await context.PostAsync("I'm sorry - I got a little confused. Please try again.");
+                    this.telemetryClient.TrackException(ex.InnerException);
+                }
+
                 context.Wait(this.MessageReceived);
                 return;
             }
@@ -1077,9 +1086,18 @@ namespace BoatTracker.Bot
             {
                 signInForm = await result;
             }
-            catch (FormCanceledException)
+            catch (FormCanceledException<SignInForm> ex)
             {
-                await context.PostAsync("Okay, I'm aborting your sign-in. You can retry again later.");
+                if (ex.InnerException == null)
+                {
+                    await context.PostAsync("Okay, I'm aborting your sign-in. You can retry again later.");
+                }
+                else
+                {
+                    await context.PostAsync("Okay, I got a little confused. Please try again.");
+                    this.telemetryClient.TrackException(ex.InnerException);
+                }
+
                 context.Wait(this.MessageReceived);
                 return;
             }

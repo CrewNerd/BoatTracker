@@ -1,0 +1,23 @@
+2018-01-21T21:05:48+00:00 [10887] ERROR default - [User=  ()] Failed sending email. Exception: ErrorException: escapeshellcmd() has been disabled for security reasons in /home/u663271549/public_html/sra/lib/external/phpmailer/class.phpmailer.php:1442
+Stack trace:
+#0 [internal function]: Slim\Slim::handleErrors(2, 'escapeshellcmd(...', '/home/u66327154...', 1442, Array)
+#1 /home/u663271549/public_html/sra/lib/external/phpmailer/class.phpmailer.php(1442): escapeshellcmd('no-reply@srarow...')
+#2 /home/u663271549/public_html/sra/lib/external/phpmailer/class.phpmailer.php(1485): PHPMailer::isShellSafe('no-reply@srarow...')
+#3 /home/u663271549/public_html/sra/lib/external/phpmailer/class.phpmailer.php(1337): PHPMailer->mailSend('Date: Sun, 21 J...', 'This is a multi...')
+#4 /home/u663271549/public_html/sra/lib/external/phpmailer/class.phpmailer.php(1213): PHPMailer->postSend()
+#5 /home/u663271549/public_html/sra/lib/Email/EmailService.php(98): PHPMailer->send()
+#6 /home/u663271549/public_html/sra/lib/Application/Reservation/Notification/ParticipantAddedEmailNotification.php(50): EmailService->Send(Object(ParticipantAddedEmail))
+#7 /home/u663271549/public_html/sra/lib/Application/Reservation/Notification/IReservationNotificationService.php(55): ParticipantAddedEmailNotification->Notify(Object(ReservationSeries))
+#8 /home/u663271549/public_html/sra/lib/Application/Reservation/ReservationHandler.php(118): ReservationNotificationService->Notify(Object(ReservationSeries))
+#9 /home/u663271549/public_html/sra/Presenters/Reservation/ReservationSavePresenter.php(173): ReservationHandler->Handle(Object(ReservationSeries), Object(ReservationRequestResponseFacade))
+#10 /home/u663271549/public_html/sra/WebServices/Controllers/ReservationSaveController.php(104): ReservationSavePresenter->HandleReservation(Object(ReservationSeries))
+#11 /home/u663271549/public_html/sra/WebServices/ReservationWriteWebService.php(61): ReservationSaveController->Create(Object(stdClass), Object(WebServiceUserSession))
+#12 [internal function]: ReservationWriteWebService->Create()
+#13 /home/u663271549/public_html/sra/lib/external/Slim/Router.php(200): call_user_func_array(Array, Array)
+#14 /home/u663271549/public_html/sra/lib/external/Slim/Slim.php(1218): Slim\Router->dispatch(Object(Slim\Route))
+#15 /home/u663271549/public_html/sra/lib/external/Slim/Middleware/Flash.php(86): Slim\Slim->call()
+#16 /home/u663271549/public_html/sra/lib/external/Slim/Middleware/MethodOverride.php(94): Slim\Middleware\Flash->call()
+#17 /home/u663271549/public_html/sra/lib/external/Slim/Middleware/PrettyExceptions.php(67): Slim\Middleware\MethodOverride->call()
+#18 /home/u663271549/public_html/sra/lib/external/Slim/Slim.php(1167): Slim\Middleware\PrettyExceptions->call()
+#19 /home/u663271549/public_html/sra/Web/Services/index.php(87): Slim\Slim->run()
+#20 {main} [File=/home/u663271549/public_html/sra/lib/Email/EmailService.php,Line=102]

@@ -40,3 +40,4 @@
 /src/BoatTrackerBot.Tests/obj/Release
 /src/BoatTrackerBot/.vs/BoatTrackerBot/v15/Server/sqlite3
 /src/BoatTrackerBot.Tests/BoatTrackerBotTestsProd.runsettings
+/src/BoatTrackerBot/ClubConfiguration-old.json
