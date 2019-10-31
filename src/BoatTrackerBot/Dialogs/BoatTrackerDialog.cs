@@ -269,7 +269,7 @@ namespace BoatTracker.Bot
                 else
                 {
                     await context.PostAsync("I'm sorry - I got a little confused. Please try again.");
-                    this.telemetryClient.TrackException(ex.InnerException);
+                    this.TelemetryClient.TrackException(ex.InnerException);
                 }
 
                 context.Wait(this.MessageReceived);
@@ -1095,7 +1095,7 @@ namespace BoatTracker.Bot
                 else
                 {
                     await context.PostAsync("Okay, I got a little confused. Please try again.");
-                    this.telemetryClient.TrackException(ex.InnerException);
+                    this.TelemetryClient.TrackException(ex.InnerException);
                 }
 
                 context.Wait(this.MessageReceived);

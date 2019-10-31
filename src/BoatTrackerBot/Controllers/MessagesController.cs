@@ -59,7 +59,22 @@ namespace BoatTracker.Bot
                                 var pattern = @"#(?<suffix>[0-9]*)\s";
                                 activity.Text = Regex.Replace(activity.Text, pattern, @"xYZzy${suffix} ");
 
-                                await Conversation.SendAsync(activity, () => new BoatTrackerDialog(this.LuisService));
+                                try
+                                {
+                                    await Conversation.SendAsync(activity, () => new BoatTrackerDialog(this.LuisService));
+                                }
+                                catch (Microsoft.Rest.ValidationException)
+                                {
+                                    // Try to work around an intermittent ValidationException problem by retrying...
+                                    Trace.TraceWarning($"Caught Microsoft.Rest.ValidationException - retrying...");
+
+                                    await Task.Delay(500);
+                                    await Conversation.SendAsync(activity, () => new BoatTrackerDialog(this.LuisService));
+                                }
+                                catch (Exception)
+                                {
+                                    throw;
+                                }
                             }
                             else
                             {
@@ -81,9 +96,6 @@ namespace BoatTracker.Bot
                                 }
                             }
 
-                            break;
-
-                        case ActivityTypes.Ping:
                             break;
 
                         case ActivityTypes.ConversationUpdate:

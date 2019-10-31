@@ -21,13 +21,13 @@ namespace BoatTrackerWebJob
             var logName = $"{env.Name}_report_{timestamp}";
 
             var host = new JobHost();
-            host.Call(
+            host.CallAsync(
                 typeof(DailyReport).GetMethod("SendDailyReport"),
                 new
                 {
                     logName = logName,
                     log = $"container/{logName}"
-                });
+                }).Wait();
 
             // We refresh the bot caches every two hours for now. The bots will automatically
             // refresh on their own every 8 hours if the webjob fails to run for some reason.
@@ -36,13 +36,13 @@ namespace BoatTrackerWebJob
             if (DateTime.UtcNow.Hour % 2 == 0)
             {
                 logName = $"{env.Name}_refresh_{timestamp}";
-                host.Call(
+                host.CallAsync(
                     typeof(RefreshCaches).GetMethod("RefreshBotCaches"),
                     new
                     {
                         logName = logName,
                         log = $"container/{logName}"
-                    });
+                    }).Wait();
             }
         }
     }
